@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Home</title>
+<style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,system-ui,sans-serif;background:#f0f0f0;padding:40px 20px;min-height:100vh;color:#333}
+    .container{max-width:1200px;margin:0 auto;position:relative}
+    .home-btn{position:absolute;top:0;right:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
+              border-radius:8px;display:none;justify-content:center;cursor:pointer;transition:.2s;
+              text-decoration:none;color:#667eea;font-size:24px;font-weight:bold}
+    .home-btn:hover{border-color:#667eea;background:#f8f8ff}
+    .home-btn.show{display:flex}
+    .upload-btn{position:absolute;top:0;right:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
+                border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
+                color:#667eea;font-size:20px;font-weight:bold}
+    .upload-btn:hover{border-color:#667eea;background:#f8f8ff}
+    .upload-btn.show{display:flex}
+    #csvFileInput{display:none}
+    h1{font-size:2.8rem;color:#667eea;text-align:center;margin-bottom:40px;font-weight:700}
+    #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px}
+    a.tile{text-decoration:none;color:#666;display:block;border-radius:12px;overflow:visible;
+           box-shadow:none;transition:.2s;background:white;border:2px solid #e0e0e0;position:relative}
+    a.tile:hover{transform:translateY(-2px);border-color:#667eea;box-shadow:0 4px 12px rgba(102,126,234,0.15)}
+    .inner{position:relative;height:140px}
+    .content{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;
+             justify-content:center;padding:16px;text-align:center}
+    .icon{width:40px;height:40px;margin-bottom:8px;object-fit:contain}
+    .title{font-size:0.9rem;font-weight:600;text-shadow:none;margin-bottom:0;line-height:1.2}
+    .desc{font-size:0.8rem;opacity:0.6;text-shadow:none;line-height:1.2;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="container">
+    <a href="#home" class="home-btn" id="homeBtn" title="Home">⌂</a>
+    <button class="upload-btn" id="uploadBtn" title="Upload CSV">↑</button>
+    <input type="file" id="csvFileInput" accept=".csv">
+    <h1 id="pageHeader">Home</h1>
+    <div id="grid"></div>
+</div>
+<script>
+// YOUR DATA — Edit only this CSV block at the bottom!
+const defaultCsvData = `
+page,text,url,icon,desc,copy
+home,GitHub,https://github.com,TRUE,Code Repository,
+home,Gmail,https://mail.google.com,TRUE,Email,
+home,Tools,#Tools,,,
+home,Social,#Social,,,
+
+Tools,Calculator,https://www.calculator.net,TRUE,Online Calculator,
+Tools,Notepad,https://notepad-plus-plus.org,TRUE,Text Editor,
+
+Social,Twitter,https://twitter.com,TRUE,Social Media,
+Social,LinkedIn,https://linkedin.com,TRUE,Professional Network,
+
+`.trim();
+// Parse CSV
+function parseCsvData(csvText) {
+    const rows = csvText.split('\n');
+    const headers = rows[0].split(',').map(h => h.trim());
+    const items = rows.slice(1).map(line => {
+        const vals = line.split(',').map(v => v.trim());
+        const obj = {};
+        headers.forEach((h,i) => obj[h] = vals[i] || '');
+        return obj;
+    });
+    return items;
+}
+
+// Load CSV data from localStorage or use default
+function loadCsvData() {
+    const saved = localStorage.getItem('csvData');
+    return saved ? saved : defaultCsvData;
+}
+
+// Storage functions
+function saveCsvData(csvContent) {
+    localStorage.setItem('csvData', csvContent);
+}
+
+let csvData = loadCsvData();
+let items = parseCsvData(csvData);
+function render() {
+    const current = location.hash.slice(1) || 'home';
+    document.getElementById('pageTitle').textContent =
+    document.getElementById('pageHeader').textContent =
+        current === 'home' ? 'Home' : current.charAt(0).toUpperCase() + current.slice(1);
+    
+    // Show/hide home button and upload button
+    const homeBtn = document.getElementById('homeBtn');
+    const uploadBtn = document.getElementById('uploadBtn');
+    if (current === 'home') {
+        homeBtn.classList.remove('show');
+        uploadBtn.classList.add('show');
+    } else {
+        homeBtn.classList.add('show');
+        uploadBtn.classList.remove('show');
+    }
+    
+    const tiles = items
+        .filter(item => item.page === current)
+        .map(item => {
+            const isExternal = item.url.startsWith('http');
+            const target = isExternal ? 'target="_blank"' : '';
+            const href = item.url || '#';
+            
+            // Only get icon if icon field is not explicitly false or empty
+            let iconHtml = '';
+            const iconLower = item.icon.toLowerCase();
+            if (iconLower !== 'false' && item.icon !== '') {
+                let iconUrl;
+                if (iconLower === 'true') {
+                    // Get favicon from the URL
+                    iconUrl = `https://www.google.com/s2/favicons?sz=128&domain=${item.url.replace('#','')||'example.com'}`;
+                } else {
+                    // Use the custom icon URL provided
+                    iconUrl = item.icon;
+                }
+                iconHtml = `<img src="${iconUrl}" alt="" class="icon">`;
+            }
+            
+            return `
+                <a href="${href}" class="tile" ${target} ${item.copy ? `onclick="copyText(event, '${item.copy.replace(/'/g, "\\\'")}')"` : ''}>
+                    <div class="inner">
+                        <div class="content">
+                            ${iconHtml}
+                            <div class="title">${item.text}</div>
+                            ${item.desc ? `<div class="desc">${item.desc}</div>` : ''}
+                        </div>
+                    </div>
+                </a>`;
+        }).join('');
+    document.getElementById('grid').innerHTML = tiles;
+}
+function copyText(event, text) {
+    event.preventDefault();
+    const tile = event.currentTarget;
+    const href = tile.getAttribute('href');
+    const isExternal = href.startsWith('http');
+    
+    navigator.clipboard.writeText(text).then(() => {
+        // Show a brief confirmation
+        const originalBorder = tile.style.borderColor;
+        tile.style.borderColor = '#4ade80';
+        setTimeout(() => {
+            tile.style.borderColor = originalBorder;
+        }, 150);
+        
+        // Open the link after copying
+        if (isExternal) {
+            window.open(href, '_blank');
+        } else {
+            window.location.href = href;
+        }
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        // Still navigate even if copy fails
+        if (isExternal) {
+            window.open(href, '_blank');
+        } else {
+            window.location.href = href;
+        }
+    });
+}
+// Upload CSV functionality
+document.getElementById('uploadBtn').addEventListener('click', () => {
+    document.getElementById('csvFileInput').click();
+});
+
+document.getElementById('csvFileInput').addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const csvContent = e.target.result;
+            saveCsvData(csvContent);
+            // Update the data and re-render
+            csvData = csvContent;
+            items = parseCsvData(csvData);
+            location.hash = 'home';
+            render();
+        };
+        reader.readAsText(file);
+    }
+    // Reset the file input so the same file can be selected again
+    event.target.value = '';
+});
+// Run on load and hash change
+window.onhashchange = render;
+render();
+</script>
+</body>
+</html>
