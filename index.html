@@ -6,8 +6,10 @@
 <title id="pageTitle">Home</title>
 <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:-apple-system,system-ui,sans-serif;background:#f0f0f0;padding:40px 20px;min-height:100vh;color:#333}
-    .container{max-width:1200px;margin:0 auto;position:relative}
+    body{font-family:-apple-system,system-ui,sans-serif;background:#f0f0f0;min-height:100vh;color:#333}
+    header{background:white;padding:10px 20px;margin-bottom:40px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
+    .header-container{max-width:1200px;margin:0 auto;position:relative;display:flex;align-items:center;justify-content:center}
+    .container{max-width:1200px;margin:0 auto;padding:0 20px}
     .home-btn{position:absolute;top:0;right:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
               border-radius:8px;display:none;justify-content:center;cursor:pointer;transition:.2s;
               text-decoration:none;color:#667eea;font-size:24px;font-weight:bold}
@@ -18,11 +20,18 @@
                 color:#667eea;font-size:20px;font-weight:bold}
     .upload-btn:hover{border-color:#667eea;background:#f8f8ff}
     .upload-btn.show{display:flex}
+    .download-btn{position:absolute;top:0;right:50px;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
+                  border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
+                  color:#667eea;font-size:20px;font-weight:bold}
+    .download-btn:hover{border-color:#667eea;background:#f8f8ff}
+    .download-btn.show{display:flex}
     #csvFileInput{display:none}
-    h1{font-size:2.8rem;color:#667eea;text-align:center;margin-bottom:40px;font-weight:700}
+    h1{font-size:2rem;color:#667eea;text-align:center;font-weight:700;margin:0}
     #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px}
     a.tile{text-decoration:none;color:#666;display:block;border-radius:12px;overflow:visible;
-           box-shadow:none;transition:.2s;background:white;border:2px solid #e0e0e0;position:relative}
+           transition:.2s;background:white;border:2px solid #e0e0e0;position:relative;
+           box-shadow:2px 2px 5px rgba(0, 0, 0, 0.1)}
+    a.tile.folder{background:rgb(233, 233, 233)}
     a.tile:hover{transform:translateY(-2px);border-color:#667eea;box-shadow:0 4px 12px rgba(102,126,234,0.15)}
     .inner{position:relative;height:140px}
     .content{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;
@@ -33,27 +42,40 @@
 </style>
 </head>
 <body>
+<header>
+    <div class="header-container">
+        <a href="#home" class="home-btn" id="homeBtn" title="Home">⌂</a>
+        <h1 id="pageHeader">Home</h1>
+        <button class="download-btn" id="downloadBtn" title="Download CSV">↓</button>
+        <button class="upload-btn" id="uploadBtn" title="Upload CSV">↑</button>
+        <input type="file" id="csvFileInput" accept=".csv">
+    </div>
+</header>
 <div class="container">
-    <a href="#home" class="home-btn" id="homeBtn" title="Home">⌂</a>
-    <button class="upload-btn" id="uploadBtn" title="Upload CSV">↑</button>
-    <input type="file" id="csvFileInput" accept=".csv">
-    <h1 id="pageHeader">Home</h1>
     <div id="grid"></div>
 </div>
 <script>
 // YOUR DATA — Edit only this CSV block at the bottom!
 const defaultCsvData = `
 page,text,url,icon,desc,copy
-home,GitHub,https://github.com,TRUE,Code Repository,
-home,Gmail,https://mail.google.com,TRUE,Email,
 home,Tools,#Tools,,,
 home,Social,#Social,,,
+home,AI,#AI,https://www.freeiconspng.com/uploads/robot-icon-17.png,,
+home,GitHub,https://github.com,TRUE,Code Repository,
+home,Gmail,https://mail.google.com,TRUE,Email,
+
 
 Tools,Calculator,https://www.calculator.net,TRUE,Online Calculator,
 Tools,Notepad,https://notepad-plus-plus.org,TRUE,Text Editor,
 
 Social,Twitter,https://twitter.com,TRUE,Social Media,
 Social,LinkedIn,https://linkedin.com,TRUE,Professional Network,
+
+AI,Claude,https://claude.ai/,TRUE,,
+AI,Grok,https://grok.com/,TRUE,,
+AI,Gemini,https://gemini.google.com/app,TRUE,,
+AI,DeepSeek,https://chat.deepseek.com/,TRUE,,
+AI,Google NotebookLM,https://notebooklm.google/,TRUE,,
 
 `.trim();
 // Parse CSV
@@ -87,25 +109,29 @@ function render() {
     document.getElementById('pageTitle').textContent =
     document.getElementById('pageHeader').textContent =
         current === 'home' ? 'Home' : current.charAt(0).toUpperCase() + current.slice(1);
-    
+   
     // Show/hide home button and upload button
     const homeBtn = document.getElementById('homeBtn');
     const uploadBtn = document.getElementById('uploadBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
     if (current === 'home') {
         homeBtn.classList.remove('show');
         uploadBtn.classList.add('show');
+        downloadBtn.classList.add('show');
     } else {
         homeBtn.classList.add('show');
         uploadBtn.classList.remove('show');
+        downloadBtn.classList.remove('show');
     }
-    
+   
     const tiles = items
         .filter(item => item.page === current)
         .map(item => {
             const isExternal = item.url.startsWith('http');
+            const isFolder = item.url.startsWith('#') && item.url !== '#';
             const target = isExternal ? 'target="_blank"' : '';
             const href = item.url || '#';
-            
+           
             // Only get icon if icon field is not explicitly false or empty
             let iconHtml = '';
             const iconLower = item.icon.toLowerCase();
@@ -120,9 +146,9 @@ function render() {
                 }
                 iconHtml = `<img src="${iconUrl}" alt="" class="icon">`;
             }
-            
+           
             return `
-                <a href="${href}" class="tile" ${target} ${item.copy ? `onclick="copyText(event, '${item.copy.replace(/'/g, "\\\'")}')"` : ''}>
+                <a href="${href}" class="tile ${isFolder ? 'folder' : ''}" ${target} ${item.copy ? `onclick="copyText(event, '${item.copy.replace(/'/g, "\\\'")}')"` : ''}>
                     <div class="inner">
                         <div class="content">
                             ${iconHtml}
@@ -139,7 +165,7 @@ function copyText(event, text) {
     const tile = event.currentTarget;
     const href = tile.getAttribute('href');
     const isExternal = href.startsWith('http');
-    
+   
     navigator.clipboard.writeText(text).then(() => {
         // Show a brief confirmation
         const originalBorder = tile.style.borderColor;
@@ -147,7 +173,7 @@ function copyText(event, text) {
         setTimeout(() => {
             tile.style.borderColor = originalBorder;
         }, 150);
-        
+       
         // Open the link after copying
         if (isExternal) {
             window.open(href, '_blank');
@@ -167,6 +193,20 @@ function copyText(event, text) {
 // Upload CSV functionality
 document.getElementById('uploadBtn').addEventListener('click', () => {
     document.getElementById('csvFileInput').click();
+});
+
+// Download CSV functionality
+document.getElementById('downloadBtn').addEventListener('click', () => {
+    const csvContent = loadCsvData();
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'homepage-data.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 });
 
 document.getElementById('csvFileInput').addEventListener('change', (event) => {
