@@ -5,231 +5,598 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title id="pageTitle">Home</title>
 <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:-apple-system,system-ui,sans-serif;background:#f0f0f0;min-height:100vh;color:#333}
-    header{background:white;padding:10px 20px;margin-bottom:40px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
-    .header-container{max-width:1200px;margin:0 auto;position:relative;display:flex;align-items:center;justify-content:center}
-    .container{max-width:1200px;margin:0 auto;padding:0 20px}
-    .home-btn{position:absolute;top:0;right:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
-              border-radius:8px;display:none;justify-content:center;cursor:pointer;transition:.2s;
-              text-decoration:none;color:#667eea;font-size:24px;font-weight:bold}
-    .home-btn:hover{border-color:#667eea;background:#f8f8ff}
-    .home-btn.show{display:flex}
-    .upload-btn{position:absolute;top:0;right:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
-                border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
-                color:#667eea;font-size:20px;font-weight:bold}
-    .upload-btn:hover{border-color:#667eea;background:#f8f8ff}
-    .upload-btn.show{display:flex}
-    .download-btn{position:absolute;top:0;right:50px;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
-                  border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
-                  color:#667eea;font-size:20px;font-weight:bold}
-    .download-btn:hover{border-color:#667eea;background:#f8f8ff}
-    .download-btn.show{display:flex}
-    #csvFileInput{display:none}
-    h1{font-size:2rem;color:#667eea;text-align:center;font-weight:700;margin:0}
-    #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px}
-    a.tile{text-decoration:none;color:#666;display:block;border-radius:12px;overflow:visible;
-           transition:.2s;background:white;border:2px solid #e0e0e0;position:relative;
-           box-shadow:2px 2px 5px rgba(0, 0, 0, 0.1)}
-    a.tile.folder{background:rgb(233, 233, 233)}
-    a.tile:hover{transform:translateY(-2px);border-color:#667eea;box-shadow:0 4px 12px rgba(102,126,234,0.15)}
-    .inner{position:relative;height:140px}
-    .content{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;
-             justify-content:center;padding:16px;text-align:center}
-    .icon{width:40px;height:40px;margin-bottom:8px;object-fit:contain}
-    .title{font-size:0.9rem;font-weight:600;text-shadow:none;margin-bottom:0;line-height:1.2}
-    .desc{font-size:0.8rem;opacity:0.6;text-shadow:none;line-height:1.2;margin-top:4px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,system-ui,sans-serif;background:#f0f0f0;min-height:100vh;color:#333}
+header{background:white;padding:10px 20px;margin-bottom:40px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
+.header-container{max-width:1200px;margin:0 auto;position:relative;display:flex;align-items:center;justify-content:center}
+.container{max-width:1200px;margin:0 auto;padding:0 20px}
+
+.home-btn{position:absolute;top:0;right:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
+border-radius:8px;display:none;justify-content:center;cursor:pointer;transition:.2s;
+text-decoration:none;color:#667eea;font-size:24px;font-weight:bold}
+.home-btn:hover{border-color:#667eea;background:#f8f8ff}
+.home-btn.show{display:flex}
+
+/* Button row: right side of header */
+.btn-group{position:absolute;top:0;right:0;display:flex;gap:8px}
+.hdr-btn{width:40px;height:40px;background:white;border:2px solid #e0e0e0;
+border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
+color:#667eea;font-size:18px;font-weight:bold;position:relative}
+.hdr-btn:hover{border-color:#667eea;background:#f8f8ff}
+.hdr-btn.show{display:flex}
+.hdr-btn[title]:hover::after{content:attr(title);position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);
+background:#333;color:white;font-size:11px;padding:2px 6px;border-radius:4px;white-space:nowrap;pointer-events:none;z-index:10}
+
+#csvFileInput{display:none}
+
+h1{font-size:2rem;color:#667eea;text-align:center;font-weight:700;margin:0}
+
+/* Gist status badge */
+#gistStatus{position:absolute;top:0;left:0;font-size:11px;padding:3px 8px;border-radius:6px;display:none;align-items:center;gap:4px;font-weight:600;border:1.5px solid}
+#gistStatus.show{display:flex}
+#gistStatus.remote{background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7}
+#gistStatus.local{background:#fff8e1;color:#f57f17;border-color:#ffe082}
+#gistStatus.syncing{background:#e3f2fd;color:#1565c0;border-color:#90caf9}
+#gistStatus.error{background:#ffebee;color:#c62828;border-color:#ef9a9a}
+
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px}
+
+a.tile{text-decoration:none;color:#666;display:block;border-radius:12px;overflow:visible;
+transition:.2s;background:white;border:2px solid #e0e0e0;position:relative;
+box-shadow:2px 2px 5px rgba(0,0,0,0.1)}
+a.tile.folder{background:rgb(233,233,233)}
+a.tile:hover{transform:translateY(-2px);border-color:#667eea;box-shadow:0 4px 12px rgba(102,126,234,0.15)}
+.inner{position:relative;height:140px}
+.content{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;
+justify-content:center;padding:16px;text-align:center}
+.icon{width:40px;height:40px;margin-bottom:8px;object-fit:contain}
+.title{font-size:0.9rem;font-weight:600;text-shadow:none;margin-bottom:0;line-height:1.2}
+.desc{font-size:0.8rem;opacity:0.6;text-shadow:none;line-height:1.2;margin-top:4px}
+
+/* Modal overlay */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:white;border-radius:16px;padding:28px 32px;max-width:480px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.18)}
+.modal h2{font-size:1.1rem;color:#333;margin-bottom:6px}
+.modal p{font-size:0.85rem;color:#666;margin-bottom:16px;line-height:1.5}
+.modal input,.modal textarea{width:100%;border:2px solid #e0e0e0;border-radius:8px;padding:10px 12px;
+font-size:0.9rem;font-family:monospace;outline:none;transition:.2s;resize:vertical}
+.modal input:focus,.modal textarea:focus{border-color:#667eea}
+.modal-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end}
+.btn{padding:9px 20px;border-radius:8px;border:none;font-size:0.9rem;font-weight:600;cursor:pointer;transition:.2s}
+.btn-primary{background:#667eea;color:white}
+.btn-primary:hover{background:#5a6fd6}
+.btn-secondary{background:#f0f0f0;color:#555}
+.btn-secondary:hover{background:#e0e0e0}
+.btn-danger{background:#ffebee;color:#c62828;border:1.5px solid #ef9a9a}
+.btn-danger:hover{background:#ffcdd2}
+.copy-url-box{display:flex;gap:8px;margin-top:10px}
+.copy-url-box input{flex:1;font-size:0.8rem}
+.copy-url-box button{white-space:nowrap}
+.modal-section{margin-top:18px;padding-top:18px;border-top:1px solid #eee}
+.modal-label{font-size:0.78rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
 </style>
 </head>
 <body>
+
 <header>
-    <div class="header-container">
-        <a href="#home" class="home-btn" id="homeBtn" title="Home">⌂</a>
-        <h1 id="pageHeader">Home</h1>
-        <button class="download-btn" id="downloadBtn" title="Download CSV">↓</button>
-        <button class="upload-btn" id="uploadBtn" title="Upload CSV">↑</button>
-        <input type="file" id="csvFileInput" accept=".csv">
+  <div class="header-container">
+    <span id="gistStatus" class="show local">💾 Local</span>
+    <a href="#home" class="home-btn" id="homeBtn" title="Home">⌂</a>
+    <h1 id="pageHeader">Home</h1>
+    <div class="btn-group" id="btnGroup">
+      <button class="hdr-btn" id="syncBtn"  title="Gist sync">☁</button>
+      <button class="hdr-btn" id="downloadBtn" title="Download CSV">↓</button>
+      <button class="hdr-btn" id="uploadBtn"  title="Upload CSV">↑</button>
     </div>
+    <input type="file" id="csvFileInput" accept=".csv">
+  </div>
 </header>
+
 <div class="container">
-    <div id="grid"></div>
+  <div id="grid"></div>
 </div>
+
+<!-- Gist Sync Modal -->
+<div class="modal-overlay" id="syncModal">
+  <div class="modal">
+    <h2>☁ GitHub Gist Sync</h2>
+    <p>Store your links in a GitHub Gist so you can share or load them from anywhere using a URL parameter.</p>
+
+    <div id="syncCurrentInfo" style="display:none;margin-bottom:12px;padding:10px 12px;background:#f5f5f5;border-radius:8px;font-size:0.82rem;color:#555">
+      <strong>Current Gist:</strong> <span id="syncGistIdDisplay"></span>
+    </div>
+
+    <div class="modal-label">GitHub Personal Access Token</div>
+    <input type="password" id="patInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+    <p style="margin-top:6px;margin-bottom:0;font-size:0.78rem;color:#aaa">
+      Needs <code>gist</code> scope only. Stored in your browser's localStorage — never sent anywhere except api.github.com.
+      <a href="https://github.com/settings/tokens/new?scopes=gist&description=link_page" target="_blank" style="color:#667eea">Create a token ↗</a>
+    </p>
+
+    <div class="modal-section">
+      <div class="modal-label">Load from existing Gist ID</div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="loadGistIdInput" placeholder="e.g. 4b2c1f9d8a..." style="flex:1">
+        <button class="btn btn-secondary" onclick="loadFromGistId()">Load</button>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-label">Push current data to Gist</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="pushToGist(false)">Create new Gist</button>
+        <button class="btn btn-secondary" id="updateGistBtn" onclick="pushToGist(true)" style="display:none">Update current Gist</button>
+      </div>
+    </div>
+
+    <div class="modal-section" id="shareSection" style="display:none">
+      <div class="modal-label">Shareable URL</div>
+      <div class="copy-url-box">
+        <input type="text" id="shareUrlBox" readonly>
+        <button class="btn btn-secondary" onclick="copyShareUrl()">Copy</button>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="clearTokenBtn" onclick="clearToken()">Clear token</button>
+      <button class="btn btn-secondary" onclick="closeModal('syncModal')">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
-// YOUR DATA — Edit only this CSV block at the bottom!
-const defaultCsvData = `
-page,text,url,icon,desc,copy
+// ─────────────────────────────────────────────
+// DEFAULT DATA
+// ─────────────────────────────────────────────
+const defaultCsvData = `page,text,url,icon,desc,copy
 home,Tools,#Tools,,,
 home,Social,#Social,,,
 home,AI,#AI,https://www.freeiconspng.com/uploads/robot-icon-17.png,,
 home,GitHub,https://github.com,TRUE,Code Repository,
 home,Gmail,https://mail.google.com,TRUE,Email,
-
-
 Tools,Calculator,https://www.calculator.net,TRUE,Online Calculator,
 Tools,Notepad,https://notepad-plus-plus.org,TRUE,Text Editor,
-
 Social,Twitter,https://twitter.com,TRUE,Social Media,
 Social,LinkedIn,https://linkedin.com,TRUE,Professional Network,
-
 AI,Claude,https://claude.ai/,TRUE,,
 AI,Grok,https://grok.com/,TRUE,,
 AI,Gemini,https://gemini.google.com/app,TRUE,,
 AI,DeepSeek,https://chat.deepseek.com/,TRUE,,
-AI,Google NotebookLM,https://notebooklm.google/,TRUE,,
+AI,Google NotebookLM,https://notebooklm.google/,TRUE,,`.trim();
 
-`.trim();
-// Parse CSV
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let items = [];
+let currentGistId = null;   // gist ID currently loaded (null = local only)
+let isRemote = false;
+
+// ─────────────────────────────────────────────
+// CSV PARSING
+// ─────────────────────────────────────────────
 function parseCsvData(csvText) {
-    const rows = csvText.split('\n');
-    const headers = rows[0].split(',').map(h => h.trim());
-    const items = rows.slice(1).map(line => {
-        const vals = line.split(',').map(v => v.trim());
-        const obj = {};
-        headers.forEach((h,i) => obj[h] = vals[i] || '');
-        return obj;
-    });
-    return items;
+  const rows = csvText.trim().split('\n');
+  const headers = rows[0].split(',').map(h => h.trim());
+  return rows.slice(1).map(line => {
+    const vals = line.split(',').map(v => v.trim());
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = vals[i] || '');
+    return obj;
+  });
 }
 
-// Load CSV data from localStorage or use default
-function loadCsvData() {
-    const saved = localStorage.getItem('csvData');
-    return saved ? saved : defaultCsvData;
+function buildCsv() {
+  const headers = 'page,text,url,icon,desc,copy';
+  const rows = items.map(i =>
+    [i.page, i.text, i.url, i.icon, i.desc, i.copy].join(',')
+  );
+  return [headers, ...rows].join('\n');
 }
 
-// Storage functions
-function saveCsvData(csvContent) {
-    localStorage.setItem('csvData', csvContent);
+// ─────────────────────────────────────────────
+// LOCAL STORAGE
+// ─────────────────────────────────────────────
+function saveLocal(csv) {
+  localStorage.setItem('csvData', csv);
 }
 
-let csvData = loadCsvData();
-let items = parseCsvData(csvData);
-function render() {
-    const current = location.hash.slice(1) || 'home';
-    document.getElementById('pageTitle').textContent =
-    document.getElementById('pageHeader').textContent =
-        current === 'home' ? 'Home' : current.charAt(0).toUpperCase() + current.slice(1);
-   
-    // Show/hide home button and upload button
-    const homeBtn = document.getElementById('homeBtn');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
-    if (current === 'home') {
-        homeBtn.classList.remove('show');
-        uploadBtn.classList.add('show');
-        downloadBtn.classList.add('show');
+function loadLocal() {
+  return localStorage.getItem('csvData') || defaultCsvData;
+}
+
+function savePat(pat) {
+  if (pat) localStorage.setItem('gh_pat', pat);
+}
+
+function loadPat() {
+  return localStorage.getItem('gh_pat') || '';
+}
+
+function clearToken() {
+  localStorage.removeItem('gh_pat');
+  document.getElementById('patInput').value = '';
+  alert('Token cleared.');
+}
+
+// ─────────────────────────────────────────────
+// URL PARAMS
+// ─────────────────────────────────────────────
+function getUrlParam(key) {
+  return new URLSearchParams(window.location.search).get(key);
+}
+
+function setUrlParam(key, value) {
+  const url = new URL(window.location.href);
+  // Strip hash before setting search so we don't corrupt routing
+  const hash = window.location.hash;
+  url.search = '';
+  url.searchParams.set(key, value);
+  // Restore hash
+  history.replaceState(null, '', url.pathname + url.search + hash);
+}
+
+function clearUrlParam(key) {
+  const url = new URL(window.location.href);
+  url.searchParams.delete(key);
+  history.replaceState(null, '', url.pathname + url.search + window.location.hash);
+}
+
+// ─────────────────────────────────────────────
+// STATUS BADGE
+// ─────────────────────────────────────────────
+function setStatus(type, label) {
+  const el = document.getElementById('gistStatus');
+  el.className = 'show ' + type;
+  el.textContent = label;
+}
+
+// ─────────────────────────────────────────────
+// GITHUB GIST API
+// ─────────────────────────────────────────────
+const GIST_FILENAME = 'link_page.csv';
+
+async function fetchGist(gistId) {
+  const res = await fetch(`https://api.github.com/gists/${gistId}`);
+  if (!res.ok) throw new Error(`Gist fetch failed: ${res.status}`);
+  const data = await res.json();
+  const file = data.files[GIST_FILENAME];
+  if (!file) throw new Error(`File "${GIST_FILENAME}" not found in gist`);
+  // If truncated, fetch raw
+  if (file.truncated) {
+    const raw = await fetch(file.raw_url);
+    return await raw.text();
+  }
+  return file.content;
+}
+
+async function createGist(csvContent, pat) {
+  const res = await fetch('https://api.github.com/gists', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${pat}`
+    },
+    body: JSON.stringify({
+      description: 'link_page data',
+      public: false,
+      files: { [GIST_FILENAME]: { content: csvContent } }
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Create failed: ${res.status}`);
+  }
+  return await res.json(); // .id
+}
+
+async function updateGist(gistId, csvContent, pat) {
+  const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${pat}`
+    },
+    body: JSON.stringify({
+      files: { [GIST_FILENAME]: { content: csvContent } }
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Update failed: ${res.status}`);
+  }
+  return await res.json();
+}
+
+// ─────────────────────────────────────────────
+// LOAD FROM GIST ID
+// ─────────────────────────────────────────────
+async function loadFromGistId(gistId) {
+  gistId = gistId || document.getElementById('loadGistIdInput').value.trim();
+  if (!gistId) { alert('Please enter a Gist ID.'); return; }
+  setStatus('syncing', '⟳ Loading…');
+  try {
+    const csv = await fetchGist(gistId);
+    applyData(csv, gistId, true);
+    setUrlParam('gist', gistId);
+    updateSyncModal(gistId);
+    closeModal('syncModal');
+    setStatus('remote', '☁ Remote');
+  } catch (e) {
+    setStatus('error', '✕ Error');
+    alert('Could not load gist: ' + e.message);
+  }
+}
+
+// ─────────────────────────────────────────────
+// PUSH TO GIST
+// ─────────────────────────────────────────────
+async function pushToGist(updateExisting) {
+  const pat = document.getElementById('patInput').value.trim() || loadPat();
+  if (!pat) { alert('Please enter your GitHub Personal Access Token.'); return; }
+  savePat(pat);
+  document.getElementById('patInput').value = pat;
+
+  setStatus('syncing', '⟳ Syncing…');
+  const csv = buildCsv();
+
+  try {
+    let gistData;
+    if (updateExisting && currentGistId) {
+      gistData = await updateGist(currentGistId, csv, pat);
     } else {
-        homeBtn.classList.add('show');
-        uploadBtn.classList.remove('show');
-        downloadBtn.classList.remove('show');
+      gistData = await createGist(csv, pat);
     }
-   
-    const tiles = items
-        .filter(item => item.page === current)
-        .map(item => {
-            const isExternal = item.url.startsWith('http');
-            const isFolder = item.url.startsWith('#') && item.url !== '#';
-            const target = isExternal ? 'target="_blank"' : '';
-            const href = item.url || '#';
-           
-            // Only get icon if icon field is not explicitly false or empty
-            let iconHtml = '';
-            const iconLower = item.icon.toLowerCase();
-            if (iconLower !== 'false' && item.icon !== '') {
-                let iconUrl;
-                if (iconLower === 'true') {
-                    // Get favicon from the URL
-                    iconUrl = `https://www.google.com/s2/favicons?sz=128&domain=${item.url.replace('#','')||'example.com'}`;
-                } else {
-                    // Use the custom icon URL provided
-                    iconUrl = item.icon;
-                }
-                iconHtml = `<img src="${iconUrl}" alt="" class="icon">`;
-            }
-           
-            return `
-                <a href="${href}" class="tile ${isFolder ? 'folder' : ''}" ${target} ${item.copy ? `onclick="copyText(event, '${item.copy.replace(/'/g, "\\\'")}')"` : ''}>
-                    <div class="inner">
-                        <div class="content">
-                            ${iconHtml}
-                            <div class="title">${item.text}</div>
-                            ${item.desc ? `<div class="desc">${item.desc}</div>` : ''}
-                        </div>
-                    </div>
-                </a>`;
-        }).join('');
-    document.getElementById('grid').innerHTML = tiles;
+    const gistId = gistData.id;
+    currentGistId = gistId;
+    isRemote = true;
+    setUrlParam('gist', gistId);
+    saveLocal(csv);
+    setStatus('remote', '☁ Remote');
+    updateSyncModal(gistId);
+    // Show share URL
+    showShareUrl(gistId);
+  } catch (e) {
+    setStatus('error', '✕ Error');
+    alert('Gist sync failed: ' + e.message);
+  }
 }
-function copyText(event, text) {
-    event.preventDefault();
-    const tile = event.currentTarget;
-    const href = tile.getAttribute('href');
-    const isExternal = href.startsWith('http');
-   
-    navigator.clipboard.writeText(text).then(() => {
-        // Show a brief confirmation
-        const originalBorder = tile.style.borderColor;
-        tile.style.borderColor = '#4ade80';
-        setTimeout(() => {
-            tile.style.borderColor = originalBorder;
-        }, 150);
-       
-        // Open the link after copying
-        if (isExternal) {
-            window.open(href, '_blank');
-        } else {
-            window.location.href = href;
-        }
-    }).catch(err => {
-        console.error('Failed to copy:', err);
-        // Still navigate even if copy fails
-        if (isExternal) {
-            window.open(href, '_blank');
-        } else {
-            window.location.href = href;
-        }
-    });
+
+function showShareUrl(gistId) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('gist', gistId);
+  url.hash = '';
+  const shareUrl = url.origin + url.pathname + url.search;
+  document.getElementById('shareUrlBox').value = shareUrl;
+  document.getElementById('shareSection').style.display = '';
 }
-// Upload CSV functionality
-document.getElementById('uploadBtn').addEventListener('click', () => {
-    document.getElementById('csvFileInput').click();
+
+function copyShareUrl() {
+  const box = document.getElementById('shareUrlBox');
+  box.select();
+  navigator.clipboard.writeText(box.value).then(() => {
+    const btn = box.nextElementSibling;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+// ─────────────────────────────────────────────
+// APPLY DATA
+// ─────────────────────────────────────────────
+function applyData(csv, gistId, remote) {
+  items = parseCsvData(csv);
+  saveLocal(csv);
+  currentGistId = gistId || null;
+  isRemote = !!remote;
+  render();
+}
+
+// ─────────────────────────────────────────────
+// MODAL HELPERS
+// ─────────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id).classList.add('show');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+function updateSyncModal(gistId) {
+  if (gistId) {
+    document.getElementById('syncCurrentInfo').style.display = '';
+    document.getElementById('syncGistIdDisplay').textContent = gistId;
+    document.getElementById('updateGistBtn').style.display = '';
+    document.getElementById('loadGistIdInput').value = gistId;
+    showShareUrl(gistId);
+  } else {
+    document.getElementById('syncCurrentInfo').style.display = 'none';
+    document.getElementById('updateGistBtn').style.display = 'none';
+    document.getElementById('shareSection').style.display = 'none';
+  }
+  // Restore saved PAT placeholder
+  const pat = loadPat();
+  if (pat) document.getElementById('patInput').placeholder = '(token saved)';
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('show');
+  });
 });
 
-// Download CSV functionality
-document.getElementById('downloadBtn').addEventListener('click', () => {
-    const csvContent = loadCsvData();
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'homepage-data.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function render() {
+  const current = location.hash.slice(1) || 'home';
+  const label = current === 'home' ? 'Home' : current.charAt(0).toUpperCase() + current.slice(1);
+  document.getElementById('pageTitle').textContent = label;
+  document.getElementById('pageHeader').textContent = label;
+
+  const homeBtn    = document.getElementById('homeBtn');
+  const btnGroup   = document.getElementById('btnGroup');
+  const syncBtn    = document.getElementById('syncBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const uploadBtn  = document.getElementById('uploadBtn');
+
+  if (current === 'home') {
+    homeBtn.classList.remove('show');
+    syncBtn.classList.add('show');
+    uploadBtn.classList.add('show');
+    downloadBtn.classList.add('show');
+  } else {
+    homeBtn.classList.add('show');
+    syncBtn.classList.remove('show');
+    uploadBtn.classList.remove('show');
+    downloadBtn.classList.remove('show');
+  }
+
+  const tiles = items
+    .filter(item => item.page === current)
+    .map(item => {
+      const isExternal = item.url.startsWith('http');
+      const isFolder   = item.url.startsWith('#') && item.url !== '#';
+      const target = isExternal ? 'target="_blank"' : '';
+      const href   = item.url || '#';
+
+      let iconHtml = '';
+      const iconLower = (item.icon || '').toLowerCase();
+      if (iconLower !== 'false' && item.icon !== '') {
+        let iconUrl;
+        if (iconLower === 'true') {
+          iconUrl = `https://www.google.com/s2/favicons?sz=128&domain=${item.url.replace('#','') || 'example.com'}`;
+        } else {
+          iconUrl = item.icon;
+        }
+        iconHtml = `<img src="${iconUrl}" alt="" class="icon">`;
+      }
+
+      return `
+<a href="${href}" class="tile ${isFolder ? 'folder' : ''}" ${target} ${item.copy ? `onclick="copyText(event,'${item.copy.replace(/'/g,"\\'")}')"` : ''}>
+  <div class="inner">
+    <div class="content">
+      ${iconHtml}
+      <div class="title">${item.text}</div>
+      ${item.desc ? `<div class="desc">${item.desc}</div>` : ''}
+    </div>
+  </div>
+</a>`;
+    }).join('');
+
+  document.getElementById('grid').innerHTML = tiles;
+}
+
+// ─────────────────────────────────────────────
+// COPY TILE
+// ─────────────────────────────────────────────
+function copyText(event, text) {
+  event.preventDefault();
+  const tile = event.currentTarget;
+  const href = tile.getAttribute('href');
+  const isExternal = href.startsWith('http');
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = tile.style.borderColor;
+    tile.style.borderColor = '#4ade80';
+    setTimeout(() => tile.style.borderColor = orig, 150);
+    if (isExternal) window.open(href, '_blank'); else window.location.href = href;
+  }).catch(() => {
+    if (isExternal) window.open(href, '_blank'); else window.location.href = href;
+  });
+}
+
+// ─────────────────────────────────────────────
+// UPLOAD CSV
+// ─────────────────────────────────────────────
+document.getElementById('uploadBtn').addEventListener('click', () => {
+  document.getElementById('csvFileInput').click();
 });
 
 document.getElementById('csvFileInput').addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const csvContent = e.target.result;
-            saveCsvData(csvContent);
-            // Update the data and re-render
-            csvData = csvContent;
-            items = parseCsvData(csvData);
-            location.hash = 'home';
-            render();
-        };
-        reader.readAsText(file);
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const csv = e.target.result;
+    applyData(csv, currentGistId, isRemote);
+    // If we have a current gist and a saved token, offer to push
+    if (currentGistId && loadPat()) {
+      if (confirm('Push updated CSV to existing Gist as well?')) {
+        pushToGistDirect(currentGistId, csv);
+      }
     }
-    // Reset the file input so the same file can be selected again
-    event.target.value = '';
+    location.hash = 'home';
+    render();
+  };
+  reader.readAsText(file);
+  event.target.value = '';
 });
-// Run on load and hash change
-window.onhashchange = render;
-render();
+
+async function pushToGistDirect(gistId, csv) {
+  const pat = loadPat();
+  if (!pat) return;
+  setStatus('syncing', '⟳ Syncing…');
+  try {
+    await updateGist(gistId, csv, pat);
+    setStatus('remote', '☁ Remote');
+  } catch(e) {
+    setStatus('error', '✕ Error');
+    console.error(e);
+  }
+}
+
+// ─────────────────────────────────────────────
+// DOWNLOAD CSV
+// ─────────────────────────────────────────────
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  const csv = buildCsv();
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'homepage-data.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+// ─────────────────────────────────────────────
+// SYNC BUTTON
+// ─────────────────────────────────────────────
+document.getElementById('syncBtn').addEventListener('click', () => {
+  updateSyncModal(currentGistId);
+  openModal('syncModal');
+});
+
+// ─────────────────────────────────────────────
+// INIT — check for ?gist= param
+// ─────────────────────────────────────────────
+async function init() {
+  const gistId = getUrlParam('gist');
+
+  if (gistId) {
+    setStatus('syncing', '⟳ Loading…');
+    try {
+      const csv = await fetchGist(gistId);
+      applyData(csv, gistId, true);
+      setStatus('remote', '☁ Remote');
+    } catch (e) {
+      console.error('Failed to load gist on init:', e);
+      setStatus('error', '✕ Gist error');
+      // Fall back to local
+      applyData(loadLocal(), null, false);
+      alert('Could not load Gist: ' + e.message + '\n\nFalling back to local data.');
+    }
+  } else {
+    applyData(loadLocal(), null, false);
+    setStatus('local', '💾 Local');
+  }
+
+  window.onhashchange = render;
+}
+
+init();
 </script>
 </body>
 </html>
