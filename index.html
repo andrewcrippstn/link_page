@@ -1326,6 +1326,10 @@ let syncFromUrl = false, syncTokenOnly = false, pendingGist = null;
     if (uId && !GIST_ID_RE.test(uId)) uId = null;
     if (sId && !GIST_ID_RE.test(sId)) sId = null;
     if (uId && uId !== sId) { try { localStorage.removeItem('gistBase'); localStorage.removeItem('gistName'); localStorage.removeItem('gistPending'); } catch (e) {} }
+    if (uTok && !uId && uTok !== sTok) {                  // a new token on its own: forget the old gist rather than pair them
+        sId = null;
+        try { ['gistId', 'gistBase', 'gistName', 'gistPending'].forEach(k => localStorage.removeItem(k)); } catch (e) {}
+    }
     const id = uId || sId, tok = uTok || sTok;
     if (id && tok) {
         syncId = id; syncToken = tok; syncFromUrl = !!(uId || uTok);
@@ -1355,11 +1359,17 @@ function setSyncName(n) {
     applyTitle();
 }
 const gistVersion = g => (g && g.history && g.history[0] && g.history[0].version) || (g && g.updated_at) || null;
-let memBase = null, memPending = false;
-function getBase() { try { return localStorage.getItem('gistBase') || null; } catch (e) { return memBase; } }
-function setBase(v) { memBase = v || null; try { if (v) localStorage.setItem('gistBase', v); else localStorage.removeItem('gistBase'); } catch (e) {} }
-function getPending() { try { return localStorage.getItem('gistPending') === '1'; } catch (e) { return memPending; } }
-function setPending(b) { memPending = !!b; try { if (b) localStorage.setItem('gistPending', '1'); else localStorage.removeItem('gistPending'); } catch (e) {} }
+// The local tiles are one data set, so only ONE gist can be "in sync" with it: this slot remembers which gist (id) and which
+// version of it (v) the local tiles were last identical to, and whether they have changes the gist hasn't got yet (pending).
+// For any other gist the slot reads as "unknown", and nothing is uploaded over that gist without asking.
+let memSlot = null;
+function slotRead() { try { return JSON.parse(localStorage.getItem('gistSlot') || 'null'); } catch (e) { return memSlot; } }
+function slotWrite(o) { memSlot = o; try { if (o) localStorage.setItem('gistSlot', JSON.stringify(o)); else localStorage.removeItem('gistSlot'); } catch (e) {} }
+function slotInfo() { return slotRead(); }                                   // {id, v, p} or null
+function getBase() { const o = slotRead(); return o && o.id === syncId ? o.v : null; }
+function setBase(v) { if (!v || !syncId) { slotWrite(null); return; } const o = slotRead(); slotWrite({ id: syncId, v, p: !!(o && o.id === syncId && o.p) }); }
+function getPending() { const o = slotRead(); return !!(o && o.id === syncId && o.p); }
+function setPending(b) { const o = slotRead(); if (o && o.id === syncId) { o.p = !!b; slotWrite(o); } }
 function syncMsg(text) { $('syMsg').textContent = text || ''; }       // error line inside the dialog (toasts sit behind an open dialog)
 
 async function gh(path, opts, token) {
@@ -1481,6 +1491,10 @@ async function useListedGist(id, token) {
     if (!confirm('Switch syncing to this gist? The tiles on this device will be replaced by the ones in it (you can undo this).')) return;
     const prev = { id: syncId, token: syncToken };
     try {
+        if (getPending()) {                                             // don't lose changes that haven't reached the current gist yet
+            const pr = await pushSync(true);
+            if (pr !== 'pushed' && pr !== 'updated') { syncMsg('Not switched: this device has changes that are not uploaded to the current gist yet.'); return; }
+        }
         await readGist(id, token);                                      // verify access first
         setSyncCreds(id, token);
         const r = await pullSync(true, true, true);
@@ -1511,7 +1525,8 @@ function setSyncUrl(id, token) {               // keep gist + token in the addre
     } catch (e) { console.warn('Could not update the address bar', e); }
 }
 function setSyncCreds(id, token) {
-    if ((id || null) !== syncId) { setBase(null); setPending(false); syncName = ''; try { localStorage.removeItem('gistName'); } catch (e) {} }
+    if (!id) slotWrite(null);                                                      // stopping sync: forget what the tiles were synced with
+    if ((id || null) !== syncId) { syncName = ''; try { localStorage.removeItem('gistName'); } catch (e) {} }
     syncId = id || null; syncToken = id ? token : null;
     try {
         if (id) { localStorage.setItem('gistId', id); localStorage.setItem('gistToken', token); }
@@ -1534,7 +1549,7 @@ function refreshSyncDialog() {
     $('syId').placeholder = storedToken() ? '(token saved – leave blank to use it)' : '';
     if (!on && pendingGist && !$('syGist').value) $('syGist').value = pendingGist;
     $('syInfo').textContent = on
-        ? 'Syncing is on. Changes upload automatically, and your other devices pick them up when they open or return to this page. The newest change wins.\n⚠ The sync link contains your GitHub token: anyone with it can read and change your gists. Only open or bookmark it on your own devices.'
+        ? 'Gist in use: ' + (syncName ? syncName + ' · ' : '') + syncId + '\n\nSyncing is on. Changes upload automatically, and your other devices pick them up when they open or return to this page. The newest change wins.\n⚠ The sync link contains your GitHub token: anyone with it can read and change your gists. Only open or bookmark it on your own devices.'
         : 'Keep your tiles in step across browsers and devices using a private GitHub Gist in your account.\nYour token stays in this browser (and in the address bar once connected).';
 }
 function scheduleSync() {
@@ -1545,18 +1560,25 @@ function scheduleSync() {
     syncTimer = setTimeout(() => pushSync(), 1500);
 }
 let conflictOpen = false;
-// Asks what to do when the gist was changed elsewhere since this device last synced. Resolves 'keep' | 'online' | 'later'.
+// Asks what to do when this device's tiles and the gist differ and it isn't safe to pick one automatically.
+// Resolves 'keep' (overwrite the gist) | 'online' (take the gist) | 'later'.
 function askConflict(remote) {
     if (conflictOpen) return Promise.resolve('later');
     conflictOpen = true;
-    const dlg = $('conflictDialog'), mineCsv = loadCsvData() || '';
+    const dlg = $('conflictDialog'), mineCsv = loadCsvData() || '', slot = slotInfo();
     const count = t => { try { return parseCsv(t).items.length; } catch (e) { return '?'; } };
     const when = ts => ts ? new Date(ts).toLocaleString() : 'unknown time';
+    const short = v => v ? String(v).slice(0, 8) : 'none';
+    const sameGist = !!(slot && slot.id === syncId);
     $('cfInfo').textContent =
-        'The online copy was changed (probably from another device) since this device last synced.\n\n' +
-        'This device: ' + count(mineCsv) + ' rows · last changed ' + when(localStamp()) + '\n' +
-        'Online: ' + count(remote.csv) + ' rows · last changed ' + when(remote.updated) + '\n\n' +
-        'Keep this device = overwrite the online copy with the tiles here.\n' +
+        (sameGist ? 'The online copy was changed (probably from another device) since this device last synced.'
+                  : 'This device’s tiles were not last synced with this gist, so they may belong to a different one.') + '\n\n' +
+        'ONLINE (server) gist\n  ID: ' + syncId + (syncName ? '\n  Name: ' + syncName : '') + '\n  Version: ' + short(remote.version) +
+        '\n  ' + count(remote.csv) + ' rows · changed ' + when(remote.updated) + '\n\n' +
+        'THIS DEVICE (local)\n  Last synced with gist ID: ' + (slot ? slot.id : 'none – never synced') +
+        (slot ? '\n  Version: ' + short(slot.v) : '') + (sameGist ? '' : '   ⚠ different gist') +
+        '\n  ' + count(mineCsv) + ' rows · changed ' + when(localStamp()) + '\n\n' +
+        'Keep this device = overwrite the online gist with the tiles here.\n' +
         'Use online = replace the tiles here with the online ones (you can undo this).\n' +
         'Copy either CSV first if you want to merge them by hand.';
     return new Promise(resolve => {
@@ -1584,15 +1606,17 @@ function applyRemote(remote) {                    // replace the local tiles wit
     setBase(remote.version);
     setPending(false);
 }
-// Uploads the local tiles. Before overwriting, checks the gist hasn't been changed elsewhere since the last sync and, if it has, asks.
-// `known` = a gist read the caller already has. Returns 'pushed' | 'updated' (online copy taken instead) | 'paused' (left undecided) | false.
-async function pushSync(throwOnError, known) {
+// Uploads the local tiles. Before overwriting a gist it asks if (a) the gist changed since this device last synced with it, or
+// (b) the local tiles were never confirmed to belong to THIS gist (e.g. after switching gists). skipCheck = the user already chose.
+// `known` = a gist read the caller already has. Returns 'pushed' | 'updated' (online copy taken instead) | 'paused' | false.
+async function pushSync(throwOnError, known, skipCheck) {
     if (!syncId) return false;
     try {
         setSyncUi('busy');
         const remote = known || await readGist(syncId);
         const base = getBase(), mine = loadCsvData();
-        if (base && remote.version && remote.version !== base && typeof remote.csv === 'string' && remote.csv.trim() && remote.csv !== mine) {
+        const remoteHas = typeof remote.csv === 'string' && remote.csv.trim() !== '';
+        if (!skipCheck && remoteHas && remote.csv !== mine && (!base || (remote.version && remote.version !== base))) {
             const choice = await askConflict(remote);
             if (choice === 'online') { applyRemote(remote); setSyncUi('ok'); return 'updated'; }
             if (choice !== 'keep') { setSyncUi('conflict'); return 'paused'; }
@@ -1610,8 +1634,8 @@ async function pushSync(throwOnError, known) {
         return false;
     }
 }
-// force = take the online copy no matter what (used when connecting); interactive = report errors inside the sync dialog;
-// quiet = no "updated" toast (the caller reports the result). Returns 'updated' | 'pushed' | 'same' | 'paused', or false on failure.
+// force = connecting / switching (asks instead of silently choosing); interactive = report errors inside the sync dialog;
+// quiet = no "updated" toast (the caller reports the result). Returns 'updated' | 'pushed' | 'same' | 'paused', or false on failure/cancel.
 async function pullSync(force, interactive, quiet) {
     if (!syncId) return false;
     try {
@@ -1619,19 +1643,28 @@ async function pullSync(force, interactive, quiet) {
         const remote = await readGist(syncId);
         if (remote.name) setSyncName(remote.name);
         if (typeof remote.csv !== 'string' || !remote.csv.trim()) return await pushSync(true, remote);   // empty: start it with our tiles
-        const mine = loadCsvData(), mineStamp = localStamp(), rs = remote.updated;
+        const mine = loadCsvData(), mineStamp = localStamp();
         if (remote.csv === mine) { setBase(remote.version); setPending(false); setSyncUi('ok'); return 'same'; }
-        if (!force && getPending()) return await pushSync(true, remote);                 // we have changes the gist doesn't: upload (asks if it changed too)
-        if (force || rs > mineStamp) {
-            const busy = (edit && edit.dirty) || drag || (!interactive && document.querySelector('dialog[open]'));
-            if (busy && !force) { setSyncUi('ok'); return 'same'; }                      // don't disturb work in progress
-            if (force && mineStamp > 0 && !confirm('Replace the tiles on this device with the synced ones?\n(You can undo this.)')) { setSyncUi('ok'); return 'same'; }
+        if (force) {
+            if (mineStamp > 0) {                                                         // this device has tiles of its own: let the user choose
+                const choice = await askConflict(remote);
+                if (choice === 'keep') return await pushSync(true, remote, true);
+                if (choice !== 'online') { if (interactive) syncMsg('Not connected: this device and that gist have different tiles.'); setSyncUi('ok'); return false; }
+            }
             applyRemote(remote);
             if (!quiet) showToast('Updated from sync');
             setSyncUi('ok');
             return 'updated';
         }
-        return await pushSync(true, remote);                                             // our copy is newer
+        const base = getBase();
+        if (!base || getPending()) return await pushSync(true, remote);                  // unverified or changed here: upload (asks if unsafe)
+        if (remote.version === base) return await pushSync(true, remote);                // gist unchanged since last sync, so the difference is ours
+        const busy = (edit && edit.dirty) || drag || (!interactive && document.querySelector('dialog[open]'));
+        if (busy) { setSyncUi('ok'); return 'same'; }                                    // gist changed elsewhere; don't disturb work in progress
+        applyRemote(remote);
+        if (!quiet) showToast('Updated from sync');
+        setSyncUi('ok');
+        return 'updated';
     } catch (e) {
         console.warn('Sync download failed', e);
         setSyncUi('err');
