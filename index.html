@@ -5,598 +5,1517 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title id="pageTitle">Home</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,system-ui,sans-serif;background:#f0f0f0;min-height:100vh;color:#333}
-header{background:white;padding:10px 20px;margin-bottom:40px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
-.header-container{max-width:1200px;margin:0 auto;position:relative;display:flex;align-items:center;justify-content:center}
-.container{max-width:1200px;margin:0 auto;padding:0 20px}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,system-ui,sans-serif;background:#f0f0f0;min-height:100vh;color:#333;position:relative;padding-bottom:44px}
+    header{background:white;padding:10px 20px;margin-bottom:40px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
+    .header-container{max-width:1200px;margin:0 auto;position:relative;display:flex;align-items:center;justify-content:center}
+    .container{max-width:1200px;margin:0 auto;padding:0 20px}
+    .home-btn{position:absolute;top:0;right:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
+              border-radius:8px;display:none;justify-content:center;cursor:pointer;transition:.2s;
+              text-decoration:none;color:#667eea;font-size:24px;font-weight:bold}
+    .home-btn:hover{border-color:#667eea;background:#f8f8ff}
+    .home-btn.show{display:flex}
+    .upload-btn{position:absolute;top:0;right:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
+                border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
+                color:#667eea;font-size:20px;font-weight:bold}
+    .upload-btn:hover{border-color:#667eea;background:#f8f8ff}
+    .upload-btn.show{display:flex}
+    .download-btn{position:absolute;top:0;right:50px;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
+                  border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
+                  color:#667eea;font-size:20px;font-weight:bold}
+    .download-btn:hover{border-color:#667eea;background:#f8f8ff}
+    .download-btn.show{display:flex}
+    #csvFileInput{display:none}
+    h1{font-size:2rem;color:#667eea;text-align:center;font-weight:700;margin:0}
+    #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px}
+    a.tile{text-decoration:none;color:#666;display:block;border-radius:12px;overflow:visible;
+           transition:.2s;background:white;border:2px solid #e0e0e0;position:relative;
+           box-shadow:2px 2px 5px rgba(0, 0, 0, 0.1)}
+    a.tile.folder{background:rgb(233, 233, 233)}
+    a.tile:hover{transform:translateY(-2px);border-color:#667eea;box-shadow:0 4px 12px rgba(102,126,234,0.15)}
+    .inner{position:relative;height:140px}
+    .content{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;
+             justify-content:center;padding:16px;text-align:center}
+    .icon{width:40px;height:40px;margin-bottom:8px;object-fit:contain}
+    .title{font-size:0.9rem;font-weight:600;text-shadow:none;margin-bottom:0;line-height:1.2}
+    .desc{font-size:0.8rem;opacity:0.6;text-shadow:none;line-height:1.2;margin-top:4px}
 
-.home-btn{position:absolute;top:0;right:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
-border-radius:8px;display:none;justify-content:center;cursor:pointer;transition:.2s;
-text-decoration:none;color:#667eea;font-size:24px;font-weight:bold}
-.home-btn:hover{border-color:#667eea;background:#f8f8ff}
-.home-btn.show{display:flex}
+    /* ---- corner ribbon: tile has copy text ---- */
+    .ribbon{position:absolute;right:0;bottom:0;width:48px;height:48px;overflow:hidden;
+            border-bottom-right-radius:10px;pointer-events:none}
+    .ribbon span{position:absolute;left:-6px;top:28px;width:80px;height:12px;line-height:12px;
+                 background:#667eea;color:#fff;font-size:8px;font-weight:700;letter-spacing:.6px;
+                 text-align:center;transform:rotate(-45deg);box-shadow:0 1px 2px rgba(0,0,0,.25)}
 
-/* Button row: right side of header */
-.btn-group{position:absolute;top:0;right:0;display:flex;gap:8px}
-.hdr-btn{width:40px;height:40px;background:white;border:2px solid #e0e0e0;
-border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
-color:#667eea;font-size:18px;font-weight:bold;position:relative}
-.hdr-btn:hover{border-color:#667eea;background:#f8f8ff}
-.hdr-btn.show{display:flex}
-.hdr-btn[title]:hover::after{content:attr(title);position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);
-background:#333;color:white;font-size:11px;padding:2px 6px;border-radius:4px;white-space:nowrap;pointer-events:none;z-index:10}
+    /* ---- arrange (edit) mode ---- */
+    .arrange-btn{position:absolute;top:0;right:50px;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
+                 border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
+                 color:#667eea;font-size:20px;font-weight:bold}
+    .arrange-btn:hover{border-color:#667eea;background:#f8f8ff}
+    .arrange-btn.active{background:#667eea;border-color:#667eea;color:#fff}
+    .arrange-btn.show{display:flex}
+    #grid.arranging a.tile{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;
+                           border-style:dashed;border-color:#9aa3f5}
+    #grid.arranging a.tile:hover{transform:none}
+    #grid.arranging a.tile *{-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
+    #grid a.tile.dragging{z-index:20;opacity:.92;cursor:grabbing;transition:none;border-style:solid;
+                          border-color:#667eea;box-shadow:0 12px 28px rgba(0,0,0,.28)}
+    #grid a.tile.drop-before::before,#grid a.tile.drop-after::before{content:'';position:absolute;top:-2px;bottom:-2px;
+                          width:4px;background:#667eea;border-radius:2px;z-index:5}
+    #grid a.tile.drop-before::before{left:-10px}
+    #grid a.tile.drop-after::before{right:-10px}
 
-#csvFileInput{display:none}
+    .editor-btn{position:absolute;top:0;right:100px;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
+                border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
+                color:#667eea;font-size:20px;font-weight:bold}
+    .editor-btn:hover{border-color:#667eea;background:#f8f8ff}
+    .editor-btn.show{display:flex}
+    .container.wide{max-width:none}
+    /* ---- in-app CSV editor ---- */
+    #editor{display:none}
+    .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+    .tbtn{padding:6px 12px;border:1px solid #c6c6c6;background:#fff;border-radius:4px;cursor:pointer;font:inherit;font-size:.85rem;color:#333}
+    .tbtn:hover{background:#f3f3f3}
+    .tbtn:disabled{opacity:.6;cursor:wait}
+    .tbtn.primary{background:#217346;border-color:#217346;color:#fff}
+    .tbtn.primary:hover{background:#1b5e39}
+    .tbtn.primary.dirty{box-shadow:0 0 0 3px rgba(33,115,70,.3)}
+    #edFilter{padding:6px 10px;border:1px solid #c6c6c6;border-radius:4px;font:inherit;font-size:.85rem;min-width:200px}
+    #edStatus{font-size:.8rem;color:#555;margin-left:auto}
+    #edStatus.unsaved{color:#b45309;font-weight:600}
+    .sheet-wrap{background:#fff;border:1px solid #bdbdbd;max-height:calc(100vh - 190px);overflow:auto}
+    table.sheet{border-collapse:collapse;table-layout:fixed;font:13px Calibri,"Segoe UI",system-ui,sans-serif;color:#222}
+    .sheet th,.sheet td{border:1px solid #d4d4d4;padding:0;height:26px;background:#fff}
+    .sheet thead th{position:sticky;top:0;z-index:3;background:#e6e6e6;font-weight:600;padding:4px 6px;text-align:left;color:#333}
+    .sheet thead th.corner{left:0;z-index:4;text-align:center}
+    .sheet td.rn{position:sticky;left:0;z-index:1;background:#e6e6e6;text-align:center;color:#555;font-size:12px}
+    .sheet td.act{text-align:center;background:#fafafa;white-space:nowrap}
+    .sheet td.act button{border:0;background:transparent;cursor:pointer;font-size:14px;color:#777;padding:2px 6px;border-radius:3px}
+    .sheet td.act button:hover{background:#e0e0e0;color:#000}
+    .sheet td input{width:100%;height:25px;border:0;padding:2px 6px;font:inherit;background:transparent;outline:none;display:block}
+    .sheet td:focus-within{outline:2px solid #217346;outline-offset:-2px}
+    .sheet td .ro{height:25px;padding:2px 6px;display:flex;align-items:center;gap:6px;cursor:pointer;background:#f7f7f7;outline:none;overflow:hidden}
+    .sheet td .ro:hover{background:#eef6f1}
+    .sheet td .ro .prev{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#444;flex:1;min-width:0}
+    .sheet td .ro .badge{flex:none;font-size:11px;color:#217346;background:#e1f0e7;border-radius:9px;padding:0 7px}
+    /* ---- row drag & drop ---- */
+    .sheet td.rn .rn-wrap{display:flex;align-items:center;justify-content:center;gap:1px;height:25px;padding:0 2px}
+    .sheet td.rn .rn-num{flex:1;text-align:center;min-width:0;overflow:hidden}
+    .drag-handle{flex:none;cursor:grab;color:#9a9a9a;font-size:13px;line-height:1;padding:2px 3px;border-radius:3px;
+                 user-select:none;-webkit-user-select:none;touch-action:none}
+    .drag-handle:hover{background:#d6d6d6;color:#333}
+    .drag-handle:active{cursor:grabbing}
+    .sheet tbody tr.dragging{opacity:.45}
+    .sheet tbody tr.drop-above td{box-shadow:inset 0 2px 0 0 #217346}
+    .sheet tbody tr.drop-below td{box-shadow:inset 0 -2px 0 0 #217346}
+    .hint{font-size:.78rem;color:#777;margin:8px 2px 40px}
+    #cellDialog{margin:auto;border:0;border-radius:10px;padding:0;width:min(940px,94vw);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+    #cellDialog::backdrop{background:rgba(0,0,0,.45)}
+    .dlg{display:flex;flex-direction:column;height:min(82vh,760px);background:#fff;border-radius:10px;overflow:hidden}
+    .dlg-head{display:flex;gap:12px;align-items:baseline;padding:12px 16px;border-bottom:1px solid #e0e0e0;background:#f6f6f6;font-weight:600}
+    .dlg-head .dlg-count{margin-left:auto;font-weight:400;font-size:.8rem;color:#666;white-space:nowrap}
+    #dlgText{flex:1;margin:12px 16px;padding:10px;border:1px solid #c6c6c6;border-radius:6px;resize:none;
+             font:13px/1.45 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;outline:none;tab-size:4}
+    #dlgText:focus{border-color:#217346}
+    .dlg-foot{display:flex;gap:8px;align-items:center;padding:10px 16px 14px}
+    .dlg-foot label{font-size:.82rem;color:#444;display:flex;gap:5px;align-items:center;cursor:pointer}
+    .dlg-foot .spacer{flex:1}
 
-h1{font-size:2rem;color:#667eea;text-align:center;font-weight:700;margin:0}
-
-/* Gist status badge */
-#gistStatus{position:absolute;top:0;left:0;font-size:11px;padding:3px 8px;border-radius:6px;display:none;align-items:center;gap:4px;font-weight:600;border:1.5px solid}
-#gistStatus.show{display:flex}
-#gistStatus.remote{background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7}
-#gistStatus.local{background:#fff8e1;color:#f57f17;border-color:#ffe082}
-#gistStatus.syncing{background:#e3f2fd;color:#1565c0;border-color:#90caf9}
-#gistStatus.error{background:#ffebee;color:#c62828;border-color:#ef9a9a}
-
-#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px}
-
-a.tile{text-decoration:none;color:#666;display:block;border-radius:12px;overflow:visible;
-transition:.2s;background:white;border:2px solid #e0e0e0;position:relative;
-box-shadow:2px 2px 5px rgba(0,0,0,0.1)}
-a.tile.folder{background:rgb(233,233,233)}
-a.tile:hover{transform:translateY(-2px);border-color:#667eea;box-shadow:0 4px 12px rgba(102,126,234,0.15)}
-.inner{position:relative;height:140px}
-.content{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;
-justify-content:center;padding:16px;text-align:center}
-.icon{width:40px;height:40px;margin-bottom:8px;object-fit:contain}
-.title{font-size:0.9rem;font-weight:600;text-shadow:none;margin-bottom:0;line-height:1.2}
-.desc{font-size:0.8rem;opacity:0.6;text-shadow:none;line-height:1.2;margin-top:4px}
-
-/* Modal overlay */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;display:none;align-items:center;justify-content:center}
-.modal-overlay.show{display:flex}
-.modal{background:white;border-radius:16px;padding:28px 32px;max-width:480px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.18)}
-.modal h2{font-size:1.1rem;color:#333;margin-bottom:6px}
-.modal p{font-size:0.85rem;color:#666;margin-bottom:16px;line-height:1.5}
-.modal input,.modal textarea{width:100%;border:2px solid #e0e0e0;border-radius:8px;padding:10px 12px;
-font-size:0.9rem;font-family:monospace;outline:none;transition:.2s;resize:vertical}
-.modal input:focus,.modal textarea:focus{border-color:#667eea}
-.modal-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end}
-.btn{padding:9px 20px;border-radius:8px;border:none;font-size:0.9rem;font-weight:600;cursor:pointer;transition:.2s}
-.btn-primary{background:#667eea;color:white}
-.btn-primary:hover{background:#5a6fd6}
-.btn-secondary{background:#f0f0f0;color:#555}
-.btn-secondary:hover{background:#e0e0e0}
-.btn-danger{background:#ffebee;color:#c62828;border:1.5px solid #ef9a9a}
-.btn-danger:hover{background:#ffcdd2}
-.copy-url-box{display:flex;gap:8px;margin-top:10px}
-.copy-url-box input{flex:1;font-size:0.8rem}
-.copy-url-box button{white-space:nowrap}
-.modal-section{margin-top:18px;padding-top:18px;border-top:1px solid #eee}
-.modal-label{font-size:0.78rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+    #grid a.tile.drop-into{border-color:#667eea;background:#eef0ff;box-shadow:0 0 0 3px rgba(102,126,234,.35)}
+    header.droppable{outline:2px dashed #9aa3f5;outline-offset:-4px}
+    header.droppable.over{outline:2px solid #667eea;background:#eef0ff}
+    #trashZone{display:none;position:fixed;right:24px;bottom:44px;width:84px;height:84px;border-radius:50%;
+               align-items:center;justify-content:center;flex-direction:column;gap:2px;z-index:15;
+               background:#fff;border:2px dashed #e08a8a;color:#c0392b;font-size:.7rem;font-weight:600;
+               box-shadow:0 2px 8px rgba(0,0,0,.15)}
+    #trashZone .ico{font-size:28px;line-height:1}
+    #trashZone.over{background:#fdecea;border-style:solid;border-color:#c0392b;transform:scale(1.12)}
+    #tdKind,#syInfo{font-size:.8rem;color:#445;background:#eef0ff;border:1px solid #c9ceff;border-radius:4px;padding:6px 8px}
+    #syMsg{font-size:.82rem;color:#c0392b;background:#fdecea;border:1px solid #e08a8a;border-radius:4px;padding:6px 8px;white-space:pre-line}
+    #syMsg:empty{display:none}
+    /* ---- new-tile dialog (opened by pasting a link) ---- */
+    #tileDialog,#syncDialog{margin:auto;border:0;border-radius:10px;padding:0;width:min(520px,94vw);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+    #tileDialog::backdrop,#syncDialog::backdrop{background:rgba(0,0,0,.45)}
+    .tile-dlg{height:auto;max-height:90vh}
+    .tile-fields{display:flex;flex-direction:column;gap:10px;padding:14px 16px 4px;overflow:auto}
+    .tile-fields label{display:flex;flex-direction:column;gap:3px;font-size:.8rem;color:#555;font-weight:600}
+    .tile-fields label small{font-weight:400;color:#888}
+    .tile-fields input,.tile-fields textarea{border:1px solid #c6c6c6;border-radius:4px;padding:6px 8px;font:inherit;
+                                              font-size:.9rem;font-weight:400;color:#222;outline:none;resize:vertical}
+    .tile-fields input:focus,.tile-fields textarea:focus{border-color:#667eea}
+    .add-btn,.sync-btn,.back-btn{position:absolute;top:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;border-radius:8px;
+             display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;color:#667eea;font-size:20px;font-weight:bold}
+    .add-btn:hover,.sync-btn:hover,.back-btn:hover{border-color:#667eea;background:#f8f8ff}
+    .add-btn.show,.sync-btn.show,.back-btn.show{display:flex}
+    .back-btn{left:0;text-decoration:none}
+    .sync-btn.synced{color:#aaa;opacity:.6}
+    .sync-btn.err{border-color:#f87171}
+    #toast{position:fixed;left:50%;bottom:56px;transform:translateX(-50%);display:none;align-items:center;gap:14px;
+           background:#333;color:#fff;padding:10px 14px;border-radius:8px;font-size:.85rem;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:30}
+    #toast.ok{background:#2e7d32}
+    #toast.err{background:#c62828}
+    #toast button{background:none;border:0;color:#9aa3f5;font:inherit;font-weight:600;cursor:pointer}
+    .tbtn.danger{color:#c0392b;border-color:#e08a8a}
+    .tbtn.danger:hover{background:#fdecea}
+    #BUILD-FOOTER{position:absolute;left:0;right:0;bottom:12px;text-align:center;font-size:.7rem;color:#aaa;user-select:none;pointer-events:none}
 </style>
 </head>
 <body>
-
 <header>
-  <div class="header-container">
-    <span id="gistStatus" class="show local">💾 Local</span>
-    <a href="#home" class="home-btn" id="homeBtn" title="Home">⌂</a>
-    <h1 id="pageHeader">Home</h1>
-    <div class="btn-group" id="btnGroup">
-      <button class="hdr-btn" id="syncBtn"  title="Gist sync">☁</button>
-      <button class="hdr-btn" id="downloadBtn" title="Download CSV">↓</button>
-      <button class="hdr-btn" id="uploadBtn"  title="Upload CSV">↑</button>
+    <div class="header-container">
+        <a href="#home" class="back-btn" id="backBtn" title="Back">←</a>
+        <a href="#home" class="home-btn" id="homeBtn" title="Home">⌂</a>
+        <h1 id="pageHeader">Home</h1>
+        <button class="sync-btn" id="syncBtn" title="Sync (not set up)">☁︎</button>
+        <button class="add-btn" id="addBtn" title="Add a tile (or just paste a link)">+</button>
+        <button class="arrange-btn" id="arrangeBtn" title="Rearrange tiles">⇄</button>
+        <button class="editor-btn" id="editorBtn" title="Edit data (spreadsheet view)">✎</button>
+        <button class="download-btn" id="downloadBtn" title="Download CSV">↓</button>
+        <button class="upload-btn" id="uploadBtn" title="Upload CSV">↑</button>
+        <input type="file" id="csvFileInput" accept=".csv">
     </div>
-    <input type="file" id="csvFileInput" accept=".csv">
-  </div>
 </header>
-
 <div class="container">
-  <div id="grid"></div>
+    <div id="grid"></div>
+    <datalist id="pageList"></datalist>
+    <div id="trashZone"><span class="ico">🗑</span><span>Delete</span></div>
+    <div id="editor"></div>
 </div>
-
-<!-- Gist Sync Modal -->
-<div class="modal-overlay" id="syncModal">
-  <div class="modal">
-    <h2>☁ GitHub Gist Sync</h2>
-    <p>Store your links in a GitHub Gist so you can share or load them from anywhere using a URL parameter.</p>
-
-    <div id="syncCurrentInfo" style="display:none;margin-bottom:12px;padding:10px 12px;background:#f5f5f5;border-radius:8px;font-size:0.82rem;color:#555">
-      <strong>Current Gist:</strong> <span id="syncGistIdDisplay"></span>
+<div id="toast" role="status"><span id="toastMsg"></span><button type="button" id="toastUndo">Undo</button></div>
+<div id="BUILD-FOOTER">BUILD: 2026-11-07 16:45:00</div>
+<dialog id="cellDialog">
+    <div class="dlg">
+        <div class="dlg-head"><span id="dlgTitle"></span><span class="dlg-count" id="dlgCount"></span></div>
+        <textarea id="dlgText" spellcheck="false"></textarea>
+        <div class="dlg-foot">
+            <label><input type="checkbox" id="dlgWrap" checked> Wrap lines</label>
+            <span class="spacer"></span>
+            <button class="tbtn" id="dlgCopy" type="button">Copy</button>
+            <button class="tbtn" id="dlgCancel" type="button">Cancel</button>
+            <button class="tbtn primary" id="dlgApply" type="button" title="Ctrl+Enter">Apply</button>
+        </div>
     </div>
-
-    <div class="modal-label">GitHub Personal Access Token</div>
-    <input type="password" id="patInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
-    <p style="margin-top:6px;margin-bottom:0;font-size:0.78rem;color:#aaa">
-      Needs <code>gist</code> scope only. Stored in your browser's localStorage — never sent anywhere except api.github.com.
-      <a href="https://github.com/settings/tokens/new?scopes=gist&description=link_page" target="_blank" style="color:#667eea">Create a token ↗</a>
-    </p>
-
-    <div class="modal-section">
-      <div class="modal-label">Load from existing Gist ID</div>
-      <div style="display:flex;gap:8px">
-        <input type="text" id="loadGistIdInput" placeholder="e.g. 4b2c1f9d8a..." style="flex:1">
-        <button class="btn btn-secondary" onclick="loadFromGistId()">Load</button>
-      </div>
+</dialog>
+<dialog id="syncDialog">
+    <div class="dlg tile-dlg">
+        <div class="dlg-head"><span>Sync (GitHub Gist)</span></div>
+        <div class="tile-fields">
+            <div id="syInfo" style="white-space:pre-line"></div>
+            <div id="syMsg"></div>
+            <div id="syOff">
+                <div>1. <a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener">Create a GitHub token ↗</a> — tick only <b>“Create gists”</b> (the <code>gist</code> scope) and nothing else, then click Generate token and copy it.</div>
+                <label style="margin-top:12px">2. Paste your token<input id="syId" type="password" spellcheck="false" autocomplete="off"></label>
+                <label style="margin-top:6px">Gist ID or URL <small>(optional – leave blank to find or create it automatically)</small><input id="syGist" type="text" spellcheck="false" autocomplete="off"></label>
+            </div>
+            <div id="syOn" style="display:none">
+                <label>Your sync link <small>(open it on any of your devices to use the same tiles)</small><input id="syLink" type="text" readonly></label>
+            </div>
+        </div>
+        <div class="dlg-foot">
+            <button class="tbtn danger" id="syStop" type="button" style="display:none">Stop syncing</button>
+            <span class="spacer"></span>
+            <button class="tbtn" id="syCopy" type="button" style="display:none">Copy link</button>
+            <button class="tbtn" id="syClose" type="button">Close</button>
+            <button class="tbtn primary" id="syGo" type="button">Connect</button>
+        </div>
     </div>
-
-    <div class="modal-section">
-      <div class="modal-label">Push current data to Gist</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="pushToGist(false)">Create new Gist</button>
-        <button class="btn btn-secondary" id="updateGistBtn" onclick="pushToGist(true)" style="display:none">Update current Gist</button>
-      </div>
-    </div>
-
-    <div class="modal-section" id="shareSection" style="display:none">
-      <div class="modal-label">Shareable URL</div>
-      <div class="copy-url-box">
-        <input type="text" id="shareUrlBox" readonly>
-        <button class="btn btn-secondary" onclick="copyShareUrl()">Copy</button>
-      </div>
-    </div>
-
-    <div class="modal-actions">
-      <button class="btn btn-danger" id="clearTokenBtn" onclick="clearToken()">Clear token</button>
-      <button class="btn btn-secondary" onclick="closeModal('syncModal')">Close</button>
-    </div>
-  </div>
-</div>
-
+</dialog>
+<dialog id="tileDialog">
+    <form class="dlg tile-dlg" id="tileForm" autocomplete="off">
+        <div class="dlg-head"><span id="tdHead">New tile</span></div>
+        <div class="tile-fields">
+            <div id="tdKind"></div>
+            <label>Title<input id="tdText" type="text" required></label>
+            <label>URL <small>(leave blank to create a folder)</small><input id="tdUrl" type="text" spellcheck="false"></label>
+            <label>Icon <small>(TRUE = site favicon, or an image URL, or leave blank for none)</small><input id="tdIcon" type="text" spellcheck="false"></label>
+            <label>Description <small>(optional)</small><input id="tdDesc" type="text"></label>
+            <label>Copy text <small>(optional – copied to the clipboard when the tile is clicked)</small><textarea id="tdCopy" rows="3" spellcheck="false"></textarea></label>
+        </div>
+        <div class="dlg-foot">
+            <button class="tbtn danger" id="tdDelete" type="button" style="display:none">Delete</button>
+            <span class="spacer"></span>
+            <button class="tbtn" id="tdCancel" type="button">Cancel</button>
+            <button class="tbtn primary" id="tdSubmit" type="submit">Add</button>
+        </div>
+    </form>
+</dialog>
 <script>
-// ─────────────────────────────────────────────
-// DEFAULT DATA
-// ─────────────────────────────────────────────
-const defaultCsvData = `page,text,url,icon,desc,copy
+// YOUR DATA — Edit only this CSV block at the bottom!
+const defaultCsvData = `
+page,text,url,icon,desc,copy
 home,Tools,#Tools,,,
 home,Social,#Social,,,
 home,AI,#AI,https://www.freeiconspng.com/uploads/robot-icon-17.png,,
 home,GitHub,https://github.com,TRUE,Code Repository,
 home,Gmail,https://mail.google.com,TRUE,Email,
+
+
 Tools,Calculator,https://www.calculator.net,TRUE,Online Calculator,
 Tools,Notepad,https://notepad-plus-plus.org,TRUE,Text Editor,
+
 Social,Twitter,https://twitter.com,TRUE,Social Media,
 Social,LinkedIn,https://linkedin.com,TRUE,Professional Network,
+
 AI,Claude,https://claude.ai/,TRUE,,
 AI,Grok,https://grok.com/,TRUE,,
 AI,Gemini,https://gemini.google.com/app,TRUE,,
 AI,DeepSeek,https://chat.deepseek.com/,TRUE,,
-AI,Google NotebookLM,https://notebooklm.google/,TRUE,,`.trim();
+AI,Google NotebookLM,https://notebooklm.google/,TRUE,,
 
-// ─────────────────────────────────────────────
-// STATE
-// ─────────────────────────────────────────────
-let items = [];
-let currentGistId = null;   // gist ID currently loaded (null = local only)
-let isRemote = false;
-
-// ─────────────────────────────────────────────
-// CSV PARSING
-// ─────────────────────────────────────────────
-function parseCsvData(csvText) {
-  const rows = csvText.trim().split('\n');
-  const headers = rows[0].split(',').map(h => h.trim());
-  return rows.slice(1).map(line => {
-    const vals = line.split(',').map(v => v.trim());
-    const obj = {};
-    headers.forEach((h, i) => obj[h] = vals[i] || '');
-    return obj;
-  });
-}
-
-function buildCsv() {
-  const headers = 'page,text,url,icon,desc,copy';
-  const rows = items.map(i =>
-    [i.page, i.text, i.url, i.icon, i.desc, i.copy].join(',')
-  );
-  return [headers, ...rows].join('\n');
-}
-
-// ─────────────────────────────────────────────
-// LOCAL STORAGE
-// ─────────────────────────────────────────────
-function saveLocal(csv) {
-  localStorage.setItem('csvData', csv);
-}
-
-function loadLocal() {
-  return localStorage.getItem('csvData') || defaultCsvData;
-}
-
-function savePat(pat) {
-  if (pat) localStorage.setItem('gh_pat', pat);
-}
-
-function loadPat() {
-  return localStorage.getItem('gh_pat') || '';
-}
-
-function clearToken() {
-  localStorage.removeItem('gh_pat');
-  document.getElementById('patInput').value = '';
-  alert('Token cleared.');
-}
-
-// ─────────────────────────────────────────────
-// URL PARAMS
-// ─────────────────────────────────────────────
-function getUrlParam(key) {
-  return new URLSearchParams(window.location.search).get(key);
-}
-
-function setUrlParam(key, value) {
-  const url = new URL(window.location.href);
-  // Strip hash before setting search so we don't corrupt routing
-  const hash = window.location.hash;
-  url.search = '';
-  url.searchParams.set(key, value);
-  // Restore hash
-  history.replaceState(null, '', url.pathname + url.search + hash);
-}
-
-function clearUrlParam(key) {
-  const url = new URL(window.location.href);
-  url.searchParams.delete(key);
-  history.replaceState(null, '', url.pathname + url.search + window.location.hash);
-}
-
-// ─────────────────────────────────────────────
-// STATUS BADGE
-// ─────────────────────────────────────────────
-function setStatus(type, label) {
-  const el = document.getElementById('gistStatus');
-  el.className = 'show ' + type;
-  el.textContent = label;
-}
-
-// ─────────────────────────────────────────────
-// GITHUB GIST API
-// ─────────────────────────────────────────────
-const GIST_FILENAME = 'link_page.csv';
-
-async function fetchGist(gistId) {
-  const res = await fetch(`https://api.github.com/gists/${gistId}`);
-  if (!res.ok) throw new Error(`Gist fetch failed: ${res.status}`);
-  const data = await res.json();
-  const file = data.files[GIST_FILENAME];
-  if (!file) throw new Error(`File "${GIST_FILENAME}" not found in gist`);
-  // If truncated, fetch raw
-  if (file.truncated) {
-    const raw = await fetch(file.raw_url);
-    return await raw.text();
-  }
-  return file.content;
-}
-
-async function createGist(csvContent, pat) {
-  const res = await fetch('https://api.github.com/gists', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${pat}`
-    },
-    body: JSON.stringify({
-      description: 'link_page data',
-      public: false,
-      files: { [GIST_FILENAME]: { content: csvContent } }
-    })
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `Create failed: ${res.status}`);
-  }
-  return await res.json(); // .id
-}
-
-async function updateGist(gistId, csvContent, pat) {
-  const res = await fetch(`https://api.github.com/gists/${gistId}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${pat}`
-    },
-    body: JSON.stringify({
-      files: { [GIST_FILENAME]: { content: csvContent } }
-    })
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `Update failed: ${res.status}`);
-  }
-  return await res.json();
-}
-
-// ─────────────────────────────────────────────
-// LOAD FROM GIST ID
-// ─────────────────────────────────────────────
-async function loadFromGistId(gistId) {
-  gistId = gistId || document.getElementById('loadGistIdInput').value.trim();
-  if (!gistId) { alert('Please enter a Gist ID.'); return; }
-  setStatus('syncing', '⟳ Loading…');
-  try {
-    const csv = await fetchGist(gistId);
-    applyData(csv, gistId, true);
-    setUrlParam('gist', gistId);
-    updateSyncModal(gistId);
-    closeModal('syncModal');
-    setStatus('remote', '☁ Remote');
-  } catch (e) {
-    setStatus('error', '✕ Error');
-    alert('Could not load gist: ' + e.message);
-  }
-}
-
-// ─────────────────────────────────────────────
-// PUSH TO GIST
-// ─────────────────────────────────────────────
-async function pushToGist(updateExisting) {
-  const pat = document.getElementById('patInput').value.trim() || loadPat();
-  if (!pat) { alert('Please enter your GitHub Personal Access Token.'); return; }
-  savePat(pat);
-  document.getElementById('patInput').value = pat;
-
-  setStatus('syncing', '⟳ Syncing…');
-  const csv = buildCsv();
-
-  try {
-    let gistData;
-    if (updateExisting && currentGistId) {
-      gistData = await updateGist(currentGistId, csv, pat);
-    } else {
-      gistData = await createGist(csv, pat);
+`.trim();
+// Parse CSV (RFC 4180): a "quoted" field may contain commas, line breaks and "" for a literal double quote
+function parseCsvRows(text) {
+    const rows = [];
+    let row = [], field = '', inQuotes = false, quoted = false;
+    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);          // strip a BOM
+    const endField = () => { row.push({ v: field, q: quoted }); field = ''; quoted = false; };
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (inQuotes) {
+            if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQuotes = false; }
+            else field += c;
+        } else if (c === '"' && field === '') { inQuotes = true; quoted = true; }
+        else if (c === ',') endField();
+        else if (c === '\n' || c === '\r') {
+            if (c === '\r' && text[i + 1] === '\n') i++;
+            endField(); rows.push(row); row = [];
+        } else field += c;
     }
-    const gistId = gistData.id;
-    currentGistId = gistId;
-    isRemote = true;
-    setUrlParam('gist', gistId);
-    saveLocal(csv);
-    setStatus('remote', '☁ Remote');
-    updateSyncModal(gistId);
-    // Show share URL
-    showShareUrl(gistId);
-  } catch (e) {
-    setStatus('error', '✕ Error');
-    alert('Gist sync failed: ' + e.message);
-  }
+    if (field !== '' || quoted || row.length) { endField(); rows.push(row); }
+    return rows;
+}
+const DEFAULT_HEADERS = ['page', 'text', 'url', 'icon', 'desc', 'copy'];
+function parseCsv(csvText) {
+    const rows = parseCsvRows(csvText).filter(r => r.some(c => c.v.trim() !== ''));   // skip blank lines
+    if (!rows.length) return { headers: DEFAULT_HEADERS.slice(), items: [] };
+    const headers = rows[0].map(c => c.v.trim());
+    const items = rows.slice(1).map(r => {
+        const obj = {};
+        // quoted values are kept exactly as written (so pasted code isn't altered); others are trimmed
+        headers.forEach((h, i) => { const c = r[i]; obj[h] = c ? (c.q ? c.v : c.v.trim()) : ''; });
+        return obj;
+    });
+    return { headers, items };
 }
 
-function showShareUrl(gistId) {
-  const url = new URL(window.location.href);
-  url.searchParams.set('gist', gistId);
-  url.hash = '';
-  const shareUrl = url.origin + url.pathname + url.search;
-  document.getElementById('shareUrlBox').value = shareUrl;
-  document.getElementById('shareSection').style.display = '';
+// Load CSV data from localStorage or use default
+let memStore = null;
+function loadCsvData() {
+    try { const saved = localStorage.getItem('csvData'); if (saved) return saved; } catch (e) {}
+    return memStore || defaultCsvData;
 }
 
-function copyShareUrl() {
-  const box = document.getElementById('shareUrlBox');
-  box.select();
-  navigator.clipboard.writeText(box.value).then(() => {
-    const btn = box.nextElementSibling;
-    btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = 'Copy', 1500);
-  });
+// Storage functions
+let memStamp = 0;
+function saveCsvData(csvContent, stamp) {
+    memStore = csvContent;
+    memStamp = stamp || Date.now();
+    if (!stamp) scheduleSync();               // a local change: upload it shortly (no-op when sync is off)
+    localStorage.setItem('csvData', csvContent);
+    localStorage.setItem('csvUpdated', String(memStamp));
 }
+function localStamp() { try { return +localStorage.getItem('csvUpdated') || 0; } catch (e) { return memStamp; } }
 
-// ─────────────────────────────────────────────
-// APPLY DATA
-// ─────────────────────────────────────────────
-function applyData(csv, gistId, remote) {
-  items = parseCsvData(csv);
-  saveLocal(csv);
-  currentGistId = gistId || null;
-  isRemote = !!remote;
-  render();
+let csvData = '', items = [], csvHeaders = [];
+function setData(text) {
+    csvData = text;
+    const p = parseCsv(text);
+    items = p.items;
+    csvHeaders = p.headers;
 }
-
-// ─────────────────────────────────────────────
-// MODAL HELPERS
-// ─────────────────────────────────────────────
-function openModal(id) {
-  document.getElementById(id).classList.add('show');
+setData(loadCsvData());
+let visibleItems = [];
+// ---- undo history (every change to the tiles can be undone with Ctrl/Cmd+Z or the toast button) ----
+const undoStack = [];
+let toastTimer = null;
+function pushUndo() { undoStack.push(csvData); if (undoStack.length > 30) undoStack.shift(); }
+// kind: '' (normal) | 'ok' (green) | 'err' (red)
+function showToast(msg, noUndo, kind) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    document.getElementById('toastUndo').style.display = (undoStack.length && !noUndo) ? '' : 'none';
+    t.className = kind || '';
+    t.style.display = 'flex';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 7000);
 }
-function closeModal(id) {
-  document.getElementById(id).classList.remove('show');
+function hideToast() { document.getElementById('toast').style.display = 'none'; }
+function undo() {
+    if (!undoStack.length) return;
+    const text = undoStack.pop();
+    try { saveCsvData(text); } catch (e) {}
+    setData(text);
+    render();
+    showToast('Undone');
 }
-function updateSyncModal(gistId) {
-  if (gistId) {
-    document.getElementById('syncCurrentInfo').style.display = '';
-    document.getElementById('syncGistIdDisplay').textContent = gistId;
-    document.getElementById('updateGistBtn').style.display = '';
-    document.getElementById('loadGistIdInput').value = gistId;
-    showShareUrl(gistId);
-  } else {
-    document.getElementById('syncCurrentInfo').style.display = 'none';
-    document.getElementById('updateGistBtn').style.display = 'none';
-    document.getElementById('shareSection').style.display = 'none';
-  }
-  // Restore saved PAT placeholder
-  const pat = loadPat();
-  if (pat) document.getElementById('patInput').placeholder = '(token saved)';
+document.getElementById('toastUndo').addEventListener('click', undo);
+document.addEventListener('keydown', e => {
+    if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.key.toLowerCase() !== 'z') return;
+    if (document.querySelector('dialog[open]') || (e.target.closest && e.target.closest('input,textarea'))) return;
+    if (currentPage() === EDITOR_ROUTE) return;
+    e.preventDefault(); undo();
+});
+let arrange = false;      // tile-arrange (edit) mode on/off
+const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function currentPage() { return location.hash.slice(1) || 'home'; }
+function render() {
+    const current = currentPage();
+    const editing = current === EDITOR_ROUTE;
+    if (editing) arrange = false;
+    document.getElementById('pageTitle').textContent =
+    document.getElementById('pageHeader').textContent =
+        current === 'home' ? 'Home' : editing ? 'Data editor' : current.charAt(0).toUpperCase() + current.slice(1);
+   
+    // Show/hide home button and upload button
+    const homeBtn = document.getElementById('homeBtn');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const editorBtn = document.getElementById('editorBtn');
+    const arrangeBtn = document.getElementById('arrangeBtn');
+    const onHome = current === 'home';
+    homeBtn.classList.toggle('show', !onHome);
+    uploadBtn.classList.toggle('show', onHome);
+    downloadBtn.classList.toggle('show', onHome);
+    editorBtn.classList.toggle('show', onHome);
+    arrangeBtn.classList.toggle('show', !editing);
+    arrangeBtn.classList.toggle('active', arrange);
+    arrangeBtn.style.right = onHome ? '150px' : '50px';
+    const syncBtn = document.getElementById('syncBtn');
+    syncBtn.classList.toggle('show', !editing);
+    syncBtn.style.right = onHome ? '250px' : '150px';
+    const addBtn = document.getElementById('addBtn');
+    addBtn.classList.toggle('show', !editing);
+    addBtn.style.right = onHome ? '200px' : '100px';
+    document.getElementById('trashZone').style.display = (arrange && !editing) ? 'flex' : 'none';
+    const upRow = items.find(r => r.url === '#' + current);
+    const hdr = document.querySelector('header');
+    const backBtn = document.getElementById('backBtn');           // goes up one level (to the folder this page lives in)
+    const parent = upRow ? upRow.page : 'home';
+    backBtn.classList.toggle('show', !onHome);
+    backBtn.href = '#' + parent;
+    backBtn.title = 'Back to ' + (parent === 'home' ? 'Home' : parent);
+    hdr.classList.toggle('droppable', arrange && !onHome && !editing);   // the title bar is the "move up a level" drop target
+    hdr.title = (arrange && !onHome && !editing) ? 'Drop a tile here to move it up to ' + (upRow ? (upRow.page === 'home' ? 'Home' : upRow.page) : 'Home') : '';
+    // The editor is a separate view that replaces the tile grid
+    document.getElementById('editor').style.display = editing ? 'block' : 'none';
+    document.getElementById('grid').style.display = editing ? 'none' : '';
+    document.getElementById('grid').classList.toggle('arranging', arrange);
+    document.querySelector('.container').classList.toggle('wide', editing);
+    if (editing) { renderEditor(); return; }
+   
+    visibleItems = items.filter(item => item.page === current);
+    const tiles = visibleItems
+        .map((item, idx) => {
+            const isExternal = /^(https?|file):/i.test(item.url);
+            const isFolder = item.url.startsWith('#') && item.url !== '#';
+            const target = isExternal ? 'target="_blank"' : '';
+            const href = item.url || '#';
+           
+            // Only get icon if icon field is not explicitly false or empty
+            let iconHtml = '';
+            const iconLower = item.icon.toLowerCase();
+            if (iconLower !== 'false' && item.icon !== '') {
+                let iconUrl;
+                if (iconLower === 'true') {
+                    // Get favicon from the URL
+                    iconUrl = `https://www.google.com/s2/favicons?sz=128&domain=${item.url.replace('#','')||'example.com'}`;
+                } else {
+                    // Use the custom icon URL provided
+                    iconUrl = item.icon;
+                }
+                iconHtml = `<img src="${esc(iconUrl)}" alt="" class="icon" draggable="false">`;
+            }
+           
+            return `
+                <a href="${esc(href)}" class="tile ${isFolder ? 'folder' : ''}" ${target} draggable="false" ${item.copy ? `data-copy-index="${idx}"` : ''}>
+                    <div class="inner">
+                        <div class="content">
+                            ${iconHtml}
+                            <div class="title">${esc(item.text)}</div>
+                            ${item.desc ? `<div class="desc">${esc(item.desc)}</div>` : ''}
+                        </div>
+                    </div>
+                    ${item.copy ? '<div class="ribbon" aria-label="Copies text when clicked"><span>COPY</span></div>' : ''}
+                </a>`;
+        }).join('');
+    document.getElementById('grid').innerHTML = tiles;
 }
-
-// Close modal on overlay click
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) overlay.classList.remove('show');
-  });
+function legacyCopy(text) {
+    return new Promise((resolve, reject) => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+        document.body.appendChild(ta);
+        ta.select();
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(ta);
+        ok ? resolve() : reject(new Error('execCommand copy failed'));
+    });
+}
+function copyToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text).catch(() => legacyCopy(text));
+    }
+    return legacyCopy(text);
+}
+function flash(tile, color) {
+    const originalBorder = tile.style.borderColor;
+    tile.style.borderColor = color;
+    setTimeout(() => { tile.style.borderColor = originalBorder; }, 150);
+}
+function go(href) {
+    if (!href || href === '#') return;            // copy-only tile: stay on this page
+    if (/^(https?|file):/i.test(href)) window.open(href, '_blank');
+    else window.location.href = href;
+}
+function copyText(tile, text) {
+    const href = tile.getAttribute('href');
+    copyToClipboard(text).then(() => {
+        flash(tile, '#4ade80');                   // green = copied
+        go(href);
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        flash(tile, '#f87171');                   // red = copy failed
+        go(href);
+    });
+}
+document.getElementById('grid').addEventListener('click', (event) => {
+    if (arrange) {                                // arrange mode: tiles never navigate or copy
+        const t = event.target.closest('a.tile');
+        if (t) {
+            event.preventDefault();
+            if (!justDragged) openEditDialog(visibleItems[Array.prototype.indexOf.call(gridEl.children, t)]);
+        }
+        return;
+    }
+    const tile = event.target.closest('a.tile[data-copy-index]');
+    if (!tile) return;
+    event.preventDefault();
+    copyText(tile, visibleItems[tile.dataset.copyIndex].copy);
 });
 
-// ─────────────────────────────────────────────
-// RENDER
-// ─────────────────────────────────────────────
-function render() {
-  const current = location.hash.slice(1) || 'home';
-  const label = current === 'home' ? 'Home' : current.charAt(0).toUpperCase() + current.slice(1);
-  document.getElementById('pageTitle').textContent = label;
-  document.getElementById('pageHeader').textContent = label;
+/* ======================= Arrange mode (drag tiles to reorder) ======================= */
+const gridEl = document.getElementById('grid');
+let drag = null;
+let justDragged = false;   // a drag just ended: ignore the click that follows it     // { tile, from, x, y, sx, sy, moved, target, after }
 
-  const homeBtn    = document.getElementById('homeBtn');
-  const btnGroup   = document.getElementById('btnGroup');
-  const syncBtn    = document.getElementById('syncBtn');
-  const downloadBtn = document.getElementById('downloadBtn');
-  const uploadBtn  = document.getElementById('uploadBtn');
-
-  if (current === 'home') {
-    homeBtn.classList.remove('show');
-    syncBtn.classList.add('show');
-    uploadBtn.classList.add('show');
-    downloadBtn.classList.add('show');
-  } else {
-    homeBtn.classList.add('show');
-    syncBtn.classList.remove('show');
-    uploadBtn.classList.remove('show');
-    downloadBtn.classList.remove('show');
-  }
-
-  const tiles = items
-    .filter(item => item.page === current)
-    .map(item => {
-      const isExternal = item.url.startsWith('http');
-      const isFolder   = item.url.startsWith('#') && item.url !== '#';
-      const target = isExternal ? 'target="_blank"' : '';
-      const href   = item.url || '#';
-
-      let iconHtml = '';
-      const iconLower = (item.icon || '').toLowerCase();
-      if (iconLower !== 'false' && item.icon !== '') {
-        let iconUrl;
-        if (iconLower === 'true') {
-          iconUrl = `https://www.google.com/s2/favicons?sz=128&domain=${item.url.replace('#','') || 'example.com'}`;
-        } else {
-          iconUrl = item.icon;
+function setArrange(on) { arrange = on; render(); }
+// write the current `items` back to storage and redraw
+function persistItems(msg) {
+    pushUndo();
+    const text = serializeCsv(csvHeaders, items);
+    try { saveCsvData(text); }
+    catch (e) { alert('Could not save to browser storage (' + e.message + ').'); }
+    setData(text);
+    render();
+    if (msg) showToast(msg);
+}
+// move the tile at position `from` (among this page's tiles) before/after the tile at position `to`
+function reorderTiles(from, to, after) {
+    const page = currentPage();
+    const slots = [];                                   // positions in `items` occupied by this page's tiles
+    items.forEach((it, i) => { if (it.page === page) slots.push(i); });
+    const list = slots.map(i => items[i]);
+    let insertAt = after ? to + 1 : to;
+    if (from < insertAt) insertAt--;                    // account for the tile being lifted out first
+    if (insertAt === from) return;
+    const [moved] = list.splice(from, 1);
+    list.splice(insertAt, 0, moved);
+    slots.forEach((s, k) => { items[s] = list[k]; });   // other pages keep their rows exactly where they were
+    persistItems();
+}
+// true if page `dest` is `root` itself or sits somewhere below it (used to stop a folder being moved into itself)
+function insideFolder(dest, root) {
+    const seen = new Set(), q = [root];
+    while (q.length) {
+        const pg = q.pop();
+        if (pg === dest) return true;
+        if (seen.has(pg)) continue;
+        seen.add(pg);
+        items.forEach(r => { if (r.page === pg && r.url.startsWith('#') && r.url.length > 1) q.push(r.url.slice(1)); });
+    }
+    return false;
+}
+// delete the tile at position `from`; a folder takes everything inside it along (after a confirmation)
+function deleteTile(from) {
+    const item = visibleItems[from];
+    if (!item) return;
+    const doomed = new Set([item]);
+    if (item.url.startsWith('#') && item.url.length > 1) {
+        const pages = new Set(), q = [item.url.slice(1)];
+        while (q.length) {
+            const pg = q.pop();
+            if (pages.has(pg)) continue;
+            pages.add(pg);
+            items.forEach(r => { if (r.page === pg) { doomed.add(r); if (r.url.startsWith('#') && r.url.length > 1) q.push(r.url.slice(1)); } });
         }
-        iconHtml = `<img src="${iconUrl}" alt="" class="icon">`;
-      }
+    }
+    const inside = doomed.size - 1;
+    const msg = inside > 0 ? `Delete folder "${item.text}" and the ${inside} item${inside === 1 ? '' : 's'} inside it?`
+                           : `Delete "${item.text}"?`;
+    if (inside > 0 && !confirm(msg)) return;
+    items = items.filter(r => !doomed.has(r));
+    persistItems(`Deleted "${item.text}"` + (inside > 0 ? ` and ${inside} inside` : ''));
+}
+function upPageName() {
+    const row = items.find(r => r.url === '#' + currentPage());
+    return row ? row.page : 'home';
+}
+// move the tile at position `from` on this page onto the end of page `dest`
+function moveToPage(from, dest) {
+    const item = visibleItems[from];
+    if (!item || !dest || dest === item.page) return;
+    if (item.url.startsWith('#') && item.url.length > 1 && insideFolder(dest, item.url.slice(1))) return;   // no cycles
+    items.splice(items.indexOf(item), 1);
+    item.page = dest;
+    let last = -1;
+    items.forEach((it, i) => { if (it.page === dest) last = i; });
+    if (last < 0) items.push(item); else items.splice(last + 1, 0, item);
+    persistItems(`Moved "${item.text}" to ${dest === 'home' ? 'Home' : dest}`);
+}
+function clearDropMarks() {
+    gridEl.querySelectorAll('.drop-before,.drop-after,.drop-into').forEach(t => t.classList.remove('drop-before', 'drop-after', 'drop-into'));
+    document.querySelector('header').classList.remove('over');
+    document.getElementById('trashZone').classList.remove('over');
+}
+gridEl.addEventListener('pointerdown', e => {
+    if (!arrange || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    const tile = e.target.closest('a.tile');
+    if (!tile) return;
+    e.preventDefault();
+    drag = { tile, from: Array.prototype.indexOf.call(gridEl.children, tile),
+             x: e.clientX, y: e.clientY, sx: window.scrollX, sy: window.scrollY,
+             moved: false, target: null, after: false, into: false, up: false, trash: false };
+});
+document.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x + (window.scrollX - drag.sx);
+    const dy = e.clientY - drag.y + (window.scrollY - drag.sy);
+    if (!drag.moved) {
+        if (Math.hypot(dx, dy) < 6) return;             // small wobble = a click, not a drag
+        drag.moved = true;
+        drag.tile.classList.add('dragging');
+        drag.tile.style.pointerEvents = 'none';         // so elementFromPoint sees the tile underneath
+    }
+    drag.tile.style.transform = `translate(${dx}px,${dy}px)`;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const t = el && el.closest ? el.closest('#grid a.tile') : null;
+    clearDropMarks();
+    drag.target = null; drag.into = false; drag.up = false; drag.trash = false;
+    const up = (currentPage() !== 'home' && el && el.closest) ? el.closest('header') : null;
+    const bin = el && el.closest ? el.closest('#trashZone') : null;
+    if (bin) { drag.trash = true; bin.classList.add('over'); }
+    else if (up) { drag.up = true; up.classList.add('over'); }
+    else if (t && t !== drag.tile) {
+        const r = t.getBoundingClientRect();
+        const rel = (e.clientX - r.left) / r.width;
+        drag.target = t;
+        if (t.classList.contains('folder') && rel > 0.25 && rel < 0.75) {   // middle of a folder = drop inside it
+            drag.into = true;
+            t.classList.add('drop-into');
+        } else {
+            drag.after = rel > 0.5;
+            t.classList.add(drag.after ? 'drop-after' : 'drop-before');
+        }
+    }
+});
+function endDrag(commit) {
+    if (!drag) return;
+    const d = drag; drag = null;
+    if (d.moved) { justDragged = true; setTimeout(() => { justDragged = false; }, 60); }
+    clearDropMarks();
+    d.tile.classList.remove('dragging');
+    d.tile.style.transform = '';
+    d.tile.style.pointerEvents = '';
+    if (commit && d.moved) {
+        const toIdx = d.target ? Array.prototype.indexOf.call(gridEl.children, d.target) : -1;
+        if (d.trash) deleteTile(d.from);
+        else if (d.up) moveToPage(d.from, upPageName());
+        else if (d.target && d.into) moveToPage(d.from, visibleItems[toIdx].url.slice(1));
+        else if (d.target) reorderTiles(d.from, toIdx, d.after);
+    }
+}
+document.addEventListener('pointerup', () => endDrag(true));
+document.addEventListener('pointercancel', () => endDrag(false));
+document.getElementById('arrangeBtn').addEventListener('click', () => setArrange(!arrange));
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && arrange && !document.querySelector('dialog[open]')) setArrange(false);
+});
 
-      return `
-<a href="${href}" class="tile ${isFolder ? 'folder' : ''}" ${target} ${item.copy ? `onclick="copyText(event,'${item.copy.replace(/'/g,"\\'")}')"` : ''}>
-  <div class="inner">
-    <div class="content">
-      ${iconHtml}
-      <div class="title">${item.text}</div>
-      ${item.desc ? `<div class="desc">${item.desc}</div>` : ''}
-    </div>
-  </div>
-</a>`;
-    }).join('');
+/* ======================= Paste a link -> new tile dialog ======================= */
+const tileDialog = document.getElementById('tileDialog');
+const byId = id => document.getElementById(id);
+let editTarget = null;     // the tile row being edited (null = creating a new one)
 
-  document.getElementById('grid').innerHTML = tiles;
+// returns a clean http(s) URL if `text` is a single link (a bare "example.com/path" is accepted too), else null
+function normalizeLink(text) {
+    let s = (text || '').trim();
+    if (/^file:\/\//i.test(s) && !/[\r\n]/.test(s)) return s.replace(/ /g, '%20');   // file:// links (may contain spaces)
+    if (!s || /\s/.test(s)) return null;
+    if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(s)) {
+        if (!/^[\w-]+(\.[\w-]+)+(:\d+)?([\/?#]\S*)?$/.test(s)) return null;
+        s = 'https://' + s;
+    }
+    try { const u = new URL(s); return /^(https?|file):$/.test(u.protocol) ? u.href : null; }
+    catch (_) { return null; }
+}
+function guessTitle(href) {
+    if (/^file:/i.test(href)) {
+        const seg = href.split(/[?#]/)[0].split('/').filter(Boolean).pop() || 'File';
+        let name = seg; try { name = decodeURIComponent(seg); } catch (_) {}
+        return name.replace(/\.[^.]+$/, '') || name;
+    }
+    try {
+        const parts = new URL(href).hostname.replace(/^www\./, '').split('.');
+        const base = parts.length > 1 ? parts[parts.length - 2] : parts[0];
+        return base.charAt(0).toUpperCase() + base.slice(1);
+    } catch (_) { return ''; }
+}
+// Open the dialog for pasted clipboard text: a link prefills the URL, anything else prefills the copy text
+function openTileDialog(pasted) {
+    if (tileDialog.open) return;
+    editTarget = null;
+    const href = normalizeLink(pasted);
+    if (href) {
+        byId('tdText').value = guessTitle(href);
+        byId('tdUrl').value = href;
+        byId('tdIcon').value = /^file:/i.test(href) ? '' : 'TRUE';
+        byId('tdCopy').value = '';
+    } else {
+        const first = pasted.trim().split(/\r?\n/)[0].trim();
+        byId('tdText').value = first.length > 40 ? first.slice(0, 40).trim() + '…' : first;
+        byId('tdUrl').value = '';
+        byId('tdIcon').value = '';
+        byId('tdCopy').value = '';
+    }
+    byId('tdDesc').value = '';
+    updateTileKind(href ? 'Pasted a link' : 'Pasted text');
+    tileDialog.showModal();
+    byId('tdText').focus();
+    byId('tdText').select();
+}
+function openNewTileDialog() {
+    if (tileDialog.open) return;
+    editTarget = null;
+    ['tdText', 'tdUrl', 'tdDesc', 'tdCopy'].forEach(id => { byId(id).value = ''; });
+    byId('tdIcon').value = 'TRUE';
+    updateTileKind('');
+    tileDialog.showModal();
+    byId('tdText').focus();
+}
+function openEditDialog(item) {
+    if (tileDialog.open || !item) return;
+    editTarget = item;
+    byId('tdText').value = item.text; byId('tdUrl').value = item.url; byId('tdIcon').value = item.icon;
+    byId('tdDesc').value = item.desc; byId('tdCopy').value = item.copy;
+    updateTileKind('');
+    tileDialog.showModal();
+    byId('tdText').focus();
+    byId('tdText').select();
+}
+function addLinkTiles(hrefs) {
+    const page = currentPage();
+    let last = -1;
+    items.forEach((it, i) => { if (it.page === page) last = i; });
+    const rows = hrefs.map(u => {
+        const row = {}; csvHeaders.forEach(k => { row[k] = ''; });
+        return Object.assign(row, { page, text: guessTitle(u), url: u, icon: /^file:/i.test(u) ? '' : 'TRUE' });
+    });
+    items.splice(last < 0 ? items.length : last + 1, 0, ...rows);
+    persistItems(`Added ${rows.length} tiles`);
+}
+// what will be created, based on the form (no URL and no copy text => folder)
+function tileKind() {
+    if (byId('tdUrl').value.trim()) return 'tile';
+    return byId('tdCopy').value ? 'copy' : 'folder';
+}
+function updateTileKind(prefix) {
+    if (prefix != null) updateTileKind.prefix = prefix;
+    const k = tileKind();
+    const editing = !!editTarget, u = byId('tdUrl').value.trim();
+    const noun = (k === 'folder' || (u.startsWith('#') && u.length > 1)) ? 'folder' : 'tile';
+    byId('tdHead').textContent = (editing ? 'Edit ' : 'New ') + noun;
+    byId('tdSubmit').textContent = editing ? 'Save' : 'Add ' + noun;
+    byId('tdKind').style.display = editing ? 'none' : '';
+    byId('tdDelete').style.display = editing ? 'inline-block' : 'none';
+    byId('tdKind').textContent = (updateTileKind.prefix ? updateTileKind.prefix + ' – ' : '') +
+        (k === 'tile' ? 'this will create a link tile.' :
+         k === 'copy' ? 'no URL, so this will create a copy-only tile (click it to copy the text).' :
+                        'no URL, so this will create a folder.');
+}
+['tdUrl', 'tdCopy'].forEach(id => byId(id).addEventListener('input', () => updateTileKind()));
+document.addEventListener('paste', e => {
+    if (document.querySelector('dialog[open]')) return;
+    const t = e.target;
+    if (t && t.closest && t.closest('input,textarea,select,[contenteditable]')) return;
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    if (!text || !text.trim()) return;
+    e.preventDefault();
+    const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    const links = lines.map(normalizeLink);
+    if (lines.length > 1 && links.every(Boolean) && currentPage() !== EDITOR_ROUTE) { addLinkTiles(links); return; }
+    openTileDialog(text);
+});
+byId('tdCancel').addEventListener('click', () => tileDialog.close());
+tileDialog.addEventListener('close', () => { editTarget = null; });
+byId('addBtn').addEventListener('click', openNewTileDialog);
+byId('tdDelete').addEventListener('click', () => {
+    const t = editTarget; tileDialog.close();
+    const idx = visibleItems.indexOf(t);
+    if (idx >= 0) deleteTile(idx);
+});
+byId('tileForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const kind = tileKind();
+    const text = byId('tdText').value.trim();
+    let url = byId('tdUrl').value.trim();
+    // empty URL => folder: "#" + the title with spaces as underscores (e.g. "Diff Checkers" -> #Diff_Checkers)
+    const slug = s => s.trim().replace(/\s+/g, '_').replace(/[^\w-]/g, '');
+    if (kind === 'folder') { url = '#' + slug(text); byId('tdUrl').value = url; }
+    if (!text || url === '#') return;
+    const page = currentPage() === EDITOR_ROUTE ? 'home' : currentPage();   // new tiles go on the page being viewed
+    const icon = kind === 'folder' ? '' : byId('tdIcon').value.trim();
+    const vals = { page, text, url, icon: (kind === 'copy' && icon.toLowerCase() === 'true') ? '' : icon,
+                   desc: byId('tdDesc').value.trim(), copy: byId('tdCopy').value };
+    const row = {};
+    csvHeaders.forEach(h => { row[h] = (h in vals) ? vals[h] : ''; });
+    tileDialog.close();
+    if (editTarget) {                                           // editing an existing tile
+        const t = editTarget, oldUrl = t.url;
+        Object.assign(t, { text, url, icon: vals.icon, desc: vals.desc, copy: vals.copy });
+        if (oldUrl.startsWith('#') && oldUrl.length > 1 && url !== oldUrl && url.startsWith('#') && url.length > 1) {
+            items.forEach(r => { if (r.page === oldUrl.slice(1)) r.page = url.slice(1); });   // keep the folder's contents attached
+        }
+        persistItems(`Saved "${text}"`);
+        return;
+    }
+    if (currentPage() === EDITOR_ROUTE && edit) {               // data editor: add to the unsaved working copy
+        let lastR = -1;
+        edit.rows.forEach((r, i) => { if (r.page === page) lastR = i; });
+        if (lastR < 0) edit.rows.push(row); else edit.rows.splice(lastR + 1, 0, row);
+        setDirty(); clearFilter(); renderRows();
+        updateEditStatus('Added "' + text + '" — press Save to keep it');
+        return;
+    }
+    let last = -1;                                              // place it after the last tile already on that page
+    items.forEach((it, i) => { if (it.page === page) last = i; });
+    if (last < 0) items.push(row); else items.splice(last + 1, 0, row);
+    persistItems();
+});
+
+/* ======================= In-app CSV editor ======================= */
+const EDITOR_ROUTE = '_editor';
+const LONG_LEN = 80;     // longer than this (or containing a line break) => read-only cell, edited in a dialog
+const COL_W = { page: 110, text: 170, url: 260, icon: 170, desc: 220, copy: 300 };
+const RN_COL_W = 62;     // row-number column (drag handle + number)
+let edit = null;         // working copy: { rows: [{header: value}], dirty, filter }
+let dragState = null;    // { from } — index of the row currently being dragged
+
+function csvField(v) {
+    v = v == null ? '' : String(v);
+    return (/[",\r\n]/.test(v) || v !== v.trim()) ? '"' + v.replace(/"/g, '""') + '"' : v;
+}
+function serializeCsv(headers, rows) {
+    return [headers.map(csvField).join(',')]
+        .concat(rows.map(r => headers.map(h => csvField(r[h])).join(',')))
+        .join('\n');
+}
+function isLong(v) { return v.length > LONG_LEN || /[\r\n]/.test(v); }
+function downloadText(name, text, type) {
+    const url = URL.createObjectURL(new Blob([text], { type }));
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+function startEdit() {
+    edit = {
+        rows: items.map(r => { const o = {}; csvHeaders.forEach(h => { o[h] = r[h] || ''; }); return o; }),
+        dirty: false, filter: '', shown: 0
+    };
+}
+function blankRow(pageValue) {
+    const o = {}; csvHeaders.forEach(h => { o[h] = ''; });
+    if ('page' in o) o.page = pageValue || 'home';
+    return o;
+}
+function setDirty() { if (!edit.dirty) { edit.dirty = true; updateEditStatus(); } }
+function updateEditStatus(msg) {
+    const st = document.getElementById('edStatus'), save = document.getElementById('edSave');
+    if (!st || !edit) return;
+    const total = edit.rows.length;
+    const count = edit.filter.trim() ? `Showing ${edit.shown} of ${total} rows` : `${total} rows`;
+    st.textContent = count + ' • ' + (msg || (edit.dirty ? 'Unsaved changes' : 'Saved'));
+    st.classList.toggle('unsaved', edit.dirty);
+    save.classList.toggle('dirty', edit.dirty);
 }
 
-// ─────────────────────────────────────────────
-// COPY TILE
-// ─────────────────────────────────────────────
-function copyText(event, text) {
-  event.preventDefault();
-  const tile = event.currentTarget;
-  const href = tile.getAttribute('href');
-  const isExternal = href.startsWith('http');
-  navigator.clipboard.writeText(text).then(() => {
-    const orig = tile.style.borderColor;
-    tile.style.borderColor = '#4ade80';
-    setTimeout(() => tile.style.borderColor = orig, 150);
-    if (isExternal) window.open(href, '_blank'); else window.location.href = href;
-  }).catch(() => {
-    if (isExternal) window.open(href, '_blank'); else window.location.href = href;
-  });
+function renderEditor() {
+    if (!edit) startEdit();
+    const host = document.getElementById('editor');
+    host.innerHTML = `
+        <div class="toolbar">
+            <button class="tbtn primary" id="edSave" title="Ctrl+S">Save</button>
+            <button class="tbtn" id="edDiscard">Discard changes</button>
+            <button class="tbtn" id="edAdd">+ Add row</button>
+            <button class="tbtn" id="edSort" title="Order rows the way the app displays them: page rows first, then each folder followed by its contents and sub-folders">Sort by hierarchy</button>
+            <button class="tbtn" id="edDownload">Download CSV</button>
+            <input type="search" id="edFilter" placeholder="Filter rows…">
+            <span id="edStatus"></span>
+        </div>
+        <div class="sheet-wrap"><table class="sheet"><colgroup></colgroup><thead><tr></tr></thead><tbody></tbody></table></div>
+        <div class="hint">Drag the ⠿ handle in the row-number column to move a row. Cells longer than ${LONG_LEN} characters (or with line breaks) are read-only here – click one to edit the full text in a dialog.
+            Pasting long text into any cell opens the same dialog. Changes are only stored when you press Save.</div>`;
+    const table = host.querySelector('table');
+    let width = RN_COL_W + 76;
+    const cols = [colEl(RN_COL_W)];
+    const headRow = table.querySelector('thead tr');
+    const corner = document.createElement('th'); corner.className = 'corner'; corner.textContent = '#'; headRow.appendChild(corner);
+    csvHeaders.forEach(h => {
+        const w = COL_W[h] || 180; width += w; cols.push(colEl(w));
+        const th = document.createElement('th'); th.textContent = h; headRow.appendChild(th);
+    });
+    cols.push(colEl(76)); headRow.appendChild(document.createElement('th'));
+    table.querySelector('colgroup').append(...cols);
+    table.style.width = width + 'px';
+
+    const filter = document.getElementById('edFilter');
+    filter.value = edit.filter;
+    filter.addEventListener('input', () => { edit.filter = filter.value; renderRows(); });
+    document.getElementById('edSave').addEventListener('click', saveEdit);
+    document.getElementById('edDiscard').addEventListener('click', discardEdit);
+    document.getElementById('edDownload').addEventListener('click', () =>
+        downloadText('homepage-data.csv', serializeCsv(csvHeaders, edit.rows), 'text/csv'));
+    document.getElementById('edAdd').addEventListener('click', () => {
+        const last = edit.rows[edit.rows.length - 1];
+        edit.rows.push(blankRow(last && last.page));
+        setDirty(); clearFilter(); renderRows(); focusRow(edit.rows.length - 1);
+    });
+    document.getElementById('edSort').addEventListener('click', sortByHierarchy);
+
+    // drag & drop of whole rows (delegated on <tbody>, which survives re-renders)
+    const tbody = table.querySelector('tbody');
+    tbody.addEventListener('dragover', onRowDragOver);
+    tbody.addEventListener('drop', onRowDrop);
+    tbody.addEventListener('dragleave', e => { if (!tbody.contains(e.relatedTarget)) clearDragMarks(); });
+
+    renderRows();
+}
+function colEl(w) { const c = document.createElement('col'); c.style.width = w + 'px'; return c; }
+function clearFilter() { edit.filter = ''; const f = document.getElementById('edFilter'); if (f) f.value = ''; }
+
+function renderRows() {
+    const tbody = document.querySelector('#editor tbody');
+    if (!tbody || !edit) return;
+    const needle = edit.filter.trim().toLowerCase();
+    const frag = document.createDocumentFragment();
+    let shown = 0;
+    edit.rows.forEach((row, r) => {
+        if (needle && !csvHeaders.some(h => (row[h] || '').toLowerCase().includes(needle))) return;
+        shown++;
+        const tr = document.createElement('tr');
+        tr.dataset.r = r;
+
+        // row number + drag handle
+        const rn = document.createElement('td'); rn.className = 'rn';
+        const wrap = document.createElement('span'); wrap.className = 'rn-wrap';
+        const handle = document.createElement('span');
+        handle.className = 'drag-handle';
+        handle.textContent = '⠿';
+        handle.title = 'Drag to reorder this row';
+        handle.draggable = true;
+        handle.addEventListener('dragstart', e => onRowDragStart(e, r, tr));
+        handle.addEventListener('dragend', () => { dragState = null; clearRowDragMarks(); });
+        const num = document.createElement('span'); num.className = 'rn-num'; num.textContent = r + 1;
+        wrap.append(handle, num);
+        rn.appendChild(wrap);
+        tr.appendChild(rn);
+
+        csvHeaders.forEach((h, c) => {
+            const td = document.createElement('td'); td.dataset.r = r; td.dataset.c = c;
+            fillCell(td, r, c); tr.appendChild(td);
+        });
+        const act = document.createElement('td'); act.className = 'act';
+        const ins = document.createElement('button'); ins.textContent = '＋'; ins.title = 'Insert row below';
+        ins.addEventListener('click', () => {
+            edit.rows.splice(r + 1, 0, blankRow(row.page));
+            setDirty(); clearFilter(); renderRows(); focusRow(r + 1);
+        });
+        const del = document.createElement('button'); del.textContent = '✕'; del.title = 'Delete row';
+        del.addEventListener('click', () => {
+            if (!confirm('Delete row ' + (r + 1) + '?')) return;
+            edit.rows.splice(r, 1); setDirty(); renderRows();
+        });
+        act.append(ins, del); tr.appendChild(act);
+        frag.appendChild(tr);
+    });
+    tbody.innerHTML = '';
+    tbody.appendChild(frag);
+    edit.shown = shown;
+    document.getElementById('pageList').innerHTML = Array.from(new Set(edit.rows.map(r => r.page).filter(Boolean)))
+        .map(p => '<option value="' + esc(p) + '">').join('');
+    updateEditStatus();
+}
+function focusRow(r) {
+    const el = document.querySelector(`#editor td[data-r="${r}"][data-c="0"] input, #editor td[data-r="${r}"][data-c="0"] .ro`);
+    if (el) { el.scrollIntoView({ block: 'nearest' }); el.focus(); }
 }
 
-// ─────────────────────────────────────────────
-// UPLOAD CSV
-// ─────────────────────────────────────────────
+/* ---------------- row drag & drop (data editor) ---------------- */
+function onRowDragStart(e, r, tr) {
+    dragState = { from: r };
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', String(r)); } catch (_) {}
+    try { e.dataTransfer.setDragImage(tr, 16, 12); } catch (_) {}
+    tr.classList.add('dragging');
+}
+function clearRowDragMarks() {
+    document.querySelectorAll('#editor tr.dragging, #editor tr.drop-above, #editor tr.drop-below')
+        .forEach(t => t.classList.remove('dragging', 'drop-above', 'drop-below'));
+}
+function onRowDragOver(e) {
+    if (!dragState) return;
+    const tr = e.target.closest('tr');
+    if (!tr || tr.dataset.r == null) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const rect = tr.getBoundingClientRect();
+    const after = (e.clientY - rect.top) > rect.height / 2;
+    document.querySelectorAll('#editor tr.drop-above, #editor tr.drop-below').forEach(t => {
+        if (t !== tr) t.classList.remove('drop-above', 'drop-below');
+    });
+    tr.classList.toggle('drop-above', !after);
+    tr.classList.toggle('drop-below', after);
+}
+function onRowDrop(e) {
+    if (!dragState) return;
+    const tr = e.target.closest('tr');
+    if (!tr || tr.dataset.r == null) { dragState = null; clearRowDragMarks(); return; }
+    e.preventDefault();
+    const rect = tr.getBoundingClientRect();
+    const after = (e.clientY - rect.top) > rect.height / 2;
+    const from = dragState.from, target = +tr.dataset.r;
+    dragState = null;
+    clearRowDragMarks();
+    moveRow(from, target, after);
+}
+// move edit.rows[from] so that it lands before/after the row currently at index `target`
+function moveRow(from, target, after) {
+    if (!edit || from === target) return;
+    let insertAt = after ? target + 1 : target;
+    if (from < insertAt) insertAt--;             // account for the row being lifted out first
+    if (insertAt === from) return;
+    const [row] = edit.rows.splice(from, 1);
+    edit.rows.splice(insertAt, 0, row);
+    setDirty();
+    renderRows();
+}
+
+/* ---------------- hierarchy sort ---------------- */
+// Orders rows exactly like the app is browsed:
+//   page rows (non-folders) first, then for each folder: the folder row followed by
+//   everything on the page it points to (its own rows, then its folders and sub-folders…)
+//   then the next folder of the page, and so on. Unreachable pages are appended at the end.
+function sortByHierarchy() {
+    if (!edit) return;
+    if (!csvHeaders.includes('page') || !csvHeaders.includes('url')) {
+        updateEditStatus('Cannot sort: the data needs "page" and "url" columns');
+        return;
+    }
+    const rows = edit.rows;
+    const pageOf = row => (row.page || '').trim();
+    const urlOf = row => (row.url || '').trim();
+    const isFolderRow = row => urlOf(row).startsWith('#') && urlOf(row).length > 1;
+    const folderTarget = row => urlOf(row).slice(1).trim();
+
+    // group row indices by page, keeping the current order inside each page
+    const byPage = new Map();
+    rows.forEach((row, i) => {
+        const p = pageOf(row);
+        if (!byPage.has(p)) byPage.set(p, []);
+        byPage.get(p).push(i);
+    });
+
+    const visited = new Set();
+    const order = [];
+    const visit = page => {
+        if (visited.has(page)) return;           // guards against cycles / pages referenced twice
+        visited.add(page);
+        const list = byPage.get(page) || [];
+        const links = [], folders = [];
+        list.forEach(i => (isFolderRow(rows[i]) ? folders : links).push(i));
+        links.forEach(i => order.push(i));       // direct (non-folder) rows of the page
+        folders.forEach(i => {                   // then each folder, immediately followed by its contents
+            order.push(i);
+            visit(folderTarget(rows[i]));
+        });
+    };
+    visit('home');
+    // pages not reachable from Home: keep them, in order of first appearance
+    rows.forEach(row => {
+        const p = pageOf(row);
+        if (!visited.has(p)) visit(p);
+    });
+    // safety net: nothing may be lost
+    const seen = new Set(order);
+    rows.forEach((row, i) => { if (!seen.has(i)) order.push(i); });
+
+    edit.rows = order.map(i => rows[i]);
+    setDirty();
+    clearFilter();
+    renderRows();
+    updateEditStatus('Sorted by hierarchy — press Save to keep it');
+}
+
+// One cell: short text = normal editable input; long / multi-line text = read-only preview that opens the dialog
+function fillCell(cell, r, c) {
+    const h = csvHeaders[c], v = edit.rows[r][h] || '';
+    cell.innerHTML = '';
+    if (isLong(v)) {
+        const ro = document.createElement('div');
+        ro.className = 'ro'; ro.tabIndex = 0; ro.title = 'Click to view / edit the full text';
+        const prev = document.createElement('span'); prev.className = 'prev'; prev.textContent = v.slice(0, 200).replace(/\s+/g, ' ');
+        const badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = v.length.toLocaleString() + ' chars ⤢';
+        ro.append(prev, badge);
+        ro.addEventListener('click', () => openCellDialog(r, c));
+        ro.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCellDialog(r, c); }
+            else navKey(e, cell);
+        });
+        cell.appendChild(ro);
+        return;
+    }
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.value = v; inp.spellcheck = false;
+    if (h === 'page') inp.setAttribute('list', 'pageList');
+    inp.addEventListener('input', () => { edit.rows[r][h] = inp.value; setDirty(); });
+    inp.addEventListener('change', () => { if (isLong(inp.value)) fillCell(cell, r, c); });   // grew past the limit -> read-only
+    inp.addEventListener('paste', e => {
+        const t = (e.clipboardData || window.clipboardData).getData('text');
+        if (!t || !isLong(t)) return;                      // short single-line paste: normal behaviour
+        e.preventDefault();                                // large / multi-line paste: use the dialog instead
+        const a = inp.selectionStart, b = inp.selectionEnd;
+        openCellDialog(r, c, inp.value.slice(0, a) + t + inp.value.slice(b), true);
+    });
+    inp.addEventListener('keydown', e => navKey(e, cell));
+    cell.appendChild(inp);
+}
+function navKey(e, cell) {
+    let dir = 0;
+    if (e.key === 'ArrowDown' || (e.key === 'Enter' && e.target.tagName === 'INPUT')) dir = 1;
+    else if (e.key === 'ArrowUp') dir = -1;
+    if (!dir) return;
+    const tr = cell.parentElement, next = dir > 0 ? tr.nextElementSibling : tr.previousElementSibling;
+    const t = next && next.querySelector(`td[data-c="${cell.dataset.c}"] input, td[data-c="${cell.dataset.c}"] .ro`);
+    if (t) { e.preventDefault(); t.focus(); if (t.select) t.select(); }
+}
+
+// ---- full-text dialog ----
+const cellDialog = document.getElementById('cellDialog');
+const dlgText = document.getElementById('dlgText');
+let dlgCtx = null;
+const normNl = s => s.replace(/\r\n/g, '\n');
+function updateDlgCount() {
+    const v = dlgText.value;
+    document.getElementById('dlgCount').textContent = v.length.toLocaleString() + ' chars • ' + (v.split('\n').length).toLocaleString() + ' lines';
+}
+function openCellDialog(r, c, text, fromPaste) {
+    if (cellDialog.open) return;
+    const h = csvHeaders[c], row = edit.rows[r];
+    dlgCtx = { r, c };
+    document.getElementById('dlgTitle').textContent =
+        `Row ${r + 1} · ${h}` + (row.text && h !== 'text' ? ` · ${row.text}` : '') + (fromPaste ? '  — pasted text: press Apply to keep it' : '');
+    dlgText.value = text != null ? text : (row[h] || '');
+    dlgText.wrap = document.getElementById('dlgWrap').checked ? 'soft' : 'off';
+    updateDlgCount();
+    cellDialog.showModal();
+    dlgText.focus();
+    const pos = fromPaste ? dlgText.value.length : 0;
+    dlgText.setSelectionRange(pos, pos);
+    dlgText.scrollTop = fromPaste ? dlgText.scrollHeight : 0;
+}
+function applyDialog() {
+    if (!dlgCtx) return;
+    const { r, c } = dlgCtx, h = csvHeaders[c];
+    const before = edit.rows[r][h] || '';
+    if (normNl(before) !== dlgText.value) { edit.rows[r][h] = dlgText.value; setDirty(); }
+    dlgCtx = null;
+    cellDialog.close();
+    const cell = document.querySelector(`#editor td[data-r="${r}"][data-c="${c}"]`);
+    if (cell) { fillCell(cell, r, c); const f = cell.querySelector('input, .ro'); if (f) f.focus(); }
+}
+dlgText.addEventListener('input', updateDlgCount);
+dlgText.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); applyDialog(); } });
+document.getElementById('dlgApply').addEventListener('click', applyDialog);
+document.getElementById('dlgCancel').addEventListener('click', () => { dlgCtx = null; cellDialog.close(); });
+cellDialog.addEventListener('close', () => { dlgCtx = null; });
+document.getElementById('dlgWrap').addEventListener('change', e => { dlgText.wrap = e.target.checked ? 'soft' : 'off'; });
+document.getElementById('dlgCopy').addEventListener('click', () => {
+    const b = document.getElementById('dlgCopy');
+    copyToClipboard(dlgText.value).then(() => { b.textContent = 'Copied ✓'; }, () => { b.textContent = 'Copy failed'; })
+        .then(() => setTimeout(() => { b.textContent = 'Copy'; }, 1200));
+});
+
+// ---- save / discard ----
+function saveEdit() {
+    if (!edit) return;
+    const text = serializeCsv(csvHeaders, edit.rows);
+    try { saveCsvData(text); }
+    catch (e) { alert('Could not save to browser storage (' + e.message + ').\nUse "Download CSV" to keep a copy.'); return; }
+    const filter = edit.filter;
+    setData(text);                       // re-parse so the app sees exactly what a reload would
+    startEdit(); edit.filter = filter;
+    renderRows();
+    updateEditStatus('Saved at ' + new Date().toLocaleTimeString());
+}
+function discardEdit() {
+    if (edit.dirty && !confirm('Discard all unsaved changes?')) return;
+    const filter = edit.filter;
+    startEdit(); edit.filter = filter;
+    renderEditor();
+}
+window.addEventListener('beforeunload', e => { if (edit && edit.dirty) { e.preventDefault(); e.returnValue = ''; } });
+document.addEventListener('keydown', e => {
+    if (edit && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && location.hash.slice(1) === EDITOR_ROUTE) { e.preventDefault(); saveEdit(); }
+});
+
+
+function importCsv(text, name) {
+    const p = parseCsv(text);
+    if (!['page', 'text', 'url'].every(c => p.headers.includes(c))) {
+        alert('"' + name + '" is not a tile file: it needs page, text and url columns.');
+        return;
+    }
+    if (!confirm('Replace your ' + items.length + ' current tiles with the ' + p.items.length + ' in "' + name + '"?\n(You can undo this.)')) return;
+    pushUndo();
+    saveCsvData(text);
+    setData(text);
+    edit = null;
+    location.hash = 'home';
+    render();
+    showToast('Imported ' + p.items.length + ' tiles');
+}
+document.addEventListener('dragover', e => {
+    const types = e.dataTransfer ? Array.from(e.dataTransfer.types) : [];
+    if (!dragState && currentPage() !== EDITOR_ROUTE && (types.includes('Files') || types.includes('text/uri-list'))) e.preventDefault();
+});
+document.addEventListener('drop', e => {
+    if (dragState || currentPage() === EDITOR_ROUTE || !e.dataTransfer) return;
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) {
+        e.preventDefault();
+        const reader = new FileReader();
+        reader.onload = ev => importCsv(ev.target.result, f.name);
+        reader.readAsText(f);
+        return;
+    }
+    const link = normalizeLink(e.dataTransfer.getData('text/uri-list').split(/\r?\n/)[0] || '');
+    if (link) { e.preventDefault(); openTileDialog(link); }
+});
+// Upload CSV functionality
+document.getElementById('editorBtn').addEventListener('click', () => { location.hash = EDITOR_ROUTE; });
 document.getElementById('uploadBtn').addEventListener('click', () => {
-  document.getElementById('csvFileInput').click();
+    document.getElementById('csvFileInput').click();
+});
+
+// Download CSV functionality
+document.getElementById('downloadBtn').addEventListener('click', () => {
+    const csvContent = loadCsvData();
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'homepage-data.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 });
 
 document.getElementById('csvFileInput').addEventListener('change', (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const csv = e.target.result;
-    applyData(csv, currentGistId, isRemote);
-    // If we have a current gist and a saved token, offer to push
-    if (currentGistId && loadPat()) {
-      if (confirm('Push updated CSV to existing Gist as well?')) {
-        pushToGistDirect(currentGistId, csv);
-      }
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => importCsv(e.target.result, file.name);
+        reader.readAsText(file);
     }
-    location.hash = 'home';
-    render();
-  };
-  reader.readAsText(file);
-  event.target.value = '';
+    // Reset the file input so the same file can be selected again
+    event.target.value = '';
 });
+/* ======================= Sync (private GitHub Gist) ======================= */
+// Tiles live in one secret gist in YOUR GitHub account: tiles.csv (the data) + meta.json (last-change timestamp).
+// Needs a GitHub token with the "gist" scope ("Create gists"). Token and gist ID are kept in this browser's localStorage
+// AND in the address bar as  ?gist=<gist id>&token=<token>  so the page URL can be bookmarked / opened on your other devices.
+// When the page is opened with those variables, they are recognised, saved, and the tiles are synced straight away.
+const GIST_API = 'https://api.github.com';
+const GIST_DESC = 'Homepage tiles (sync)';
+const GIST_CSV = 'tiles.csv', GIST_META = 'meta.json';
+const GIST_ID_RE = /^[0-9a-f]{20,40}$/i;
+let syncId = null, syncToken = null, syncTimer = null;       // syncId = gist ID
+let syncFromUrl = false, syncTokenOnly = false, pendingGist = null;
+(function readSyncCredentials() {
+    let uId = null, uTok = null, sId = null, sTok = null;
+    try { const q = new URLSearchParams(location.search); uId = q.get('gist'); uTok = q.get('token'); } catch (e) {}
+    try { sId = localStorage.getItem('gistId'); sTok = localStorage.getItem('gistToken'); } catch (e) {}
+    if (uId && !GIST_ID_RE.test(uId)) uId = null;
+    if (sId && !GIST_ID_RE.test(sId)) sId = null;
+    const id = uId || sId, tok = uTok || sTok;
+    if (id && tok) {
+        syncId = id; syncToken = tok; syncFromUrl = !!(uId || uTok);
+        try { localStorage.setItem('gistId', id); localStorage.setItem('gistToken', tok); } catch (e) {}
+    } else if (uTok) {                                        // token only: remember it, the gist is found on Connect
+        syncTokenOnly = true;
+        try { localStorage.setItem('gistToken', uTok); } catch (e) {}
+    } else if (uId) {                                         // gist ID only: prefill it, a token is still needed
+        pendingGist = uId;
+    }
+})();
+const syncDialog = document.getElementById('syncDialog');
+const $ = id => document.getElementById(id);
+const syncErr = e => e instanceof TypeError ? 'could not reach api.github.com (offline, or the browser blocked the request)' : e.message;
+const storedToken = () => { try { return localStorage.getItem('gistToken') || ''; } catch (e) { return ''; } };
+function syncMsg(text) { $('syMsg').textContent = text || ''; }       // error line inside the dialog (toasts sit behind an open dialog)
 
-async function pushToGistDirect(gistId, csv) {
-  const pat = loadPat();
-  if (!pat) return;
-  setStatus('syncing', '⟳ Syncing…');
-  try {
-    await updateGist(gistId, csv, pat);
-    setStatus('remote', '☁ Remote');
-  } catch(e) {
-    setStatus('error', '✕ Error');
-    console.error(e);
-  }
+async function gh(path, opts, token) {
+    opts = opts || {};
+    const headers = { 'Accept': 'application/vnd.github+json', 'Authorization': 'Bearer ' + (token || syncToken) };
+    if (opts.body) headers['Content-Type'] = 'application/json';
+    const r = await fetch(GIST_API + path, { method: opts.method || 'GET', headers, body: opts.body, cache: 'no-store' });
+    if (r.status === 401) throw new Error('GitHub rejected the token (HTTP 401) – check it is correct and has not expired.');
+    if (r.status === 403 || r.status === 429) throw new Error('GitHub refused the request (HTTP ' + r.status + ') – the token needs the “Create gists” (gist) scope, or a rate limit was hit.');
+    if (r.status === 404) throw new Error('Gist not found (HTTP 404) – check the gist ID, and that the token belongs to the account that owns the gist.');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+}
+function gistFiles() {
+    return {
+        [GIST_CSV]: { content: loadCsvData() || DEFAULT_HEADERS.join(',') + '\n' },
+        [GIST_META]: { content: JSON.stringify({ updated: localStamp() || Date.now() }) }
+    };
+}
+async function fileText(f) {
+    if (!f) return null;
+    if (f.truncated && f.raw_url) { const r = await fetch(f.raw_url, { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }
+    return f.content;
+}
+async function readGist(id, token) {
+    const g = await gh('/gists/' + id, null, token);
+    const csv = await fileText(g.files && g.files[GIST_CSV]);
+    const meta = await fileText(g.files && g.files[GIST_META]);
+    let updated = 0; try { updated = +JSON.parse(meta || '{}').updated || 0; } catch (e) {}
+    return { csv, updated };
+}
+async function findGist(token) {                                   // look for an existing tiles gist in the account
+    for (let p = 1; p <= 5; p++) {
+        const list = await gh('/gists?per_page=100&page=' + p, null, token);
+        const hit = list.find(g => g.files && g.files[GIST_CSV] && g.files[GIST_META]);
+        if (hit) return hit.id;
+        if (list.length < 100) break;
+    }
+    return null;
+}
+async function createGist(token) {
+    const g = await gh('/gists', { method: 'POST', body: JSON.stringify({ description: GIST_DESC, public: false, files: gistFiles() }) }, token);
+    return g.id;
 }
 
-// ─────────────────────────────────────────────
-// DOWNLOAD CSV
-// ─────────────────────────────────────────────
-document.getElementById('downloadBtn').addEventListener('click', () => {
-  const csv = buildCsv();
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url;
-  a.download = 'homepage-data.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-});
-
-// ─────────────────────────────────────────────
-// SYNC BUTTON
-// ─────────────────────────────────────────────
-document.getElementById('syncBtn').addEventListener('click', () => {
-  updateSyncModal(currentGistId);
-  openModal('syncModal');
-});
-
-// ─────────────────────────────────────────────
-// INIT — check for ?gist= param
-// ─────────────────────────────────────────────
-async function init() {
-  const gistId = getUrlParam('gist');
-
-  if (gistId) {
-    setStatus('syncing', '⟳ Loading…');
+function setSyncUi(state) {                    // 'off' | 'ok' | 'busy' | 'err'
+    const b = $('syncBtn');
+    b.classList.toggle('synced', !!syncId && state === 'ok');
+    b.classList.toggle('err', !!syncId && state === 'err');
+    b.title = !syncId ? 'Sync (not set up)' : state === 'err' ? 'Sync problem – click for details' : state === 'busy' ? 'Syncing…' : 'Synced';
+}
+function syncLink() {                          // the page address with the gist ID and token as variables
+    return location.href.split(/[?#]/)[0] + '?gist=' + encodeURIComponent(syncId) + '&token=' + encodeURIComponent(syncToken);
+}
+function setSyncUrl(id, token) {               // keep gist + token in the address bar (and remove them when sync stops)
     try {
-      const csv = await fetchGist(gistId);
-      applyData(csv, gistId, true);
-      setStatus('remote', '☁ Remote');
-    } catch (e) {
-      console.error('Failed to load gist on init:', e);
-      setStatus('error', '✕ Gist error');
-      // Fall back to local
-      applyData(loadLocal(), null, false);
-      alert('Could not load Gist: ' + e.message + '\n\nFalling back to local data.');
-    }
-  } else {
-    applyData(loadLocal(), null, false);
-    setStatus('local', '💾 Local');
-  }
-
-  window.onhashchange = render;
+        const u = new URL(location.href);
+        if (id && token) { u.searchParams.set('gist', id); u.searchParams.set('token', token); }
+        else { u.searchParams.delete('gist'); u.searchParams.delete('token'); }
+        history.replaceState(null, '', u.pathname + u.search + location.hash);
+    } catch (e) { console.warn('Could not update the address bar', e); }
 }
+function setSyncCreds(id, token) {
+    syncId = id || null; syncToken = id ? token : null;
+    try {
+        if (id) { localStorage.setItem('gistId', id); localStorage.setItem('gistToken', token); }
+        else { localStorage.removeItem('gistId'); localStorage.removeItem('gistToken'); }
+    } catch (e) {}
+    setSyncUrl(syncId, syncToken);
+    setSyncUi(id ? 'ok' : 'off');
+    refreshSyncDialog();
+}
+function refreshSyncDialog() {
+    const on = !!syncId;
+    $('syOff').style.display = on ? 'none' : 'block';
+    $('syOn').style.display = on ? 'block' : 'none';
+    $('syStop').style.display = on ? 'inline-block' : 'none';
+    $('syCopy').style.display = on ? 'inline-block' : 'none';
+    $('syGo').textContent = on ? 'Sync now' : 'Connect';
+    $('syLink').value = on ? syncLink() : '';
+    $('syId').placeholder = storedToken() ? '(token saved – leave blank to use it)' : '';
+    if (!on && pendingGist && !$('syGist').value) $('syGist').value = pendingGist;
+    $('syInfo').textContent = on
+        ? 'Syncing is on. Changes upload automatically, and your other devices pick them up when they open or return to this page. The newest change wins.\n⚠ The sync link contains your GitHub token: anyone with it can read and change your gists. Only open or bookmark it on your own devices.'
+        : 'Keep your tiles in step across browsers and devices using a private GitHub Gist in your account.\nYour token stays in this browser (and in the address bar once connected).';
+}
+function scheduleSync() {
+    if (!syncId) return;
+    setSyncUi('busy');                          // change is waiting to upload: not greyed yet
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(() => pushSync(), 1500);
+}
+async function pushSync(throwOnError) {
+    if (!syncId) return;
+    try {
+        setSyncUi('busy');
+        await gh('/gists/' + syncId, { method: 'PATCH', body: JSON.stringify({ files: gistFiles() }) });
+        setSyncUi('ok');
+    } catch (e) {
+        console.warn('Sync upload failed', e);
+        setSyncUi('err');
+        if (throwOnError) throw e;
+        showToast('Sync failed: ' + syncErr(e), true, 'err');
+    }
+}
+// force = take the online copy no matter what (used when connecting); interactive = report errors inside the sync dialog;
+// quiet = no "updated" toast (the caller reports the result). Returns 'updated' | 'pushed' | 'same', or false on failure.
+async function pullSync(force, interactive, quiet) {
+    if (!syncId) return false;
+    try {
+        setSyncUi('busy');
+        const remote = await readGist(syncId);
+        if (typeof remote.csv !== 'string' || !remote.csv.trim()) { await pushSync(true); return 'pushed'; }   // empty: start it with our tiles
+        const mine = loadCsvData(), mineStamp = localStamp(), rs = remote.updated;
+        if (remote.csv === mine) { setSyncUi('ok'); return 'same'; }
+        if (force || rs > mineStamp) {
+            const busy = (edit && edit.dirty) || drag || (!interactive && document.querySelector('dialog[open]'));
+            if (busy && !force) { setSyncUi('ok'); return 'same'; }                      // don't disturb work in progress
+            if (force && mineStamp > 0 && !confirm('Replace the tiles on this device with the synced ones?\n(You can undo this.)')) { setSyncUi('ok'); return 'same'; }
+            pushUndo();
+            saveCsvData(remote.csv, rs || Date.now());
+            setData(remote.csv);
+            edit = null;
+            render();
+            if (!quiet) showToast('Updated from sync');
+            setSyncUi('ok');
+            return 'updated';
+        }
+        await pushSync(true);                                                            // our copy is newer
+        return 'pushed';
+    } catch (e) {
+        console.warn('Sync download failed', e);
+        setSyncUi('err');
+        if (interactive) syncMsg(syncErr(e)); else showToast('Sync failed: ' + syncErr(e), true, 'err');
+        return false;
+    }
+}
+$('syncBtn').addEventListener('click', () => { syncMsg(''); refreshSyncDialog(); syncDialog.showModal(); });
+$('syClose').addEventListener('click', () => syncDialog.close());
+$('syLink').addEventListener('focus', e => e.target.select());
+$('syCopy').addEventListener('click', () => {
+    const b = $('syCopy');
+    copyToClipboard($('syLink').value).then(() => { b.textContent = 'Copied ✓'; }, () => { b.textContent = 'Copy failed'; })
+        .then(() => setTimeout(() => { b.textContent = 'Copy link'; }, 1200));
+});
+$('syGo').addEventListener('click', async () => {
+    syncMsg('');
+    const btn = $('syGo'), wasOn = !!syncId;
+    btn.disabled = true; btn.textContent = wasOn ? 'Syncing…' : 'Connecting…';
+    try {
+        if (wasOn) {                                                                      // "Sync now"
+            const r = await pullSync(false, true, true);
+            if (!r) return;                                                               // error is shown in the dialog
+            syncDialog.close();
+            showToast(r === 'updated' ? 'Synced ✓ – tiles updated from your gist' : r === 'pushed' ? 'Synced ✓ – your tiles were uploaded' : 'Synced ✓ – already up to date', true, 'ok');
+            return;
+        }
+        const token = $('syId').value.trim() || storedToken();
+        if (!token) { syncMsg('Paste your GitHub token first.'); $('syId').focus(); return; }
+        const given = $('syGist').value.trim();
+        let id = null;
+        if (given) {
+            const m = given.match(/([0-9a-f]{20,40})\/?(?:[?#].*)?$/i);
+            if (!m) { syncMsg('That does not look like a gist ID or URL.'); return; }
+            id = m[1];
+        } else {
+            id = await findGist(token);                                                   // reuse an existing tiles gist
+        }
+        let msg;
+        if (id) {
+            await readGist(id, token);                                                    // verify access before saving anything
+            setSyncCreds(id, token);
+            const r = await pullSync(true, true, true);
+            if (!r) { setSyncCreds(null); return; }                                       // error is shown in the dialog
+            msg = r === 'updated' ? 'Connected ✓ – tiles loaded from your gist' : 'Connected ✓ – tiles synced';
+        } else {
+            id = await createGist(token);                                                 // first device: create it from the local tiles
+            setSyncCreds(id, token);
+            msg = 'Connected ✓ – private gist created and tiles uploaded';
+        }
+        $('syId').value = ''; $('syGist').value = ''; pendingGist = null;
+        syncDialog.close();                                                               // done: close the dialog …
+        showToast(msg + '. Sync link saved in the address bar.', true, 'ok');             // … and tell the user
+    } catch (e) {
+        console.warn('Sync connect failed', e);
+        if (!wasOn) setSyncCreds(null);
+        syncMsg(syncErr(e));                                                              // dialog stays open so the token can be fixed
+    } finally {
+        btn.disabled = false; refreshSyncDialog();
+    }
+});
+$('syStop').addEventListener('click', () => {
+    if (!confirm('Stop syncing on this device? Your tiles stay here and in the gist, and the token is removed from this browser and the address bar.')) return;
+    setSyncCreds(null);
+    syncDialog.close();
+    showToast('Syncing stopped', true);
+});
+document.addEventListener('visibilitychange', () => { if (!document.hidden && syncId) pullSync(); });
 
-init();
+// Run on load and hash change (leaving the editor with unsaved changes asks first)
+let lastRoute = location.hash.slice(1) || 'home';
+function onRoute() {
+    const cur = location.hash.slice(1) || 'home';
+    if (lastRoute === EDITOR_ROUTE && cur !== EDITOR_ROUTE && edit && edit.dirty &&
+        !confirm('You have unsaved changes in the editor. Leave and discard them?')) {
+        location.hash = EDITOR_ROUTE;          // stay (the working copy is kept in memory)
+        return;
+    }
+    if (cur !== EDITOR_ROUTE) edit = null;
+    lastRoute = cur;
+    render();
+}
+window.onhashchange = onRoute;
+render();
+setSyncUi(syncId ? 'busy' : 'off');
+if (syncId) {
+    setSyncUrl(syncId, syncToken);             // keep ?gist=…&token=… in the address bar
+    pullSync(false, false, true).then(r => {
+        if (!r) return;                        // a failure toast was already shown
+        if (syncFromUrl) showToast('Sync link recognised ✓ – ' + (r === 'updated' ? 'tiles loaded from your gist' : 'tiles are in sync'), true, 'ok');
+        else if (r === 'updated') showToast('Updated from sync');
+    });
+} else if (syncTokenOnly) {
+    showToast('Token recognised and saved – open ☁ to connect', true, 'ok');
+} else if (pendingGist) {
+    showToast('Gist ID recognised – open ☁ and add your token to connect', true);
+}
 </script>
 </body>
 </html>
+<!--
+  ============================================================
+  BUILD: 2026-11-07 16:45:00 (local)
+  ------------------------------------------------------------
+  MAINTENANCE RULE — READ BEFORE EDITING THIS FILE:
+  Whenever the code in this file is modified in any way,
+  update the BUILD line above AND the matching build text
+  in the page footer (search for "BUILD-FOOTER") to the
+  current date and time, in the exact same format:
+      YYYY-MM-DD HH:MM:SS
+  Do not add or remove anything else on those lines.
+  ============================================================
+-->
