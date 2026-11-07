@@ -150,11 +150,44 @@
     .back-btn{left:0;text-decoration:none}
     .sync-btn.synced{color:#aaa;opacity:.6}
     .sync-btn.err{border-color:#f87171}
+    /* right-hand buttons: one flex group instead of hand-placed offsets, so they never sit on top of the title */
+    header .hdr-actions{position:absolute;top:0;right:0;display:flex;gap:10px}
+    header .hdr-actions > *{position:static;right:auto;flex:0 0 auto}
+    .menu-btn{display:none;width:40px;height:40px;background:white;border:2px solid #e0e0e0;border-radius:8px;cursor:pointer;
+              align-items:center;justify-content:center;color:#667eea;font-size:22px;font-weight:bold;transition:.2s}
+    .menu-btn:hover,.menu-btn.open{border-color:#667eea;background:#f8f8ff}
+    @media (max-width:720px){
+        header{padding:10px 12px}
+        .header-container{justify-content:space-between;gap:10px}
+        .header-container h1{flex:1;min-width:0;font-size:1.6rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        header .back-btn{position:static;order:0}
+        .menu-btn{display:flex;order:3}
+        /* the icon buttons collapse into a dropdown list under the ☰ button */
+        header .hdr-actions{display:none;position:absolute;top:48px;right:0;z-index:25;flex-direction:column;gap:0;min-width:230px;
+                            background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.18);padding:4px;overflow:hidden}
+        header .hdr-actions.open{display:flex}
+        header .hdr-actions > *{width:100%;height:44px;border:0;border-radius:6px;box-shadow:none;justify-content:flex-start;gap:12px;padding:0 12px;
+                                font-size:20px;text-decoration:none;color:#667eea;background:transparent}
+        header .hdr-actions > *:hover,header .hdr-actions > *.active{background:#f0f2ff}
+        header .hdr-actions > *::after{content:attr(title);font-size:.9rem;font-weight:500;color:#333;text-align:left;
+                                       white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        header .hdr-actions > .sync-btn.synced{opacity:1}
+    }
     #toast{position:fixed;left:50%;bottom:56px;transform:translateX(-50%);display:none;align-items:center;gap:14px;
            background:#333;color:#fff;padding:10px 14px;border-radius:8px;font-size:.85rem;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:30}
     #toast.ok{background:#2e7d32}
     #toast.err{background:#c62828}
     #toast button{background:none;border:0;color:#9aa3f5;font:inherit;font-weight:600;cursor:pointer}
+    .gl-list{border:1px solid #ddd;border-radius:4px;max-height:220px;overflow:auto;font-size:.8rem}
+    .gl-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #eee;flex-wrap:wrap}
+    .gl-row:last-child{border-bottom:0}
+    .gl-row.other{color:#999}
+    .gl-row.current{background:#eef7f1}
+    .gl-info{flex:1 1 160px;min-width:0}
+    .gl-info b{display:block;font-weight:600;overflow-wrap:anywhere}
+    .gl-info small{display:block;color:#888;overflow-wrap:anywhere}
+    .gl-row .tbtn{padding:3px 8px;font-size:.75rem}
+    .tile-fields label.gl-check{flex-direction:row;align-items:center;gap:6px;font-weight:400}
     .tbtn.danger{color:#c0392b;border-color:#e08a8a}
     .tbtn.danger:hover{background:#fdecea}
     #BUILD-FOOTER{position:absolute;left:0;right:0;bottom:12px;text-align:center;font-size:.7rem;color:#aaa;user-select:none;pointer-events:none}
@@ -164,14 +197,17 @@
 <header>
     <div class="header-container">
         <a href="#home" class="back-btn" id="backBtn" title="Back">←</a>
-        <a href="#home" class="home-btn" id="homeBtn" title="Home">⌂</a>
         <h1 id="pageHeader">Home</h1>
+        <button class="menu-btn" id="menuBtn" type="button" title="Menu" aria-label="Menu">☰</button>
+        <div class="hdr-actions" id="hdrActions">
         <button class="sync-btn" id="syncBtn" title="Sync (not set up)">☁︎</button>
         <button class="add-btn" id="addBtn" title="Add a tile (or just paste a link)">+</button>
         <button class="arrange-btn" id="arrangeBtn" title="Rearrange tiles">⇄</button>
         <button class="editor-btn" id="editorBtn" title="Edit data (spreadsheet view)">✎</button>
         <button class="download-btn" id="downloadBtn" title="Download CSV">↓</button>
         <button class="upload-btn" id="uploadBtn" title="Upload CSV">↑</button>
+        <a href="#home" class="home-btn" id="homeBtn" title="Home">⌂</a>
+        </div>
         <input type="file" id="csvFileInput" accept=".csv">
     </div>
 </header>
@@ -206,10 +242,14 @@
                 <div>1. <a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener">Create a GitHub token ↗</a> — tick only <b>“Create gists”</b> (the <code>gist</code> scope) and nothing else, then click Generate token and copy it.</div>
                 <label style="margin-top:12px">2. Paste your token<input id="syId" type="password" spellcheck="false" autocomplete="off"></label>
                 <label style="margin-top:6px">Gist ID or URL <small>(optional – leave blank to find or create it automatically)</small><input id="syGist" type="text" spellcheck="false" autocomplete="off"></label>
+                <label class="gl-check"><input id="syNew" type="checkbox"> Create a <b>new</b> gist (don’t reuse an existing one)</label>
+                <label>Name for a new gist <small>(optional – used when a gist is created; you can rename gists in the list)</small><input id="syName" type="text" spellcheck="false" autocomplete="off" placeholder="Homepage tiles (sync)"></label>
             </div>
             <div id="syOn" style="display:none">
                 <label>Your sync link <small>(open it on any of your devices to use the same tiles)</small><input id="syLink" type="text" readonly></label>
             </div>
+            <div><button class="tbtn" id="syList" type="button">List my gists</button></div>
+            <div id="syGists" class="gl-list" style="display:none"></div>
         </div>
         <div class="dlg-foot">
             <button class="tbtn danger" id="syStop" type="button" style="display:none">Stop syncing</button>
@@ -379,13 +419,10 @@ function render() {
     editorBtn.classList.toggle('show', onHome);
     arrangeBtn.classList.toggle('show', !editing);
     arrangeBtn.classList.toggle('active', arrange);
-    arrangeBtn.style.right = onHome ? '150px' : '50px';
     const syncBtn = document.getElementById('syncBtn');
     syncBtn.classList.toggle('show', !editing);
-    syncBtn.style.right = onHome ? '250px' : '150px';
     const addBtn = document.getElementById('addBtn');
     addBtn.classList.toggle('show', !editing);
-    addBtn.style.right = onHome ? '200px' : '100px';
     document.getElementById('trashZone').style.display = (arrange && !editing) ? 'flex' : 'none';
     const upRow = items.find(r => r.url === '#' + current);
     const hdr = document.querySelector('header');
@@ -761,6 +798,15 @@ document.addEventListener('paste', e => {
 byId('tdCancel').addEventListener('click', () => tileDialog.close());
 tileDialog.addEventListener('close', () => { editTarget = null; });
 byId('addBtn').addEventListener('click', openNewTileDialog);
+(function headerMenu() {                      // ☰ dropdown (only visible on narrow screens)
+    const btn = byId('menuBtn'), panel = byId('hdrActions');
+    const setOpen = o => { panel.classList.toggle('open', o); btn.classList.toggle('open', o); };
+    btn.addEventListener('click', e => { e.stopPropagation(); setOpen(!panel.classList.contains('open')); });
+    panel.addEventListener('click', () => setOpen(false));
+    document.addEventListener('click', e => { if (!panel.contains(e.target)) setOpen(false); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') setOpen(false); });
+    window.addEventListener('resize', () => setOpen(false));
+})();
 byId('tdDelete').addEventListener('click', () => {
     const t = editTarget; tileDialog.close();
     const idx = visibleItems.indexOf(t);
@@ -1316,9 +1362,96 @@ async function findGist(token) {                                   // look for a
     }
     return null;
 }
-async function createGist(token) {
-    const g = await gh('/gists', { method: 'POST', body: JSON.stringify({ description: GIST_DESC, public: false, files: gistFiles() }) }, token);
+async function createGist(token, name) {
+    const g = await gh('/gists', { method: 'POST', body: JSON.stringify({ description: name || GIST_DESC, public: false, files: gistFiles() }) }, token);
     return g.id;
+}
+
+async function listGists(token) {                                  // every gist in the account (up to 1000)
+    const out = [];
+    for (let p = 1; p <= 10; p++) {
+        const list = await gh('/gists?per_page=100&page=' + p, null, token);
+        out.push(...list);
+        if (list.length < 100) break;
+    }
+    return out;
+}
+async function showGistList() {
+    const box = $('syGists'), btn = $('syList');
+    syncMsg('');
+    const token = syncToken || $('syId').value.trim() || storedToken();
+    if (!token) { syncMsg('Paste your GitHub token first.'); $('syId').focus(); return; }
+    btn.disabled = true; btn.textContent = 'Loading…';
+    try {
+        const gists = await listGists(token);
+        box.textContent = '';
+        box.style.display = 'block';
+        if (!gists.length) { box.textContent = 'No gists found in this account.'; return; }
+        gists.sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''));
+        gists.forEach(g => {
+            const names = Object.keys(g.files || {});
+            const isTiles = !!(g.files && g.files[GIST_CSV] && g.files[GIST_META]);
+            const isCur = g.id === syncId;
+            const row = document.createElement('div');
+            row.className = 'gl-row' + (isTiles ? '' : ' other') + (isCur ? ' current' : '');
+            const info = document.createElement('div'); info.className = 'gl-info';
+            const t = document.createElement('b');
+            t.textContent = (g.description || names[0] || '(no description)') + (isTiles ? '  · tiles' : '');
+            const d = document.createElement('small');
+            d.textContent = g.id + ' · ' + (g.public ? 'public' : 'secret') + ' · ' + (g.updated_at || '').slice(0, 10) + ' · ' + names.length + ' file' + (names.length === 1 ? '' : 's');
+            info.append(t, d); row.append(info);
+            if (isCur) {
+                const s = document.createElement('small'); s.textContent = 'in use'; row.append(s);
+            } else if (isTiles) {
+                const u = document.createElement('button'); u.type = 'button'; u.className = 'tbtn'; u.textContent = 'Use';
+                u.addEventListener('click', () => useListedGist(g.id, token));
+                row.append(u);
+            }
+            if (isTiles) {
+                const rn = document.createElement('button'); rn.type = 'button'; rn.className = 'tbtn'; rn.textContent = 'Rename';
+                rn.addEventListener('click', async () => {
+                    const cur = g.description || '';
+                    const name = prompt('Name for this gist:', cur);
+                    if (name === null || !name.trim() || name.trim() === cur) return;
+                    rn.disabled = true; rn.textContent = '…'; syncMsg('');
+                    try {
+                        await gh('/gists/' + g.id, { method: 'PATCH', body: JSON.stringify({ description: name.trim() }) }, token);
+                        g.description = name.trim();
+                        t.textContent = g.description + '  · tiles';
+                    } catch (e) { syncMsg(syncErr(e)); }
+                    rn.disabled = false; rn.textContent = 'Rename';
+                });
+                row.append(rn);
+            }
+            const a = document.createElement('a'); a.href = g.html_url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '↗';
+            a.title = 'Open on GitHub'; row.append(a);
+            box.append(row);
+        });
+    } catch (e) {
+        box.style.display = 'none';
+        syncMsg(syncErr(e));
+    } finally {
+        btn.disabled = false; btn.textContent = 'List my gists';
+    }
+}
+async function useListedGist(id, token) {
+    if (!syncId) {                                                      // not connected: just pick it for Connect
+        $('syGist').value = id; $('syNew').checked = false; $('syGist').disabled = false;
+        syncMsg(''); return;
+    }
+    if (!confirm('Switch syncing to this gist? The tiles on this device will be replaced by the ones in it (you can undo this).')) return;
+    const prev = { id: syncId, token: syncToken };
+    try {
+        await readGist(id, token);                                      // verify access first
+        setSyncCreds(id, token);
+        const r = await pullSync(true, true, true);
+        if (!r) { setSyncCreds(prev.id, prev.token); return; }
+        syncDialog.close();
+        showToast('Switched to the selected gist ✓', true, 'ok');
+    } catch (e) {
+        setSyncCreds(prev.id, prev.token);
+        syncMsg(syncErr(e));
+    }
 }
 
 function setSyncUi(state) {                    // 'off' | 'ok' | 'busy' | 'err'
@@ -1355,6 +1488,7 @@ function refreshSyncDialog() {
     $('syStop').style.display = on ? 'inline-block' : 'none';
     $('syCopy').style.display = on ? 'inline-block' : 'none';
     $('syGo').textContent = on ? 'Sync now' : 'Connect';
+    $('syGists').style.display = 'none'; $('syGists').textContent = '';
     $('syLink').value = on ? syncLink() : '';
     $('syId').placeholder = storedToken() ? '(token saved – leave blank to use it)' : '';
     if (!on && pendingGist && !$('syGist').value) $('syGist').value = pendingGist;
@@ -1416,6 +1550,8 @@ async function pullSync(force, interactive, quiet) {
 $('syncBtn').addEventListener('click', () => { syncMsg(''); refreshSyncDialog(); syncDialog.showModal(); });
 $('syClose').addEventListener('click', () => syncDialog.close());
 $('syLink').addEventListener('focus', e => e.target.select());
+$('syList').addEventListener('click', showGistList);
+$('syNew').addEventListener('change', e => { $('syGist').disabled = e.target.checked; if (e.target.checked) $('syGist').value = ''; });
 $('syCopy').addEventListener('click', () => {
     const b = $('syCopy');
     copyToClipboard($('syLink').value).then(() => { b.textContent = 'Copied ✓'; }, () => { b.textContent = 'Copy failed'; })
@@ -1435,9 +1571,11 @@ $('syGo').addEventListener('click', async () => {
         }
         const token = $('syId').value.trim() || storedToken();
         if (!token) { syncMsg('Paste your GitHub token first.'); $('syId').focus(); return; }
-        const given = $('syGist').value.trim();
+        const given = $('syGist').value.trim(), forceNew = $('syNew').checked;
         let id = null;
-        if (given) {
+        if (forceNew) {
+            id = null;                                                                    // always make a brand-new gist
+        } else if (given) {
             const m = given.match(/([0-9a-f]{20,40})\/?(?:[?#].*)?$/i);
             if (!m) { syncMsg('That does not look like a gist ID or URL.'); return; }
             id = m[1];
@@ -1452,11 +1590,11 @@ $('syGo').addEventListener('click', async () => {
             if (!r) { setSyncCreds(null); return; }                                       // error is shown in the dialog
             msg = r === 'updated' ? 'Connected ✓ – tiles loaded from your gist' : 'Connected ✓ – tiles synced';
         } else {
-            id = await createGist(token);                                                 // first device: create it from the local tiles
+            id = await createGist(token, $('syName').value.trim());                       // first device: create it from the local tiles
             setSyncCreds(id, token);
             msg = 'Connected ✓ – private gist created and tiles uploaded';
         }
-        $('syId').value = ''; $('syGist').value = ''; pendingGist = null;
+        $('syId').value = ''; $('syGist').value = ''; $('syNew').checked = false; $('syGist').disabled = false; $('syName').value = ''; pendingGist = null;
         syncDialog.close();                                                               // done: close the dialog …
         showToast(msg + '. Sync link saved in the address bar.', true, 'ok');             // … and tell the user
     } catch (e) {
