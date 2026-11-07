@@ -260,6 +260,24 @@
         </div>
     </div>
 </dialog>
+<dialog id="conflictDialog">
+    <div class="dlg tile-dlg">
+        <div class="dlg-head"><span>Sync conflict</span></div>
+        <div class="tile-fields">
+            <div id="cfInfo" style="white-space:pre-line"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="tbtn" id="cfCopyMine" type="button">Copy this device’s CSV</button>
+                <button class="tbtn" id="cfCopyOnline" type="button">Copy online CSV</button>
+            </div>
+        </div>
+        <div class="dlg-foot" style="flex-wrap:wrap">
+            <button class="tbtn" id="cfLater" type="button">Decide later</button>
+            <span class="spacer"></span>
+            <button class="tbtn" id="cfOnline" type="button">Use online</button>
+            <button class="tbtn danger" id="cfKeep" type="button">Keep this device</button>
+        </div>
+    </div>
+</dialog>
 <dialog id="tileDialog">
     <form class="dlg tile-dlg" id="tileForm" autocomplete="off">
         <div class="dlg-head"><span id="tdHead">New tile</span></div>
@@ -404,7 +422,7 @@ function render() {
     if (editing) arrange = false;
     document.getElementById('pageTitle').textContent =
     document.getElementById('pageHeader').textContent =
-        current === 'home' ? 'Home' : editing ? 'Data editor' : current.charAt(0).toUpperCase() + current.slice(1);
+        current === 'home' ? homeTitle() : editing ? 'Data editor' : current.charAt(0).toUpperCase() + current.slice(1);
    
     // Show/hide home button and upload button
     const homeBtn = document.getElementById('homeBtn');
@@ -1307,6 +1325,7 @@ let syncFromUrl = false, syncTokenOnly = false, pendingGist = null;
     try { sId = localStorage.getItem('gistId'); sTok = localStorage.getItem('gistToken'); } catch (e) {}
     if (uId && !GIST_ID_RE.test(uId)) uId = null;
     if (sId && !GIST_ID_RE.test(sId)) sId = null;
+    if (uId && uId !== sId) { try { localStorage.removeItem('gistBase'); localStorage.removeItem('gistName'); localStorage.removeItem('gistPending'); } catch (e) {} }
     const id = uId || sId, tok = uTok || sTok;
     if (id && tok) {
         syncId = id; syncToken = tok; syncFromUrl = !!(uId || uTok);
@@ -1322,6 +1341,25 @@ const syncDialog = document.getElementById('syncDialog');
 const $ = id => document.getElementById(id);
 const syncErr = e => e instanceof TypeError ? 'could not reach api.github.com (offline, or the browser blocked the request)' : e.message;
 const storedToken = () => { try { return localStorage.getItem('gistToken') || ''; } catch (e) { return ''; } };
+// --- gist name (shown as "Home - name"), last-synced version (for conflict checks) and unsynced-change flag ---
+let syncName = '';
+try { syncName = localStorage.getItem('gistName') || ''; } catch (e) {}
+function homeTitle() { return syncId && syncName && syncName !== GIST_DESC ? 'Home - ' + syncName : 'Home'; }
+function applyTitle() {
+    if (currentPage() !== 'home') return;
+    $('pageTitle').textContent = $('pageHeader').textContent = homeTitle();
+}
+function setSyncName(n) {
+    syncName = n || '';
+    try { if (syncName) localStorage.setItem('gistName', syncName); else localStorage.removeItem('gistName'); } catch (e) {}
+    applyTitle();
+}
+const gistVersion = g => (g && g.history && g.history[0] && g.history[0].version) || (g && g.updated_at) || null;
+let memBase = null, memPending = false;
+function getBase() { try { return localStorage.getItem('gistBase') || null; } catch (e) { return memBase; } }
+function setBase(v) { memBase = v || null; try { if (v) localStorage.setItem('gistBase', v); else localStorage.removeItem('gistBase'); } catch (e) {} }
+function getPending() { try { return localStorage.getItem('gistPending') === '1'; } catch (e) { return memPending; } }
+function setPending(b) { memPending = !!b; try { if (b) localStorage.setItem('gistPending', '1'); else localStorage.removeItem('gistPending'); } catch (e) {} }
 function syncMsg(text) { $('syMsg').textContent = text || ''; }       // error line inside the dialog (toasts sit behind an open dialog)
 
 async function gh(path, opts, token) {
@@ -1351,7 +1389,7 @@ async function readGist(id, token) {
     const csv = await fileText(g.files && g.files[GIST_CSV]);
     const meta = await fileText(g.files && g.files[GIST_META]);
     let updated = 0; try { updated = +JSON.parse(meta || '{}').updated || 0; } catch (e) {}
-    return { csv, updated };
+    return { csv, updated, version: gistVersion(g), name: g.description || '' };
 }
 async function findGist(token) {                                   // look for an existing tiles gist in the account
     for (let p = 1; p <= 5; p++) {
@@ -1364,7 +1402,7 @@ async function findGist(token) {                                   // look for a
 }
 async function createGist(token, name) {
     const g = await gh('/gists', { method: 'POST', body: JSON.stringify({ description: name || GIST_DESC, public: false, files: gistFiles() }) }, token);
-    return g.id;
+    return g;
 }
 
 async function listGists(token) {                                  // every gist in the account (up to 1000)
@@ -1418,6 +1456,7 @@ async function showGistList() {
                         await gh('/gists/' + g.id, { method: 'PATCH', body: JSON.stringify({ description: name.trim() }) }, token);
                         g.description = name.trim();
                         t.textContent = g.description + '  · tiles';
+                        if (g.id === syncId) setSyncName(g.description);
                     } catch (e) { syncMsg(syncErr(e)); }
                     rn.disabled = false; rn.textContent = 'Rename';
                 });
@@ -1457,8 +1496,8 @@ async function useListedGist(id, token) {
 function setSyncUi(state) {                    // 'off' | 'ok' | 'busy' | 'err'
     const b = $('syncBtn');
     b.classList.toggle('synced', !!syncId && state === 'ok');
-    b.classList.toggle('err', !!syncId && state === 'err');
-    b.title = !syncId ? 'Sync (not set up)' : state === 'err' ? 'Sync problem – click for details' : state === 'busy' ? 'Syncing…' : 'Synced';
+    b.classList.toggle('err', !!syncId && (state === 'err' || state === 'conflict'));
+    b.title = !syncId ? 'Sync (not set up)' : state === 'conflict' ? 'Sync paused – online copy differs. Click, then “Sync now” to resolve' : state === 'err' ? 'Sync problem – click for details' : state === 'busy' ? 'Syncing…' : 'Synced';
 }
 function syncLink() {                          // the page address with the gist ID and token as variables
     return location.href.split(/[?#]/)[0] + '?gist=' + encodeURIComponent(syncId) + '&token=' + encodeURIComponent(syncToken);
@@ -1472,6 +1511,7 @@ function setSyncUrl(id, token) {               // keep gist + token in the addre
     } catch (e) { console.warn('Could not update the address bar', e); }
 }
 function setSyncCreds(id, token) {
+    if ((id || null) !== syncId) { setBase(null); setPending(false); syncName = ''; try { localStorage.removeItem('gistName'); } catch (e) {} }
     syncId = id || null; syncToken = id ? token : null;
     try {
         if (id) { localStorage.setItem('gistId', id); localStorage.setItem('gistToken', token); }
@@ -1479,6 +1519,7 @@ function setSyncCreds(id, token) {
     } catch (e) {}
     setSyncUrl(syncId, syncToken);
     setSyncUi(id ? 'ok' : 'off');
+    applyTitle();
     refreshSyncDialog();
 }
 function refreshSyncDialog() {
@@ -1498,48 +1539,99 @@ function refreshSyncDialog() {
 }
 function scheduleSync() {
     if (!syncId) return;
+    setPending(true);                           // local change not yet in the gist
     setSyncUi('busy');                          // change is waiting to upload: not greyed yet
     clearTimeout(syncTimer);
     syncTimer = setTimeout(() => pushSync(), 1500);
 }
-async function pushSync(throwOnError) {
-    if (!syncId) return;
+let conflictOpen = false;
+// Asks what to do when the gist was changed elsewhere since this device last synced. Resolves 'keep' | 'online' | 'later'.
+function askConflict(remote) {
+    if (conflictOpen) return Promise.resolve('later');
+    conflictOpen = true;
+    const dlg = $('conflictDialog'), mineCsv = loadCsvData() || '';
+    const count = t => { try { return parseCsv(t).items.length; } catch (e) { return '?'; } };
+    const when = ts => ts ? new Date(ts).toLocaleString() : 'unknown time';
+    $('cfInfo').textContent =
+        'The online copy was changed (probably from another device) since this device last synced.\n\n' +
+        'This device: ' + count(mineCsv) + ' rows · last changed ' + when(localStamp()) + '\n' +
+        'Online: ' + count(remote.csv) + ' rows · last changed ' + when(remote.updated) + '\n\n' +
+        'Keep this device = overwrite the online copy with the tiles here.\n' +
+        'Use online = replace the tiles here with the online ones (you can undo this).\n' +
+        'Copy either CSV first if you want to merge them by hand.';
+    return new Promise(resolve => {
+        let choice = 'later';
+        const copyBtn = (id, label, text) => {
+            const btn = $(id); btn.textContent = label;
+            btn.onclick = () => copyToClipboard(text).then(() => 'Copied ✓', () => 'Copy failed')
+                .then(msg => { btn.textContent = msg; setTimeout(() => { btn.textContent = label; }, 1400); });
+        };
+        copyBtn('cfCopyMine', 'Copy this device’s CSV', mineCsv);
+        copyBtn('cfCopyOnline', 'Copy online CSV', remote.csv);
+        $('cfKeep').onclick = () => { choice = 'keep'; dlg.close(); };
+        $('cfOnline').onclick = () => { choice = 'online'; dlg.close(); };
+        $('cfLater').onclick = () => { choice = 'later'; dlg.close(); };
+        dlg.addEventListener('close', () => { conflictOpen = false; resolve(choice); }, { once: true });
+        dlg.showModal();
+    });
+}
+function applyRemote(remote) {                    // replace the local tiles with the online copy
+    pushUndo();
+    saveCsvData(remote.csv, remote.updated || Date.now());
+    setData(remote.csv);
+    edit = null;
+    render();
+    setBase(remote.version);
+    setPending(false);
+}
+// Uploads the local tiles. Before overwriting, checks the gist hasn't been changed elsewhere since the last sync and, if it has, asks.
+// `known` = a gist read the caller already has. Returns 'pushed' | 'updated' (online copy taken instead) | 'paused' (left undecided) | false.
+async function pushSync(throwOnError, known) {
+    if (!syncId) return false;
     try {
         setSyncUi('busy');
-        await gh('/gists/' + syncId, { method: 'PATCH', body: JSON.stringify({ files: gistFiles() }) });
+        const remote = known || await readGist(syncId);
+        const base = getBase(), mine = loadCsvData();
+        if (base && remote.version && remote.version !== base && typeof remote.csv === 'string' && remote.csv.trim() && remote.csv !== mine) {
+            const choice = await askConflict(remote);
+            if (choice === 'online') { applyRemote(remote); setSyncUi('ok'); return 'updated'; }
+            if (choice !== 'keep') { setSyncUi('conflict'); return 'paused'; }
+        }
+        const g = await gh('/gists/' + syncId, { method: 'PATCH', body: JSON.stringify({ files: gistFiles() }) });
+        setBase(gistVersion(g)); setPending(false);
+        if (g.description) setSyncName(g.description);
         setSyncUi('ok');
+        return 'pushed';
     } catch (e) {
         console.warn('Sync upload failed', e);
         setSyncUi('err');
         if (throwOnError) throw e;
         showToast('Sync failed: ' + syncErr(e), true, 'err');
+        return false;
     }
 }
 // force = take the online copy no matter what (used when connecting); interactive = report errors inside the sync dialog;
-// quiet = no "updated" toast (the caller reports the result). Returns 'updated' | 'pushed' | 'same', or false on failure.
+// quiet = no "updated" toast (the caller reports the result). Returns 'updated' | 'pushed' | 'same' | 'paused', or false on failure.
 async function pullSync(force, interactive, quiet) {
     if (!syncId) return false;
     try {
         setSyncUi('busy');
         const remote = await readGist(syncId);
-        if (typeof remote.csv !== 'string' || !remote.csv.trim()) { await pushSync(true); return 'pushed'; }   // empty: start it with our tiles
+        if (remote.name) setSyncName(remote.name);
+        if (typeof remote.csv !== 'string' || !remote.csv.trim()) return await pushSync(true, remote);   // empty: start it with our tiles
         const mine = loadCsvData(), mineStamp = localStamp(), rs = remote.updated;
-        if (remote.csv === mine) { setSyncUi('ok'); return 'same'; }
+        if (remote.csv === mine) { setBase(remote.version); setPending(false); setSyncUi('ok'); return 'same'; }
+        if (!force && getPending()) return await pushSync(true, remote);                 // we have changes the gist doesn't: upload (asks if it changed too)
         if (force || rs > mineStamp) {
             const busy = (edit && edit.dirty) || drag || (!interactive && document.querySelector('dialog[open]'));
             if (busy && !force) { setSyncUi('ok'); return 'same'; }                      // don't disturb work in progress
             if (force && mineStamp > 0 && !confirm('Replace the tiles on this device with the synced ones?\n(You can undo this.)')) { setSyncUi('ok'); return 'same'; }
-            pushUndo();
-            saveCsvData(remote.csv, rs || Date.now());
-            setData(remote.csv);
-            edit = null;
-            render();
+            applyRemote(remote);
             if (!quiet) showToast('Updated from sync');
             setSyncUi('ok');
             return 'updated';
         }
-        await pushSync(true);                                                            // our copy is newer
-        return 'pushed';
+        return await pushSync(true, remote);                                             // our copy is newer
     } catch (e) {
         console.warn('Sync download failed', e);
         setSyncUi('err');
@@ -1566,6 +1658,7 @@ $('syGo').addEventListener('click', async () => {
             const r = await pullSync(false, true, true);
             if (!r) return;                                                               // error is shown in the dialog
             syncDialog.close();
+            if (r === 'paused') { showToast('Sync paused – the online copy differs from this device', true, 'err'); return; }
             showToast(r === 'updated' ? 'Synced ✓ – tiles updated from your gist' : r === 'pushed' ? 'Synced ✓ – your tiles were uploaded' : 'Synced ✓ – already up to date', true, 'ok');
             return;
         }
@@ -1590,8 +1683,10 @@ $('syGo').addEventListener('click', async () => {
             if (!r) { setSyncCreds(null); return; }                                       // error is shown in the dialog
             msg = r === 'updated' ? 'Connected ✓ – tiles loaded from your gist' : 'Connected ✓ – tiles synced';
         } else {
-            id = await createGist(token, $('syName').value.trim());                       // first device: create it from the local tiles
+            const g = await createGist(token, $('syName').value.trim());                  // first device: create it from the local tiles
+            id = g.id;
             setSyncCreds(id, token);
+            setBase(gistVersion(g)); setSyncName(g.description); setPending(false);
             msg = 'Connected ✓ – private gist created and tiles uploaded';
         }
         $('syId').value = ''; $('syGist').value = ''; $('syNew').checked = false; $('syGist').disabled = false; $('syName').value = ''; pendingGist = null;
@@ -1633,6 +1728,7 @@ if (syncId) {
     setSyncUrl(syncId, syncToken);             // keep ?gist=…&token=… in the address bar
     pullSync(false, false, true).then(r => {
         if (!r) return;                        // a failure toast was already shown
+        if (r === 'paused') { showToast('Sync paused – open ☁ and press Sync now to resolve', true, 'err'); return; }
         if (syncFromUrl) showToast('Sync link recognised ✓ – ' + (r === 'updated' ? 'tiles loaded from your gist' : 'tiles are in sync'), true, 'ok');
         else if (r === 'updated') showToast('Updated from sync');
     });
