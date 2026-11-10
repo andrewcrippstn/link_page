@@ -11,20 +11,15 @@
     .header-container{max-width:1200px;margin:0 auto;position:relative;display:flex;align-items:center;justify-content:center}
     .container{max-width:1200px;margin:0 auto;padding:0 20px}
     .home-btn{position:absolute;top:0;right:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
-              border-radius:8px;display:none;justify-content:center;cursor:pointer;transition:.2s;
-              text-decoration:none;color:#667eea;font-size:24px;font-weight:bold}
+              border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
+              text-decoration:none;color:#667eea;font-size:24px;font-weight:bold;line-height:1}
     .home-btn:hover{border-color:#667eea;background:#f8f8ff}
     .home-btn.show{display:flex}
-    .upload-btn{position:absolute;top:0;right:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
-                border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
-                color:#667eea;font-size:20px;font-weight:bold}
-    .upload-btn:hover{border-color:#667eea;background:#f8f8ff}
-    .upload-btn.show{display:flex}
-    .download-btn{position:absolute;top:0;right:50px;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
-                  border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
-                  color:#667eea;font-size:20px;font-weight:bold}
-    .download-btn:hover{border-color:#667eea;background:#f8f8ff}
-    .download-btn.show{display:flex}
+    /* settings button (gear) in the header; its dropdown list is #settingsMenu */
+    .settings-btn{width:40px;height:40px;background:white;border:2px solid #e0e0e0;border-radius:8px;display:none;align-items:center;
+                  justify-content:center;cursor:pointer;transition:.2s;color:#667eea;font-size:22px;font-weight:bold}
+    .settings-btn:hover,.settings-btn.open{border-color:#667eea;background:#f8f8ff}
+    .settings-btn.show{display:flex}
     #csvFileInput{display:none}
     h1{font-size:2rem;color:#667eea;text-align:center;font-weight:700;margin:0}
     #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px}
@@ -37,6 +32,46 @@
     .content{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;
              justify-content:center;padding:16px;text-align:center}
     .icon{width:40px;height:40px;margin-bottom:8px;object-fit:contain}
+    /* Font Awesome icon on a tile, and the icon picker in the tile dialog */
+    i.fa-icon{width:40px;height:40px;line-height:40px;margin-bottom:8px;font-size:32px;text-align:center;color:#667eea;display:block}
+    .ic-box{display:flex;flex-direction:column;gap:8px;margin-top:-4px}
+    .ic-bar{display:flex;align-items:center;gap:10px}
+    #tdIconPrev i{font-size:22px;color:#667eea}
+    #tdIconPrev img{width:28px;height:28px;object-fit:contain;vertical-align:middle}
+    /* icon picker window */
+    #iconDialog{margin:auto;border:0;border-radius:10px;padding:0;width:min(880px,96vw);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+    #iconDialog::backdrop{background:rgba(0,0,0,.45)}
+    .icd{height:min(88vh,780px)}
+    .icd-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 16px 0}
+    .icd-bar input[type=text]{flex:1;min-width:160px;border:1px solid #c6c6c6;border-radius:4px;padding:7px 9px;font:inherit}
+    .icd-bar input[type=text]:focus,.icd-bar select:focus{border-color:#667eea;outline:0}
+    .icd-bar select{flex:1;min-width:140px;max-width:100%;border:1px solid #c6c6c6;border-radius:4px;padding:7px 8px;font:inherit;font-size:.88rem;background:#fff;color:#222}
+    .icd-bar select:disabled{background:#f3f3f3;color:#999}
+    .icd-colour{display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;color:#555}
+    .icd-colour input{width:44px;height:32px;padding:0;border:1px solid #c6c6c6;border-radius:4px;background:#fff;cursor:pointer}
+    #icdBody{flex:1;min-height:0;overflow:auto;padding:12px 16px}
+    .icd-group h4{font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:#888;margin:4px 0 8px}
+    .icd-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px}
+    .icd-card{display:flex;flex-direction:column;gap:3px;text-align:left;border:1px solid #ddd;border-radius:10px;padding:10px 12px;background:#fff;cursor:pointer;font:inherit;color:#333}
+    .icd-card:hover{border-color:#667eea;background:#f8f8ff}
+    .icd-samples{display:flex;gap:8px;height:30px;margin-bottom:4px}
+    .icd-samples img{width:28px;height:28px}
+    .icd-card b{font-size:.92rem}
+    .icd-card small{color:#777;font-size:.74rem}
+    #icdGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:6px}
+    #icdGrid button{height:52px;border:1px solid #eee;border-radius:8px;background:#fff;cursor:pointer;padding:8px}
+    #icdGrid button img{width:100%;height:100%;object-fit:contain;display:block}
+    #icdGrid button:hover{background:#f0f2ff;border-color:#667eea}
+    #icdGrid button.sel{background:#eef0ff;border-color:#667eea;box-shadow:0 0 0 2px rgba(102,126,234,.35)}
+    #icdMoreBtn{display:block;margin:14px auto 4px}
+    .icd-msg{padding:20px 4px;color:#888;font-size:.88rem;line-height:1.4}
+    .icd-note{margin-top:16px;font-size:.74rem;color:#999;line-height:1.4}
+    #icdSel{display:flex;align-items:center;gap:10px;min-width:0;font-size:.82rem;color:#555}
+    #icdSel .icd-prev{width:36px;height:36px;flex:none;border:1px solid #ddd;border-radius:6px;display:flex;align-items:center;justify-content:center;padding:4px}
+    #icdSel .icd-prev img{width:100%;height:100%;object-fit:contain}
+    #icdSel .icd-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #icdSel small{display:block;color:#888}
+    @media (max-width:560px){ .icd-card{padding:8px 10px} .icd-cards{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))} }
     .title{font-size:0.9rem;font-weight:600;text-shadow:none;margin-bottom:0;line-height:1.2}
     .desc{font-size:0.8rem;opacity:0.6;text-shadow:none;line-height:1.2;margin-top:4px}
 
@@ -47,17 +82,25 @@
                  background:#667eea;color:#fff;font-size:8px;font-weight:700;letter-spacing:.6px;
                  text-align:center;transform:rotate(-45deg);box-shadow:0 1px 2px rgba(0,0,0,.25)}
 
-    /* ---- arrange (edit) mode ---- */
-    .arrange-btn{position:absolute;top:0;right:50px;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
-                 border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
-                 color:#667eea;font-size:20px;font-weight:bold}
-    .arrange-btn:hover{border-color:#667eea;background:#f8f8ff}
-    .arrange-btn.active{background:#667eea;border-color:#667eea;color:#fff}
-    .arrange-btn.show{display:flex}
-    #grid.arranging a.tile{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;
-                           border-style:dashed;border-color:#9aa3f5}
-    #grid.arranging a.tile:hover{transform:none}
-    #grid.arranging a.tile *{-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
+    /* ---- drag to rearrange / tile menu (no separate edit mode) ---- */
+    a.tile{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+    a.tile *{-webkit-user-drag:none}
+    a.tile.lifted{transform:scale(1.06);z-index:20;border-color:#667eea;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+    body.dragging-tile{user-select:none;-webkit-user-select:none;cursor:grabbing}
+    body.dragging-tile #trashZone{display:flex}
+    #ctxMenu{display:none;position:fixed;z-index:40;min-width:170px;background:#fff;border:1px solid #ddd;border-radius:8px;
+             box-shadow:0 8px 24px rgba(0,0,0,.22);padding:4px}
+    #ctxMenu button{display:flex;width:100%;gap:10px;align-items:center;background:none;border:0;border-radius:6px;padding:8px 10px;
+                    font:inherit;font-size:.9rem;color:#333;cursor:pointer;text-align:left}
+    #ctxMenu button:hover,#ctxMenu button:focus{background:#f0f2ff;outline:none}
+    /* settings: just the original square icon buttons, dropping down in a line directly under the gear button */
+    #settingsMenu{display:none;position:fixed;z-index:40;flex-direction:column;gap:10px}
+    #settingsMenu button{width:40px;height:40px;background:white;border:2px solid #e0e0e0;border-radius:8px;display:flex;align-items:center;
+                         justify-content:center;cursor:pointer;transition:.2s;color:#667eea;font-size:20px;font-weight:bold;padding:0;
+                         box-shadow:0 2px 6px rgba(0,0,0,.15)}
+    #settingsMenu button:hover,#settingsMenu button:focus{border-color:#667eea;background:#f8f8ff;outline:none}
+    #ctxMenu button.danger{color:#c0392b}
+    #ctxMenu button.danger:hover,#ctxMenu button.danger:focus{background:#fdecea}
     #grid a.tile.dragging{z-index:20;opacity:.92;cursor:grabbing;transition:none;border-style:solid;
                           border-color:#667eea;box-shadow:0 12px 28px rgba(0,0,0,.28)}
     #grid a.tile.drop-before::before,#grid a.tile.drop-after::before{content:'';position:absolute;top:-2px;bottom:-2px;
@@ -65,11 +108,6 @@
     #grid a.tile.drop-before::before{left:-10px}
     #grid a.tile.drop-after::before{right:-10px}
 
-    .editor-btn{position:absolute;top:0;right:100px;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
-                border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
-                color:#667eea;font-size:20px;font-weight:bold}
-    .editor-btn:hover{border-color:#667eea;background:#f8f8ff}
-    .editor-btn.show{display:flex}
     .container.wide{max-width:none}
     /* ---- in-app CSV editor ---- */
     #editor{display:none}
@@ -130,12 +168,10 @@
                box-shadow:0 2px 8px rgba(0,0,0,.15)}
     #trashZone .ico{font-size:28px;line-height:1}
     #trashZone.over{background:#fdecea;border-style:solid;border-color:#c0392b;transform:scale(1.12)}
-    #tdKind,#syInfo{font-size:.8rem;color:#445;background:#eef0ff;border:1px solid #c9ceff;border-radius:4px;padding:6px 8px}
-    #syMsg{font-size:.82rem;color:#c0392b;background:#fdecea;border:1px solid #e08a8a;border-radius:4px;padding:6px 8px;white-space:pre-line}
-    #syMsg:empty{display:none}
+    #tdKind{font-size:.8rem;color:#445;background:#eef0ff;border:1px solid #c9ceff;border-radius:4px;padding:6px 8px}
     /* ---- new-tile dialog (opened by pasting a link) ---- */
-    #tileDialog,#syncDialog{margin:auto;border:0;border-radius:10px;padding:0;width:min(520px,94vw);box-shadow:0 12px 40px rgba(0,0,0,.35)}
-    #tileDialog::backdrop,#syncDialog::backdrop{background:rgba(0,0,0,.45)}
+    #tileDialog,#moveDialog{margin:auto;border:0;border-radius:10px;padding:0;width:min(520px,94vw);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+    #tileDialog::backdrop,#moveDialog::backdrop{background:rgba(0,0,0,.45)}
     .tile-dlg{height:auto;max-height:90vh}
     .tile-fields{display:flex;flex-direction:column;gap:10px;padding:14px 16px 4px;overflow:auto}
     .tile-fields label{display:flex;flex-direction:column;gap:3px;font-size:.8rem;color:#555;font-weight:600}
@@ -143,13 +179,12 @@
     .tile-fields input,.tile-fields textarea{border:1px solid #c6c6c6;border-radius:4px;padding:6px 8px;font:inherit;
                                               font-size:.9rem;font-weight:400;color:#222;outline:none;resize:vertical}
     .tile-fields input:focus,.tile-fields textarea:focus{border-color:#667eea}
-    .add-btn,.sync-btn,.back-btn{position:absolute;top:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;border-radius:8px;
+    .tile-fields select{border:1px solid #c6c6c6;border-radius:4px;padding:6px 8px;font:inherit;font-size:.9rem;font-weight:400;color:#222;background:#fff}
+    .back-btn{position:absolute;top:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;border-radius:8px;
              display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;color:#667eea;font-size:20px;font-weight:bold}
-    .add-btn:hover,.sync-btn:hover,.back-btn:hover{border-color:#667eea;background:#f8f8ff}
-    .add-btn.show,.sync-btn.show,.back-btn.show{display:flex}
+    .back-btn:hover{border-color:#667eea;background:#f8f8ff}
+    .back-btn.show{display:flex}
     .back-btn{left:0;text-decoration:none}
-    .sync-btn.synced{color:#aaa;opacity:.6}
-    .sync-btn.err{border-color:#f87171}
     /* right-hand buttons: one flex group instead of hand-placed offsets, so they never sit on top of the title */
     header .hdr-actions{position:absolute;top:0;right:0;display:flex;gap:10px}
     header .hdr-actions > *{position:static;right:auto;flex:0 0 auto}
@@ -171,42 +206,64 @@
         header .hdr-actions > *:hover,header .hdr-actions > *.active{background:#f0f2ff}
         header .hdr-actions > *::after{content:attr(title);font-size:.9rem;font-weight:500;color:#333;text-align:left;
                                        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        header .hdr-actions > .sync-btn.synced{opacity:1}
     }
     #toast{position:fixed;left:50%;bottom:56px;transform:translateX(-50%);display:none;align-items:center;gap:14px;
            background:#333;color:#fff;padding:10px 14px;border-radius:8px;font-size:.85rem;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:30}
     #toast.ok{background:#2e7d32}
     #toast.err{background:#c62828}
     #toast button{background:none;border:0;color:#9aa3f5;font:inherit;font-weight:600;cursor:pointer}
-    .gl-list{border:1px solid #ddd;border-radius:4px;max-height:220px;overflow:auto;font-size:.8rem}
-    .gl-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #eee;flex-wrap:wrap}
-    .gl-row:last-child{border-bottom:0}
-    .gl-row.other{color:#999}
-    .gl-row.current{background:#eef7f1}
-    .gl-info{flex:1 1 160px;min-width:0}
-    .gl-info b{display:block;font-weight:600;overflow-wrap:anywhere}
-    .gl-info small{display:block;color:#888;overflow-wrap:anywhere}
-    .gl-row .tbtn{padding:3px 8px;font-size:.75rem}
-    .tile-fields label.gl-check{flex-direction:row;align-items:center;gap:6px;font-weight:400}
     .tbtn.danger{color:#c0392b;border-color:#e08a8a}
     .tbtn.danger:hover{background:#fdecea}
+    /* search: header button + floating box */
+    .search-btn{width:40px;height:40px;background:white;border:2px solid #e0e0e0;border-radius:8px;display:none;align-items:center;justify-content:center;
+                cursor:pointer;transition:.2s;color:#667eea}
+    .search-btn:hover{border-color:#667eea;background:#f8f8ff}
+    .search-btn.show{display:flex}
+    #searchBox{display:none;position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.28)}
+    #searchBox.open{display:block}
+    .sb-panel{margin:78px auto 0;width:min(580px,94vw);background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.35);overflow:hidden}
+    .sb-input{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #eee;color:#667eea}
+    .sb-input input{flex:1;min-width:0;border:0;outline:0;font:inherit;font-size:1.05rem;color:#222;background:transparent}
+    .sb-input button{border:0;background:none;color:#999;font-size:16px;cursor:pointer;padding:4px 8px;border-radius:4px}
+    .sb-input button:hover{background:#f0f0f0;color:#333}
+    #sbList{max-height:min(58vh,420px);overflow:auto}
+    .sb-row{display:flex;align-items:center;gap:12px;width:100%;padding:8px 14px;border:0;background:#fff;text-align:left;cursor:pointer;font:inherit;color:#333}
+    .sb-row.sel{background:#f0f2ff}
+    /* folders look like folder tiles on the page: grey background */
+    .sb-row.folder{background:rgb(233,233,233)}
+    .sb-row.folder.sel{background:#d9dcf0}
+    .sb-up{flex:none;width:32px;height:32px;border:1px solid transparent;border-radius:6px;background:transparent;cursor:pointer;font-size:17px;line-height:1;
+           display:flex;align-items:center;justify-content:center;color:#667eea;padding:0}
+    .sb-up:hover,.sb-up:focus{background:#fff;border-color:#667eea;outline:none}
+    .sb-ico{flex:none;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:20px}
+    .sb-ico img{width:28px;height:28px;object-fit:contain}
+    .sb-ico i.fa-icon{width:28px;height:28px;line-height:28px;font-size:22px;margin:0}
+    .sb-main{flex:1;min-width:0}
+    .sb-main b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sb-main small{display:block;color:#888;font-size:.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sb-tag{flex:none;font-size:.68rem;color:#667eea;background:#eef0ff;border-radius:9px;padding:1px 8px}
+    .sb-msg{padding:14px;color:#888;font-size:.85rem}
+    .sb-hint{padding:6px 14px;font-size:.7rem;color:#aaa;border-top:1px solid #eee}
+    @media (hover:none){.sb-hint{display:none}}
+    @media (max-width:720px){.sb-panel{margin-top:64px}}
     #BUILD-FOOTER{position:absolute;left:0;right:0;bottom:12px;text-align:center;font-size:.7rem;color:#aaa;user-select:none;pointer-events:none}
+    #buildText{pointer-events:auto;cursor:help}
+    #buildInfo{display:none;position:fixed;left:50%;bottom:36px;transform:translateX(-50%);z-index:30;background:#333;color:#fff;border-radius:8px;
+               padding:8px 12px;font-size:.75rem;line-height:1.5;box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:94vw}
+    #buildInfo .bi-row{display:flex;gap:14px;justify-content:space-between;white-space:nowrap}
+    #buildInfo .bi-row span:last-child{color:#c9ceff;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
 <header>
     <div class="header-container">
-        <a href="#home" class="back-btn" id="backBtn" title="Back">←</a>
+        <a href="#home" class="back-btn" id="backBtn" title="Back" aria-label="Back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block"><path d="M20 12H4M10 5l-7 7 7 7"/></svg></a>
         <h1 id="pageHeader">Home</h1>
         <button class="menu-btn" id="menuBtn" type="button" title="Menu" aria-label="Menu">☰</button>
         <div class="hdr-actions" id="hdrActions">
-        <button class="sync-btn" id="syncBtn" title="Sync (not set up)">☁︎</button>
-        <button class="add-btn" id="addBtn" title="Add a tile (or just paste a link)">+</button>
-        <button class="arrange-btn" id="arrangeBtn" title="Rearrange tiles">⇄</button>
-        <button class="editor-btn" id="editorBtn" title="Edit data (spreadsheet view)">✎</button>
-        <button class="download-btn" id="downloadBtn" title="Download CSV">↓</button>
-        <button class="upload-btn" id="uploadBtn" title="Upload CSV">↑</button>
-        <a href="#home" class="home-btn" id="homeBtn" title="Home">⌂</a>
+        <button class="search-btn" id="searchBtn" type="button" title="Search" aria-label="Search"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button>
+        <button class="settings-btn" id="settingsBtn" type="button" title="Settings" aria-label="Settings" aria-haspopup="true">⚙&#xFE0E;</button>
+        <a href="#home" class="home-btn" id="homeBtn" title="Home" aria-label="Home"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block"><path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10M10 20v-6h4v6"/></svg></a>
         </div>
         <input type="file" id="csvFileInput" accept=".csv">
     </div>
@@ -218,7 +275,42 @@
     <div id="editor"></div>
 </div>
 <div id="toast" role="status"><span id="toastMsg"></span><button type="button" id="toastUndo">Undo</button></div>
-<div id="BUILD-FOOTER">BUILD: 2026-11-07 16:45:00</div>
+<div id="ctxMenu" role="menu">
+    <button type="button" role="menuitem" id="ctxEdit">✎ Edit…</button>
+    <button type="button" role="menuitem" id="ctxMove">⇄ Move to…</button>
+    <button type="button" role="menuitem" id="ctxDelete" class="danger">🗑 Delete</button>
+</div>
+<div id="settingsMenu" role="menu">
+    <button type="button" role="menuitem" id="editorBtn" title="Edit data (spreadsheet view)" aria-label="Edit data (spreadsheet view)">✎</button>
+    <button type="button" role="menuitem" id="downloadBtn" title="Download CSV" aria-label="Download CSV">↓</button>
+    <button type="button" role="menuitem" id="uploadBtn" title="Upload CSV" aria-label="Upload CSV">↑</button>
+</div>
+<dialog id="moveDialog">
+    <form class="dlg tile-dlg" id="moveForm" autocomplete="off">
+        <div class="dlg-head"><span id="mvHead">Move to…</span></div>
+        <div class="tile-fields">
+            <label>Destination<select id="mvSelect"></select></label>
+        </div>
+        <div class="dlg-foot">
+            <span class="spacer"></span>
+            <button class="tbtn" id="mvCancel" type="button">Cancel</button>
+            <button class="tbtn primary" type="submit">Move</button>
+        </div>
+    </form>
+</dialog>
+<div id="BUILD-FOOTER"><span id="buildText">BUILD: 2026-11-10 20:25:00</span></div>
+<div id="buildInfo" role="tooltip"></div>
+<div id="searchBox" role="dialog" aria-label="Search tiles">
+    <div class="sb-panel">
+        <div class="sb-input">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+            <input id="sbInput" type="text" placeholder="Search tiles and folders…" autocomplete="off" spellcheck="false" aria-label="Search">
+            <button type="button" id="sbClose" aria-label="Close search">✕</button>
+        </div>
+        <div id="sbList" role="listbox"></div>
+        <div class="sb-hint">↑ ↓ choose · Enter open · Shift+Enter or 📂 open containing folder · Esc close · press / anywhere to search</div>
+    </div>
+</div>
 <dialog id="cellDialog">
     <div class="dlg">
         <div class="dlg-head"><span id="dlgTitle"></span><span class="dlg-count" id="dlgCount"></span></div>
@@ -232,52 +324,6 @@
         </div>
     </div>
 </dialog>
-<dialog id="syncDialog">
-    <div class="dlg tile-dlg">
-        <div class="dlg-head"><span>Sync (GitHub Gist)</span></div>
-        <div class="tile-fields">
-            <div id="syInfo" style="white-space:pre-line"></div>
-            <div id="syMsg"></div>
-            <div id="syOff">
-                <div>1. <a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener">Create a GitHub token ↗</a> — tick only <b>“Create gists”</b> (the <code>gist</code> scope) and nothing else, then click Generate token and copy it.</div>
-                <label style="margin-top:12px">2. Paste your token<input id="syId" type="password" spellcheck="false" autocomplete="off"></label>
-                <label style="margin-top:6px">Gist ID or URL <small>(optional – leave blank to find or create it automatically)</small><input id="syGist" type="text" spellcheck="false" autocomplete="off"></label>
-                <label class="gl-check"><input id="syNew" type="checkbox"> Create a <b>new</b> gist (don’t reuse an existing one)</label>
-                <label>Name for a new gist <small>(optional – used when a gist is created; you can rename gists in the list)</small><input id="syName" type="text" spellcheck="false" autocomplete="off" placeholder="Homepage tiles (sync)"></label>
-            </div>
-            <div id="syOn" style="display:none">
-                <label>Your sync link <small>(open it on any of your devices to use the same tiles)</small><input id="syLink" type="text" readonly></label>
-            </div>
-            <div><button class="tbtn" id="syList" type="button">List my gists</button></div>
-            <div id="syGists" class="gl-list" style="display:none"></div>
-        </div>
-        <div class="dlg-foot">
-            <button class="tbtn danger" id="syStop" type="button" style="display:none">Stop syncing</button>
-            <span class="spacer"></span>
-            <button class="tbtn" id="syCopy" type="button" style="display:none">Copy link</button>
-            <button class="tbtn" id="syClose" type="button">Close</button>
-            <button class="tbtn primary" id="syGo" type="button">Connect</button>
-        </div>
-    </div>
-</dialog>
-<dialog id="conflictDialog">
-    <div class="dlg tile-dlg">
-        <div class="dlg-head"><span>Sync conflict</span></div>
-        <div class="tile-fields">
-            <div id="cfInfo" style="white-space:pre-line"></div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button class="tbtn" id="cfCopyMine" type="button">Copy this device’s CSV</button>
-                <button class="tbtn" id="cfCopyOnline" type="button">Copy online CSV</button>
-            </div>
-        </div>
-        <div class="dlg-foot" style="flex-wrap:wrap">
-            <button class="tbtn" id="cfLater" type="button">Decide later</button>
-            <span class="spacer"></span>
-            <button class="tbtn" id="cfOnline" type="button">Use online</button>
-            <button class="tbtn danger" id="cfKeep" type="button">Keep this device</button>
-        </div>
-    </div>
-</dialog>
 <dialog id="tileDialog">
     <form class="dlg tile-dlg" id="tileForm" autocomplete="off">
         <div class="dlg-head"><span id="tdHead">New tile</span></div>
@@ -285,7 +331,10 @@
             <div id="tdKind"></div>
             <label>Title<input id="tdText" type="text" required></label>
             <label>URL <small>(leave blank to create a folder)</small><input id="tdUrl" type="text" spellcheck="false"></label>
-            <label>Icon <small>(TRUE = site favicon, or an image URL, or leave blank for none)</small><input id="tdIcon" type="text" spellcheck="false"></label>
+            <label>Icon <small>(TRUE = site favicon, an image URL, or pick one below – or leave blank for none)</small><input id="tdIcon" type="text" spellcheck="false"></label>
+            <div class="ic-box">
+                <div class="ic-bar"><button class="tbtn" id="icToggle" type="button">Pick an icon…</button><span id="tdIconPrev"></span></div>
+            </div>
             <label>Description <small>(optional)</small><input id="tdDesc" type="text"></label>
             <label>Copy text <small>(optional – copied to the clipboard when the tile is clicked)</small><textarea id="tdCopy" rows="3" spellcheck="false"></textarea></label>
         </div>
@@ -296,6 +345,32 @@
             <button class="tbtn primary" id="tdSubmit" type="submit">Add</button>
         </div>
     </form>
+</dialog>
+<dialog id="iconDialog">
+    <div class="dlg icd">
+        <div class="dlg-head"><span>Pick an icon</span><span class="dlg-count" id="icdCount"></span></div>
+        <div class="icd-bar">
+            <input id="icdSearch" type="text" placeholder="Search icons (e.g. home, mail, github)…" spellcheck="false" autocomplete="off" aria-label="Search icons">
+            <label class="icd-colour">Colour <input id="icdColor" type="color" value="#667eea" aria-label="Icon colour"></label>
+        </div>
+        <div class="icd-bar">
+            <select id="icdLib" aria-label="Library"></select>
+            <select id="icdCat" aria-label="Category" disabled><option value="">Category</option></select>
+        </div>
+        <div id="icdBody">
+            <div id="icdCards"></div>
+            <div id="icdMsg" class="icd-msg" style="display:none"></div>
+            <div id="icdGrid" style="display:none"></div>
+            <button class="tbtn" id="icdMoreBtn" type="button" style="display:none">Show more</button>
+            <div class="icd-note">Icons come from <a href="https://iconify.design" target="_blank" rel="noopener">Iconify</a> and need an internet connection. The tile stores an ordinary image URL with the colour built in (<code>…svg?color=%23667eea</code>), so any Iconify URL can also be pasted into the Icon box.</div>
+        </div>
+        <div class="dlg-foot">
+            <div id="icdSel"></div>
+            <span class="spacer"></span>
+            <button class="tbtn" id="icdCancel" type="button">Cancel</button>
+            <button class="tbtn primary" id="icdUse" type="button" disabled>Use icon</button>
+        </div>
+    </div>
 </dialog>
 <script>
 // YOUR DATA — Edit only this CSV block at the bottom!
@@ -356,7 +431,17 @@ function parseCsv(csvText) {
     return { headers, items };
 }
 
-// Load CSV data from localStorage or use default
+// ---- optional plugins (e.g. gist_sync.js) -------------------------------------------------------------------
+// A plugin is a separate <script src> loaded after this one. It talks to the page only through window.LinkPage (defined
+// near the end of this script) and subscribes to events with LinkPage.on(name, fn). Events: 'save' (tiles were written
+// to storage; arg = csv text) and 'render' (page was redrawn; arg = { page, editing }). With no plugin file present
+// nothing subscribes, runHooks() does nothing, and the page behaves exactly as before.
+const pluginHooks = {};
+function runHooks(name, arg) {
+    (pluginHooks[name] || []).forEach(fn => { try { fn(arg); } catch (e) { console.warn('Plugin hook "' + name + '" failed', e); } });
+}
+
+// Load CSV data from localStorage (falls back to an in-memory copy if storage is blocked) or use default
 let memStore = null;
 function loadCsvData() {
     try { const saved = localStorage.getItem('csvData'); if (saved) return saved; } catch (e) {}
@@ -364,15 +449,11 @@ function loadCsvData() {
 }
 
 // Storage functions
-let memStamp = 0;
-function saveCsvData(csvContent, stamp) {
+function saveCsvData(csvContent) {
     memStore = csvContent;
-    memStamp = stamp || Date.now();
-    if (!stamp) scheduleSync();               // a local change: upload it shortly (no-op when sync is off)
     localStorage.setItem('csvData', csvContent);
-    localStorage.setItem('csvUpdated', String(memStamp));
+    runHooks('save', csvContent);
 }
-function localStamp() { try { return +localStorage.getItem('csvUpdated') || 0; } catch (e) { return memStamp; } }
 
 let csvData = '', items = [], csvHeaders = [];
 function setData(text) {
@@ -413,49 +494,59 @@ document.addEventListener('keydown', e => {
     if (currentPage() === EDITOR_ROUTE) return;
     e.preventDefault(); undo();
 });
-let arrange = false;      // tile-arrange (edit) mode on/off
+// ---- Font Awesome icons: icon column value "fa:house" | "fa:brands github" | "fa:regular heart" | "fa-solid fa-house" ----
+// Returns the CSS classes ("fa-solid fa-house") or null if the value isn't a Font Awesome icon. Output is limited to [a-z0-9- ].
+function faClasses(v) {
+    v = String(v == null ? '' : v).trim().toLowerCase();
+    let rest;
+    if (v.startsWith('fa:')) rest = v.slice(3);
+    else if (/^(fa-(solid|regular|brands)|fa[srb])(\s|$)/.test(v)) rest = v;
+    else return null;
+    let style = null; const names = [];
+    rest.split(/\s+/).map(t => t.replace(/[^a-z0-9-]/g, '')).filter(Boolean).forEach(t => {
+        const b = t.replace(/^fa-/, '');
+        if (b === 'solid' || t === 'fas') style = 'solid';
+        else if (b === 'regular' || t === 'far') style = 'regular';
+        else if (b === 'brands' || t === 'fab') style = 'brands';
+        else names.push(t.startsWith('fa-') ? t : 'fa-' + t);
+    });
+    return names.length ? 'fa-' + (style || 'solid') + ' ' + names.join(' ') : null;
+}
+let faLoaded = false;
+function ensureFontAwesome() {                 // the stylesheet is only fetched once a tile (or the picker) needs it
+    if (faLoaded) return; faLoaded = true;
+    const l = document.createElement('link');
+    l.rel = 'stylesheet'; l.crossOrigin = 'anonymous'; l.referrerPolicy = 'no-referrer';
+    l.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css';
+    document.head.appendChild(l);
+}
 const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 function currentPage() { return location.hash.slice(1) || 'home'; }
 function render() {
     const current = currentPage();
     const editing = current === EDITOR_ROUTE;
-    if (editing) arrange = false;
     document.getElementById('pageTitle').textContent =
     document.getElementById('pageHeader').textContent =
-        current === 'home' ? homeTitle() : editing ? 'Data editor' : current.charAt(0).toUpperCase() + current.slice(1);
+        current === 'home' ? 'Home' : editing ? 'Data editor' : current.charAt(0).toUpperCase() + current.slice(1);
    
-    // Show/hide home button and upload button
+    // Show/hide home button and the settings (gear) button
     const homeBtn = document.getElementById('homeBtn');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const editorBtn = document.getElementById('editorBtn');
-    const arrangeBtn = document.getElementById('arrangeBtn');
     const onHome = current === 'home';
     homeBtn.classList.toggle('show', !onHome);
-    uploadBtn.classList.toggle('show', onHome);
-    downloadBtn.classList.toggle('show', onHome);
-    editorBtn.classList.toggle('show', onHome);
-    arrangeBtn.classList.toggle('show', !editing);
-    arrangeBtn.classList.toggle('active', arrange);
-    const syncBtn = document.getElementById('syncBtn');
-    syncBtn.classList.toggle('show', !editing);
-    const addBtn = document.getElementById('addBtn');
-    addBtn.classList.toggle('show', !editing);
-    document.getElementById('trashZone').style.display = (arrange && !editing) ? 'flex' : 'none';
+    document.getElementById('settingsBtn').classList.toggle('show', onHome);
+    if (!onHome) closeSettings();
+    document.getElementById('searchBtn').classList.toggle('show', !editing);
     const upRow = items.find(r => r.url === '#' + current);
-    const hdr = document.querySelector('header');
     const backBtn = document.getElementById('backBtn');           // goes up one level (to the folder this page lives in)
     const parent = upRow ? upRow.page : 'home';
     backBtn.classList.toggle('show', !onHome);
     backBtn.href = '#' + parent;
     backBtn.title = 'Back to ' + (parent === 'home' ? 'Home' : parent);
-    hdr.classList.toggle('droppable', arrange && !onHome && !editing);   // the title bar is the "move up a level" drop target
-    hdr.title = (arrange && !onHome && !editing) ? 'Drop a tile here to move it up to ' + (upRow ? (upRow.page === 'home' ? 'Home' : upRow.page) : 'Home') : '';
     // The editor is a separate view that replaces the tile grid
     document.getElementById('editor').style.display = editing ? 'block' : 'none';
     document.getElementById('grid').style.display = editing ? 'none' : '';
-    document.getElementById('grid').classList.toggle('arranging', arrange);
     document.querySelector('.container').classList.toggle('wide', editing);
+    runHooks('render', { page: current, editing });
     if (editing) { renderEditor(); return; }
    
     visibleItems = items.filter(item => item.page === current);
@@ -469,7 +560,11 @@ function render() {
             // Only get icon if icon field is not explicitly false or empty
             let iconHtml = '';
             const iconLower = item.icon.toLowerCase();
-            if (iconLower !== 'false' && item.icon !== '') {
+            const faCls = faClasses(item.icon);
+            if (faCls) {
+                ensureFontAwesome();
+                iconHtml = `<i class="fa-icon ${faCls}" aria-hidden="true"></i>`;
+            } else if (iconLower !== 'false' && item.icon !== '') {
                 let iconUrl;
                 if (iconLower === 'true') {
                     // Get favicon from the URL
@@ -537,26 +632,21 @@ function copyText(tile, text) {
     });
 }
 document.getElementById('grid').addEventListener('click', (event) => {
-    if (arrange) {                                // arrange mode: tiles never navigate or copy
-        const t = event.target.closest('a.tile');
-        if (t) {
-            event.preventDefault();
-            if (!justDragged) openEditDialog(visibleItems[Array.prototype.indexOf.call(gridEl.children, t)]);
-        }
-        return;
-    }
+    if (justDragged) { event.preventDefault(); return; }        // the click that ends a drag / long press must not open the tile
     const tile = event.target.closest('a.tile[data-copy-index]');
     if (!tile) return;
     event.preventDefault();
     copyText(tile, visibleItems[tile.dataset.copyIndex].copy);
 });
 
-/* ======================= Arrange mode (drag tiles to reorder) ======================= */
+/* ======================= Drag tiles to reorder / move into a folder / delete (always on) ======================= */
+// Mouse: press and move a few pixels to pick a tile up (a plain click still opens it).
+// Touch: long press picks it up (so scrolling still works); a long press without moving opens the tile menu.
 const gridEl = document.getElementById('grid');
-let drag = null;
-let justDragged = false;   // a drag just ended: ignore the click that follows it     // { tile, from, x, y, sx, sy, moved, target, after }
+let drag = null;           // { tile, from, x, y, sx, sy, moved, target, after }
+let justDragged = false;   // a drag just ended: ignore the click that follows it
 
-function setArrange(on) { arrange = on; render(); }
+function suppressClick(ms) { justDragged = true; setTimeout(() => { justDragged = false; }, ms); }
 // write the current `items` back to storage and redraw
 function persistItems(msg) {
     pushUndo();
@@ -610,7 +700,7 @@ function deleteTile(from) {
     const inside = doomed.size - 1;
     const msg = inside > 0 ? `Delete folder "${item.text}" and the ${inside} item${inside === 1 ? '' : 's'} inside it?`
                            : `Delete "${item.text}"?`;
-    if (inside > 0 && !confirm(msg)) return;
+    if (inside > 0 && !confirm(msg)) return;            // single tiles are deleted straight away (Undo is offered)
     items = items.filter(r => !doomed.has(r));
     persistItems(`Deleted "${item.text}"` + (inside > 0 ? ` and ${inside} inside` : ''));
 }
@@ -636,21 +726,33 @@ function clearDropMarks() {
     document.getElementById('trashZone').classList.remove('over');
 }
 gridEl.addEventListener('pointerdown', e => {
-    if (!arrange || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
     const tile = e.target.closest('a.tile');
     if (!tile) return;
-    e.preventDefault();
+    const touch = e.pointerType === 'touch';
     drag = { tile, from: Array.prototype.indexOf.call(gridEl.children, tile),
              x: e.clientX, y: e.clientY, sx: window.scrollX, sy: window.scrollY,
+             touch, armed: !touch, timer: null,
              moved: false, target: null, after: false, into: false, up: false, trash: false };
+    if (touch) drag.timer = setTimeout(() => {                  // long press: pick the tile up
+        if (!drag || drag.tile !== tile) return;
+        drag.armed = true;
+        tile.classList.add('lifted');
+        if (navigator.vibrate) { try { navigator.vibrate(12); } catch (_) {} }
+    }, 420);
 });
 document.addEventListener('pointermove', e => {
     if (!drag) return;
     const dx = e.clientX - drag.x + (window.scrollX - drag.sx);
     const dy = e.clientY - drag.y + (window.scrollY - drag.sy);
     if (!drag.moved) {
-        if (Math.hypot(dx, dy) < 6) return;             // small wobble = a click, not a drag
+        if (Math.hypot(dx, dy) < (drag.touch ? 10 : 6)) return;   // small wobble = a click / press, not a drag
+        if (!drag.armed) { clearTimeout(drag.timer); drag = null; return; }   // touch moved before the long press: it's a scroll
         drag.moved = true;
+        closeMenu();
+        document.body.classList.add('dragging-tile');   // shows the bin
+        if (currentPage() !== 'home') document.querySelector('header').classList.add('droppable');   // title bar = "move up a level"
+        drag.tile.classList.remove('lifted');
         drag.tile.classList.add('dragging');
         drag.tile.style.pointerEvents = 'none';         // so elementFromPoint sees the tile underneath
     }
@@ -679,7 +781,15 @@ document.addEventListener('pointermove', e => {
 function endDrag(commit) {
     if (!drag) return;
     const d = drag; drag = null;
-    if (d.moved) { justDragged = true; setTimeout(() => { justDragged = false; }, 60); }
+    clearTimeout(d.timer);
+    d.tile.classList.remove('lifted');
+    document.body.classList.remove('dragging-tile');
+    document.querySelector('header').classList.remove('droppable');
+    if (d.moved) suppressClick(d.touch ? 350 : 60);
+    else if (commit && d.touch && d.armed) {            // long press without moving: open the tile menu
+        suppressClick(350);
+        openMenu(d.tile, d.x, d.y + 8);
+    }
     clearDropMarks();
     d.tile.classList.remove('dragging');
     d.tile.style.transform = '';
@@ -694,10 +804,8 @@ function endDrag(commit) {
 }
 document.addEventListener('pointerup', () => endDrag(true));
 document.addEventListener('pointercancel', () => endDrag(false));
-document.getElementById('arrangeBtn').addEventListener('click', () => setArrange(!arrange));
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && arrange && !document.querySelector('dialog[open]')) setArrange(false);
-});
+// once a touch drag is under way, stop the page from scrolling under the finger
+document.addEventListener('touchmove', e => { if (drag && drag.touch && drag.armed && e.cancelable) e.preventDefault(); }, { passive: false });
 
 /* ======================= Paste a link -> new tile dialog ======================= */
 const tileDialog = document.getElementById('tileDialog');
@@ -770,6 +878,7 @@ function openEditDialog(item) {
     byId('tdText').focus();
     byId('tdText').select();
 }
+// several links pasted at once (one per line): add each as a tile on the current page
 function addLinkTiles(hrefs) {
     const page = currentPage();
     let last = -1;
@@ -793,6 +902,7 @@ function updateTileKind(prefix) {
     const noun = (k === 'folder' || (u.startsWith('#') && u.length > 1)) ? 'folder' : 'tile';
     byId('tdHead').textContent = (editing ? 'Edit ' : 'New ') + noun;
     byId('tdSubmit').textContent = editing ? 'Save' : 'Add ' + noun;
+    updateIconPreview();
     byId('tdKind').style.display = editing ? 'none' : '';
     byId('tdDelete').style.display = editing ? 'inline-block' : 'none';
     byId('tdKind').textContent = (updateTileKind.prefix ? updateTileKind.prefix + ' – ' : '') +
@@ -801,6 +911,313 @@ function updateTileKind(prefix) {
                         'no URL, so this will create a folder.');
 }
 ['tdUrl', 'tdCopy'].forEach(id => byId(id).addEventListener('input', () => updateTileKind()));
+// ---- Icon picker in the tile dialog (Iconify: https://iconify.design) ----
+// The picked icon is stored as a plain image URL, e.g. https://api.iconify.design/tabler/home.svg?color=%23667eea
+// Iconify applies the colour itself, so no extra syntax is needed and the stored value works anywhere an image URL does.
+// To stay well inside Iconify's rate limit the picker never loads one image per icon: a search is ONE request, the drawings for
+// all results arrive in ONE more request per library (/<library>.json?icons=a,b,c), and recolouring just re-draws them locally.
+const IC_API = 'https://api.iconify.design';                       // the address that gets stored in the tile
+const IC_HOSTS = ['api.iconify.design', 'api.simplesvg.com', 'api.unisvg.com'];   // Iconify's public mirrors (same data)
+const IC_LIBS = [['', 'All libraries'], ['bi', 'Bootstrap Icons'], ['tabler', 'Tabler'], ['material-symbols', 'Material Symbols'], ['ph', 'Phosphor'],
+    ['ri', 'Remix Icon'], ['lucide', 'Lucide'], ['feather', 'Feather'], ['heroicons', 'Heroicons'], ['simple-icons', 'Simple Icons (brand logos)'],
+    ['fa6-solid', 'Font Awesome – solid'], ['fa6-regular', 'Font Awesome – regular'], ['fa6-brands', 'Font Awesome – brands']];
+const IC_ALLOWED = new Set(IC_LIBS.slice(1).map(l => l[0]));
+const IC_URL_RE = /^https:\/\/api\.iconify\.design\/([a-z0-9-]+)\/([a-z0-9-]+)\.svg(?:\?(.*))?$/i;
+const icUrl = (prefix, name, color) => IC_API + '/' + prefix + '/' + name + '.svg' + (color ? '?color=' + encodeURIComponent(color) : '');
+function icParse(v) {                         // an Iconify image URL -> { prefix, name, color } (or null)
+    const m = IC_URL_RE.exec(String(v || '').trim());
+    if (!m) return null;
+    let color = '';
+    try { color = new URLSearchParams(m[3] || '').get('color') || ''; } catch (e) {}
+    return { prefix: m[1], name: m[2], color };
+}
+function icHex(c) {                           // "#aabbcc" or "aabbcc" -> "#aabbcc"; anything else (named colours …) -> ''
+    c = String(c || '').trim();
+    return /^#?[0-9a-f]{6}$/i.test(c) ? (c[0] === '#' ? c : '#' + c).toLowerCase() : '';
+}
+let icHostIdx = 0;
+async function icApi(path) {                  // GET + JSON from the Iconify API; if a host refuses (rate limit, outage) the next mirror is tried
+    let lastErr = new Error('offline');
+    for (let k = 0; k < IC_HOSTS.length; k++) {
+        const idx = (icHostIdx + k) % IC_HOSTS.length;
+        try {
+            const r = await fetch('https://' + IC_HOSTS[idx] + path);
+            if (r.ok) { icHostIdx = idx; return await r.json(); }
+            lastErr = new Error('HTTP ' + r.status);
+        } catch (e) { lastErr = e; }
+    }
+    throw lastErr;
+}
+// an icon image (tile, preview, …) that fails to load from one Iconify host is retried on the next mirror
+document.addEventListener('error', e => {
+    const img = e.target;
+    if (!img || img.tagName !== 'IMG') return;
+    const m = /^https:\/\/([^/]+)(\/.*)$/.exec(img.src || '');
+    const i = m ? IC_HOSTS.indexOf(m[1]) : -1;
+    if (i < 0) return;
+    const tried = +(img.dataset.icTry || 0);
+    if (tried >= IC_HOSTS.length - 1) return;
+    img.dataset.icTry = tried + 1;
+    img.src = 'https://' + IC_HOSTS[(i + 1) % IC_HOSTS.length] + m[2];
+}, true);
+const icBodies = new Map();                   // "prefix:name" -> drawing, so recolouring needs no network at all
+const icTried = new Set();
+const icSearchCache = new Map();
+let icPreviewTimer = null;
+function icDataUri(id, color) {               // the drawing as a self-contained image (an <img> never runs scripts), in the chosen colour
+    const d = icBodies.get(id);
+    if (!d) return '';
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="' + d.l + ' ' + d.t + ' ' + d.w + ' ' + d.h +
+        '" style="color:' + (icHex(color) || '#000000') + '">' + d.body + '</svg>';
+    return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+async function icLoadBodies(ids) {            // one request per library for all the icons asked for
+    const byPrefix = {};
+    ids.forEach(id => {
+        icTried.add(id);
+        if (icBodies.has(id)) return;
+        const [p, n] = id.split(':'); (byPrefix[p] = byPrefix[p] || []).push(n);
+    });
+    await Promise.all(Object.keys(byPrefix).map(async prefix => {
+        try {
+            const data = await icApi('/' + prefix + '.json?icons=' + byPrefix[prefix].join(','));
+            const dw = data.width || 16, dh = data.height || 16;
+            byPrefix[prefix].forEach(n => {
+                const alias = data.aliases && data.aliases[n];
+                const ic = (data.icons && data.icons[n]) || (alias && data.icons && data.icons[alias.parent]);
+                if (ic && typeof ic.body === 'string') icBodies.set(prefix + ':' + n, { body: ic.body, w: ic.width || dw, h: ic.height || dh, l: ic.left || 0, t: ic.top || 0 });
+            });
+        } catch (e) { /* those thumbnails fall back to the image URL (lazy-loaded) */ }
+    }));
+}
+
+function updateIconPreview() {                // small preview next to the picker button: Font Awesome class or any image URL
+    const v = byId('tdIcon').value.trim(), box = byId('tdIconPrev'), fa = faClasses(v), ic = icParse(v);
+    box.textContent = '';
+    if (ic && icHex(ic.color)) byId('icdColor').value = icHex(ic.color);       // editing an existing icon: the picker starts from its colour
+    if (fa) {
+        ensureFontAwesome();
+        const i = document.createElement('i'); i.className = fa; i.setAttribute('aria-hidden', 'true'); box.appendChild(i);
+    } else if (ic) {
+        const id = ic.prefix + ':' + ic.name;
+        if (!icBodies.has(id) && !icTried.has(id)) { icLoadBodies([id]).then(updateIconPreview); return; }   // fetch the drawing once, then recolour locally
+        const img = document.createElement('img'); img.alt = ''; img.src = icDataUri(id, ic.color) || v; box.appendChild(img);
+    } else if (/^https?:\/\//i.test(v)) {
+        const img = document.createElement('img'); img.alt = ''; img.src = v; box.appendChild(img);
+    }
+}
+byId('tdIcon').addEventListener('input', () => { clearTimeout(icPreviewTimer); icPreviewTimer = setTimeout(updateIconPreview, 350); });
+
+/* ---- the picker window: browse by library and category, or search; pick an icon and a colour ---- */
+const iconDialog = byId('iconDialog');
+const IC_PAGE = 72;                                            // icons drawn per "page" (one request each)
+const icCollections = new Map();                               // library -> { names, cats } (from /collection)
+let icdLibs = null, icdLibsOk = false;                         // library -> { name, total, license, author, samples, category }
+let icdReq = 0, icdList = [], icdShown = 0, icdPick = null, icdTimer = null, icdColorTimer = null, icdBuilt = false;
+const icdLabel = p => (icdLibs && icdLibs[p] && icdLibs[p].name) || (IC_LIBS.find(l => l[0] === p) || [0, p])[1];
+const icdFmt = n => (+n || 0).toLocaleString();
+async function icCollection(prefix) {                          // every icon name of a library, with its categories
+    if (icCollections.has(prefix)) return icCollections.get(prefix);
+    const data = await icApi('/collection?prefix=' + encodeURIComponent(prefix));
+    const ok = n => typeof n === 'string' && /^[a-z0-9-]+$/.test(n);
+    const hidden = new Set(data.hidden || []), cats = {}, all = [];
+    Object.keys(data.categories || {}).forEach(c => {
+        const list = (data.categories[c] || []).filter(n => ok(n) && !hidden.has(n));
+        if (list.length) { cats[c] = list; all.push(...list); }
+    });
+    const rest = (data.uncategorized || []).filter(n => ok(n) && !hidden.has(n));
+    all.push(...rest);
+    if (rest.length && Object.keys(cats).length) cats['Other'] = rest;
+    const col = { names: [...new Set(all)].sort(), cats };
+    icCollections.set(prefix, col);
+    return col;
+}
+async function icdLoadLibs() {                                 // library names, icon counts, licences and sample icons (one request)
+    if (!icdLibs) { icdLibs = {}; IC_LIBS.slice(1).forEach(l => { icdLibs[l[0]] = { name: l[1] }; }); }
+    if (icdLibsOk) return;
+    try {
+        const data = await icApi('/collections?prefixes=' + encodeURIComponent([...IC_ALLOWED].join(',')));
+        Object.keys(data || {}).forEach(p => { if (IC_ALLOWED.has(p) && data[p]) icdLibs[p] = Object.assign({}, icdLibs[p], data[p]); });
+        icdLibsOk = true;
+    } catch (e) { /* the built-in library names are used */ }
+}
+function icdBuildLibSelect() {
+    const sel = byId('icdLib'), cur = sel.value;
+    sel.innerHTML = '<option value="">All libraries</option>' + IC_LIBS.slice(1).map(l => {
+        const i = icdLibs && icdLibs[l[0]];
+        return `<option value="${l[0]}">${esc((i && i.name) || l[1])}${i && i.total ? ' (' + icdFmt(i.total) + ')' : ''}</option>`;
+    }).join('');
+    sel.value = cur;
+}
+function icdView(v) {                                          // 'cards' | 'grid' | 'msg'
+    byId('icdCards').style.display = v === 'cards' ? '' : 'none';
+    byId('icdGrid').style.display = v === 'grid' ? '' : 'none';
+    byId('icdMsg').style.display = v === 'msg' ? '' : 'none';
+    if (v !== 'grid') byId('icdMoreBtn').style.display = 'none';
+}
+function icdMsg(text) { byId('icdMsg').textContent = text; icdView('msg'); byId('icdCount').textContent = ''; }
+function icdRenderCards() {                                    // the library list, grouped by the kind of set
+    const groups = {}, color = byId('icdColor').value;
+    IC_LIBS.slice(1).forEach(l => { const i = icdLibs[l[0]] || {}; (groups[i.category || 'Icon sets'] = groups[i.category || 'Icon sets'] || []).push(l[0]); });
+    const box = byId('icdCards'); box.textContent = '';
+    Object.keys(groups).forEach(g => {
+        const wrap = document.createElement('div'); wrap.className = 'icd-group';
+        const h = document.createElement('h4'); h.textContent = g; wrap.appendChild(h);
+        const grid = document.createElement('div'); grid.className = 'icd-cards';
+        groups[g].forEach(p => {
+            const i = icdLibs[p] || {}, c = document.createElement('button');
+            c.type = 'button'; c.className = 'icd-card'; c.dataset.lib = p;
+            const samples = document.createElement('span'); samples.className = 'icd-samples';
+            const nm = document.createElement('b'); nm.textContent = i.name || p;
+            const meta = document.createElement('small');
+            meta.textContent = [i.total ? icdFmt(i.total) + ' icons' : '', i.license && i.license.title].filter(Boolean).join(' · ');
+            c.appendChild(samples); c.appendChild(nm); c.appendChild(meta);
+            if (i.author && i.author.name) { const au = document.createElement('small'); au.textContent = 'by ' + i.author.name; c.appendChild(au); }
+            grid.appendChild(c);
+            const ids = (Array.isArray(i.samples) ? i.samples : []).filter(n => /^[a-z0-9-]+$/.test(n)).slice(0, 3).map(n => p + ':' + n);
+            if (ids.length) icLoadBodies(ids).then(() => ids.forEach(id => {      // draw the sample icons once their drawings arrive
+                if (!icBodies.has(id)) return;
+                const img = document.createElement('img'); img.alt = ''; img.dataset.id = id; img.src = icDataUri(id, byId('icdColor').value); samples.appendChild(img);
+            }));
+        });
+        wrap.appendChild(grid); box.appendChild(wrap);
+    });
+    icdView('cards');
+    byId('icdCount').textContent = '';
+}
+function icdFillCats(lib, col) {
+    const sel = byId('icdCat'), keys = Object.keys(col.cats).sort();
+    if (sel.dataset.lib !== lib) {
+        sel.dataset.lib = lib;
+        sel.innerHTML = keys.length
+            ? '<option value="">All categories (' + icdFmt(col.names.length) + ')</option>' + keys.map(k => `<option value="${esc(k)}">${esc(k)} (${icdFmt(col.cats[k].length)})</option>`).join('')
+            : '<option value="">No categories</option>';
+    }
+    sel.disabled = !keys.length;
+}
+async function icdRefresh() {
+    const mine = ++icdReq, q = byId('icdSearch').value.trim(), lib = byId('icdLib').value, catSel = byId('icdCat');
+    try {
+        if (q) {                                               // search (inside one library if one is chosen)
+            catSel.disabled = true;
+            icdMsg('Searching…');
+            const key = lib + '|' + q.toLowerCase();
+            let ids = icSearchCache.get(key);
+            if (!ids) {
+                const scope = lib ? 'prefix=' + encodeURIComponent(lib) : 'prefixes=' + encodeURIComponent(IC_LIBS.slice(1).map(l => l[0]).join(','));
+                const data = await icApi('/search?query=' + encodeURIComponent(q) + '&limit=60&' + scope);
+                ids = (data.icons || []).filter(id => /^[a-z0-9-]+:[a-z0-9-]+$/.test(id) && IC_ALLOWED.has(id.split(':')[0]));
+                icSearchCache.set(key, ids);
+            }
+            if (mine !== icdReq) return;
+            if (!ids.length) { icdMsg('No icons found – try another word or library.'); return; }
+            icdSetList(ids);
+        } else if (lib) {                                      // browse one library, optionally one category
+            icdMsg('Loading ' + icdLabel(lib) + '…');
+            const col = await icCollection(lib);
+            if (mine !== icdReq) return;
+            icdFillCats(lib, col);
+            const cat = catSel.value;
+            icdSetList(((cat && col.cats[cat]) || col.names).map(n => lib + ':' + n));
+        } else {                                               // nothing chosen: the list of libraries
+            catSel.innerHTML = '<option value="">Category</option>'; catSel.disabled = true; delete catSel.dataset.lib;
+            icdRenderCards();
+        }
+    } catch (e) {
+        if (mine === icdReq) icdMsg('Could not reach the Iconify service (' + (e.message || 'offline') + '). If it says HTTP 429 you are being rate limited: wait a few minutes. You can still paste an image URL into the Icon box.');
+    }
+}
+function icdSetList(ids) { icdList = ids; icdShown = 0; byId('icdGrid').textContent = ''; icdView('grid'); icdMore(); }
+async function icdMore() {                                     // draw the next page: ONE request for all of its drawings
+    const mine = icdReq, ids = icdList.slice(icdShown, icdShown + IC_PAGE);
+    if (!ids.length) { icdMsg('No icons here.'); return; }
+    icdShown += ids.length;
+    const btn = byId('icdMoreBtn'); btn.disabled = true;
+    await icLoadBodies(ids);
+    if (mine !== icdReq) return;
+    const color = byId('icdColor').value, frag = document.createDocumentFragment();
+    ids.forEach(id => {
+        const [prefix, name] = id.split(':');
+        const b = document.createElement('button'); b.type = 'button'; b.dataset.id = id; b.title = name + ' – ' + icdLabel(prefix);
+        if (icdPick && icdPick.prefix === prefix && icdPick.name === name) b.className = 'sel';
+        const img = document.createElement('img'); img.alt = ''; img.loading = 'lazy'; img.dataset.id = id;
+        img.src = icDataUri(id, color) || icUrl(prefix, name, color);
+        b.appendChild(img); frag.appendChild(b);
+    });
+    byId('icdGrid').appendChild(frag);
+    const left = icdList.length - icdShown;
+    btn.style.display = left > 0 ? '' : 'none'; btn.disabled = false; btn.textContent = 'Show more (' + icdFmt(left) + ' left)';
+    byId('icdCount').textContent = left > 0 ? icdFmt(icdShown) + ' of ' + icdFmt(icdList.length) : icdFmt(icdList.length) + ' icon' + (icdList.length === 1 ? '' : 's');
+}
+function icdUpdateSel() {                                      // footer: the chosen icon, drawn in the chosen colour
+    const box = byId('icdSel'), use = byId('icdUse');
+    box.textContent = '';
+    if (!icdPick) { box.textContent = 'Click an icon to select it.'; use.disabled = true; return; }
+    const id = icdPick.prefix + ':' + icdPick.name;
+    if (!icBodies.has(id) && !icTried.has(id)) icLoadBodies([id]).then(icdUpdateSel);
+    const prev = document.createElement('span'); prev.className = 'icd-prev';
+    const img = document.createElement('img'); img.alt = ''; img.src = icDataUri(id, byId('icdColor').value) || icUrl(icdPick.prefix, icdPick.name, byId('icdColor').value);
+    prev.appendChild(img);
+    const nm = document.createElement('span'); nm.className = 'icd-name';
+    nm.appendChild(document.createTextNode(icdPick.name));
+    const sm = document.createElement('small'); sm.textContent = icdLabel(icdPick.prefix); nm.appendChild(sm);
+    box.appendChild(prev); box.appendChild(nm);
+    use.disabled = false;
+}
+function icdSelect(id) {
+    const [prefix, name] = id.split(':');
+    icdPick = { prefix, name };
+    byId('icdGrid').querySelectorAll('button').forEach(b => b.classList.toggle('sel', b.dataset.id === id));
+    icdUpdateSel();
+}
+function icdUse() {
+    if (!icdPick) return;
+    byId('tdIcon').value = icUrl(icdPick.prefix, icdPick.name, byId('icdColor').value);
+    updateIconPreview();
+    iconDialog.close();
+}
+async function openIconDialog() {
+    const cur = icParse(byId('tdIcon').value);
+    icdPick = cur ? { prefix: cur.prefix, name: cur.name } : null;
+    if (cur && icHex(cur.color)) byId('icdColor').value = icHex(cur.color);
+    if (!icdBuilt) {                                           // first time: start from the tile's title, if it has one
+        icdBuilt = true;
+        byId('icdSearch').value = byId('tdText').value.trim();
+        icdLoadLibs().then(icdBuildLibSelect);
+    }
+    icdBuildLibSelect();
+    iconDialog.showModal();
+    icdUpdateSel();
+    await icdLoadLibs();                                       // names/counts/samples (a no-op after the first success)
+    icdBuildLibSelect();
+    icdRefresh();
+    byId('icdSearch').focus();
+}
+byId('icToggle').addEventListener('click', openIconDialog);
+byId('icdCancel').addEventListener('click', () => iconDialog.close());
+byId('icdUse').addEventListener('click', icdUse);
+byId('icdSearch').addEventListener('input', () => { clearTimeout(icdTimer); icdTimer = setTimeout(icdRefresh, 400); });
+byId('icdSearch').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); clearTimeout(icdTimer); icdRefresh(); } });
+byId('icdLib').addEventListener('change', () => { const c = byId('icdCat'); c.value = ''; delete c.dataset.lib; icdRefresh(); });
+byId('icdCat').addEventListener('change', icdRefresh);
+byId('icdMoreBtn').addEventListener('click', icdMore);
+byId('icdCards').addEventListener('click', e => {              // a library card: open that library
+    const c = e.target.closest('.icd-card'); if (!c) return;
+    const sel = byId('icdLib'); sel.value = c.dataset.lib;
+    const cat = byId('icdCat'); cat.value = ''; delete cat.dataset.lib;
+    byId('icdSearch').value = '';
+    icdRefresh();
+});
+byId('icdGrid').addEventListener('click', e => { const b = e.target.closest('button[data-id]'); if (b) icdSelect(b.dataset.id); });
+byId('icdGrid').addEventListener('dblclick', e => { const b = e.target.closest('button[data-id]'); if (b) { icdSelect(b.dataset.id); icdUse(); } });
+byId('icdColor').addEventListener('input', () => {             // fires continuously while dragging: re-draw locally (no network)
+    clearTimeout(icdColorTimer);
+    icdColorTimer = setTimeout(() => {
+        const color = byId('icdColor').value;
+        iconDialog.querySelectorAll('img[data-id]').forEach(img => { const u = icDataUri(img.dataset.id, color); if (u) img.src = u; });
+        icdUpdateSel();
+    }, 80);
+});
 document.addEventListener('paste', e => {
     if (document.querySelector('dialog[open]')) return;
     const t = e.target;
@@ -815,7 +1232,26 @@ document.addEventListener('paste', e => {
 });
 byId('tdCancel').addEventListener('click', () => tileDialog.close());
 tileDialog.addEventListener('close', () => { editTarget = null; });
-byId('addBtn').addEventListener('click', openNewTileDialog);
+/* ---- settings (gear) button: a dropdown list with Edit data / Download CSV / Upload CSV ---- */
+function closeSettings() {
+    const m = document.getElementById('settingsMenu'), b = document.getElementById('settingsBtn');
+    if (m) m.style.display = 'none';
+    if (b) b.classList.remove('open');
+}
+function openSettings() {
+    const m = byId('settingsMenu'), b = byId('settingsBtn');
+    const r = b.getBoundingClientRect();                       // read before the ☰ panel (narrow screens) closes again
+    m.style.display = 'flex';
+    m.style.left = Math.max(4, Math.min(r.right - m.offsetWidth, window.innerWidth - m.offsetWidth - 4)) + 'px';   // lined up with the gear button
+    m.style.top = (r.bottom + 10) + 'px';
+    b.classList.add('open');
+}
+byId('settingsBtn').addEventListener('click', () => { if (byId('settingsMenu').style.display === 'flex') closeSettings(); else openSettings(); });
+byId('settingsMenu').addEventListener('click', closeSettings);                 // picking an item closes the list
+document.addEventListener('pointerdown', e => { if (!e.target.closest('#settingsMenu,#settingsBtn')) closeSettings(); }, true);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSettings(); });
+window.addEventListener('resize', closeSettings);
+window.addEventListener('scroll', closeSettings, true);
 (function headerMenu() {                      // ☰ dropdown (only visible on narrow screens)
     const btn = byId('menuBtn'), panel = byId('hdrActions');
     const setOpen = o => { panel.classList.toggle('open', o); btn.classList.toggle('open', o); };
@@ -868,6 +1304,96 @@ byId('tileForm').addEventListener('submit', e => {
     if (last < 0) items.push(row); else items.splice(last + 1, 0, row);
     persistItems();
 });
+
+/* ======================= Tile menu (right-click, long press, context-menu key) ======================= */
+let lastPointerType = 'mouse', ctxItem = null, menuAt = 0;
+const ctxMenu = byId('ctxMenu');
+// pages a tile could be moved to (not where it already is; a folder can't go inside itself)
+function movePages(item) {
+    const set = new Set(['home']);
+    items.forEach(r => { if (r.page) set.add(r.page); if (r.url.startsWith('#') && r.url.length > 1) set.add(r.url.slice(1)); });
+    const isFolder = item.url.startsWith('#') && item.url.length > 1;
+    return Array.from(set)
+        .filter(p => p !== item.page && !(isFolder && insideFolder(p, item.url.slice(1))))
+        .sort((a, b) => a === 'home' ? -1 : b === 'home' ? 1 : a.localeCompare(b));
+}
+function openMenu(tile, x, y) {
+    const item = visibleItems[Array.prototype.indexOf.call(gridEl.children, tile)];
+    if (!item) return;
+    ctxItem = item; menuAt = Date.now();
+    byId('ctxMove').style.display = movePages(item).length ? '' : 'none';
+    ctxMenu.style.display = 'block';
+    ctxMenu.style.left = Math.max(4, Math.min(x, window.innerWidth - ctxMenu.offsetWidth - 4)) + 'px';
+    ctxMenu.style.top = Math.max(4, Math.min(y, window.innerHeight - ctxMenu.offsetHeight - 4)) + 'px';
+    if (lastPointerType === 'key') byId('ctxEdit').focus();
+}
+function closeMenu() { ctxMenu.style.display = 'none'; ctxItem = null; }
+document.addEventListener('pointerdown', e => {
+    lastPointerType = e.pointerType;
+    if (!e.target.closest('#ctxMenu')) closeMenu();
+}, true);
+document.addEventListener('keydown', () => { lastPointerType = 'key'; }, true);
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { if (drag && drag.moved) endDrag(false); else closeMenu(); }     // Esc cancels a drag / closes the menu
+    if (ctxMenu.style.display === 'block' && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+        e.preventDefault();
+        const b = Array.from(ctxMenu.querySelectorAll('button')).filter(x => x.style.display !== 'none');
+        const i = b.indexOf(document.activeElement);
+        b[(i + (e.key === 'ArrowDown' ? 1 : -1) + b.length) % b.length].focus();
+    }
+});
+window.addEventListener('resize', closeMenu);
+window.addEventListener('scroll', closeMenu, true);
+// true when `t` is empty page background: not a tile, the header, a dialog, a menu, the editor, or any control/link
+function isBlankArea(t) {
+    if (!t || !t.closest || currentPage() === EDITOR_ROUTE || document.querySelector('dialog[open]')) return false;
+    return !t.closest('header,dialog,#searchBox,#ctxMenu,#settingsMenu,#toast,#buildInfo,#BUILD-FOOTER,#trashZone,#editor,a,button,input,textarea,select,[contenteditable]');
+}
+document.addEventListener('contextmenu', e => {
+    const tile = e.target.closest && e.target.closest('#grid a.tile');
+    if (!tile) {                                                // right-click on empty page area: add a new tile here (replaces the old + button)
+        if (isBlankArea(e.target)) { e.preventDefault(); closeMenu(); openNewTileDialog(); }
+        return;
+    }
+    e.preventDefault();                                         // never show the browser's own menu on a tile
+    if (lastPointerType === 'touch') return;                    // touch long press is handled by the drag code
+    const r = tile.getBoundingClientRect();
+    const fromKey = e.clientX === 0 && e.clientY === 0;         // context-menu key / Shift+F10 on a focused tile
+    openMenu(tile, fromKey ? r.left + 20 : e.clientX, fromKey ? r.top + 20 : e.clientY);
+});
+byId('ctxEdit').addEventListener('click', () => {
+    if (Date.now() - menuAt < 350) return;                      // ignore the click that follows a touch long press
+    const it = ctxItem; closeMenu(); openEditDialog(it);
+});
+byId('ctxDelete').addEventListener('click', () => {
+    if (Date.now() - menuAt < 350) return;
+    const idx = visibleItems.indexOf(ctxItem); closeMenu();
+    if (idx >= 0) deleteTile(idx);
+});
+byId('ctxMove').addEventListener('click', () => {
+    if (Date.now() - menuAt < 350) return;
+    const it = ctxItem; closeMenu(); openMoveDialog(it);
+});
+// "Move to…" dialog
+const moveDialog = byId('moveDialog');
+let moveItem = null;
+function openMoveDialog(item) {
+    const pages = movePages(item);
+    if (!item || !pages.length || moveDialog.open) return;
+    moveItem = item;
+    byId('mvHead').textContent = 'Move "' + item.text + '" to…';
+    byId('mvSelect').innerHTML = pages.map(p => '<option value="' + esc(p) + '">' + esc(p === 'home' ? 'Home' : p.replace(/_/g, ' ')) + '</option>').join('');
+    moveDialog.showModal();
+    byId('mvSelect').focus();
+}
+byId('mvCancel').addEventListener('click', () => moveDialog.close());
+byId('moveForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const idx = visibleItems.indexOf(moveItem), dest = byId('mvSelect').value;
+    moveDialog.close();
+    if (idx >= 0) moveToPage(idx, dest);
+});
+moveDialog.addEventListener('close', () => { moveItem = null; });
 
 /* ======================= In-app CSV editor ======================= */
 const EDITOR_ROUTE = '_editor';
@@ -963,7 +1489,7 @@ function renderEditor() {
     const tbody = table.querySelector('tbody');
     tbody.addEventListener('dragover', onRowDragOver);
     tbody.addEventListener('drop', onRowDrop);
-    tbody.addEventListener('dragleave', e => { if (!tbody.contains(e.relatedTarget)) clearDragMarks(); });
+    tbody.addEventListener('dragleave', e => { if (!tbody.contains(e.relatedTarget)) clearRowDragMarks(); });
 
     renderRows();
 }
@@ -1018,6 +1544,7 @@ function renderRows() {
     tbody.innerHTML = '';
     tbody.appendChild(frag);
     edit.shown = shown;
+    // suggestions for the "page" column: every page name already in use
     document.getElementById('pageList').innerHTML = Array.from(new Set(edit.rows.map(r => r.page).filter(Boolean)))
         .map(p => '<option value="' + esc(p) + '">').join('');
     updateEditStatus();
@@ -1246,6 +1773,7 @@ document.addEventListener('keydown', e => {
 });
 
 
+// Import a CSV (validated, undoable)
 function importCsv(text, name) {
     const p = parseCsv(text);
     if (!['page', 'text', 'url'].every(c => p.headers.includes(c))) {
@@ -1261,6 +1789,7 @@ function importCsv(text, name) {
     render();
     showToast('Imported ' + p.items.length + ' tiles');
 }
+// Drag a .csv file (import) or a link (new tile) from outside onto the page
 document.addEventListener('dragover', e => {
     const types = e.dataTransfer ? Array.from(e.dataTransfer.types) : [];
     if (!dragState && currentPage() !== EDITOR_ROUTE && (types.includes('Files') || types.includes('text/uri-list'))) e.preventDefault();
@@ -1308,460 +1837,10 @@ document.getElementById('csvFileInput').addEventListener('change', (event) => {
     // Reset the file input so the same file can be selected again
     event.target.value = '';
 });
-/* ======================= Sync (private GitHub Gist) ======================= */
-// Tiles live in one secret gist in YOUR GitHub account: tiles.csv (the data) + meta.json (last-change timestamp).
-// Needs a GitHub token with the "gist" scope ("Create gists"). Token and gist ID are kept in this browser's localStorage
-// AND in the address bar as  ?gist=<gist id>&token=<token>  so the page URL can be bookmarked / opened on your other devices.
-// When the page is opened with those variables, they are recognised, saved, and the tiles are synced straight away.
-const GIST_API = 'https://api.github.com';
-const GIST_DESC = 'Homepage tiles (sync)';
-const GIST_CSV = 'tiles.csv', GIST_META = 'meta.json';
-const GIST_ID_RE = /^[0-9a-f]{20,40}$/i;
-let syncId = null, syncToken = null, syncTimer = null;       // syncId = gist ID
-let syncFromUrl = false, syncTokenOnly = false, pendingGist = null;
-(function readSyncCredentials() {
-    let uId = null, uTok = null, sId = null, sTok = null;
-    try { const q = new URLSearchParams(location.search); uId = q.get('gist'); uTok = q.get('token'); } catch (e) {}
-    try { sId = localStorage.getItem('gistId'); sTok = localStorage.getItem('gistToken'); } catch (e) {}
-    if (uId && !GIST_ID_RE.test(uId)) uId = null;
-    if (sId && !GIST_ID_RE.test(sId)) sId = null;
-    if (uId && uId !== sId) { try { localStorage.removeItem('gistBase'); localStorage.removeItem('gistName'); localStorage.removeItem('gistPending'); } catch (e) {} }
-    if (uTok && !uId && uTok !== sTok) {                  // a new token on its own: forget the old gist rather than pair them
-        sId = null;
-        try { ['gistId', 'gistBase', 'gistName', 'gistPending'].forEach(k => localStorage.removeItem(k)); } catch (e) {}
-    }
-    const id = uId || sId, tok = uTok || sTok;
-    if (id && tok) {
-        syncId = id; syncToken = tok; syncFromUrl = !!(uId || uTok);
-        try { localStorage.setItem('gistId', id); localStorage.setItem('gistToken', tok); } catch (e) {}
-    } else if (uTok) {                                        // token only: remember it, the gist is found on Connect
-        syncTokenOnly = true;
-        try { localStorage.setItem('gistToken', uTok); } catch (e) {}
-    } else if (uId) {                                         // gist ID only: prefill it, a token is still needed
-        pendingGist = uId;
-    }
-})();
-const syncDialog = document.getElementById('syncDialog');
-const $ = id => document.getElementById(id);
-const syncErr = e => e instanceof TypeError ? 'could not reach api.github.com (offline, or the browser blocked the request)' : e.message;
-const storedToken = () => { try { return localStorage.getItem('gistToken') || ''; } catch (e) { return ''; } };
-// --- gist name (shown as "Home - name"), last-synced version (for conflict checks) and unsynced-change flag ---
-let syncName = '';
-try { syncName = localStorage.getItem('gistName') || ''; } catch (e) {}
-function homeTitle() { return syncId && syncName && syncName !== GIST_DESC ? 'Home - ' + syncName : 'Home'; }
-function applyTitle() {
-    if (currentPage() !== 'home') return;
-    $('pageTitle').textContent = $('pageHeader').textContent = homeTitle();
-}
-function setSyncName(n) {
-    syncName = n || '';
-    try { if (syncName) localStorage.setItem('gistName', syncName); else localStorage.removeItem('gistName'); } catch (e) {}
-    applyTitle();
-}
-const gistVersion = g => (g && g.history && g.history[0] && g.history[0].version) || (g && g.updated_at) || null;
-// The local tiles are one data set, so only ONE gist can be "in sync" with it: this slot remembers which gist (id) and which
-// version of it (v) the local tiles were last identical to, and whether they have changes the gist hasn't got yet (pending).
-// For any other gist the slot reads as "unknown", and nothing is uploaded over that gist without asking.
-let memSlot = null;
-function slotRead() { try { return JSON.parse(localStorage.getItem('gistSlot') || 'null'); } catch (e) { return memSlot; } }
-function slotWrite(o) { memSlot = o; try { if (o) localStorage.setItem('gistSlot', JSON.stringify(o)); else localStorage.removeItem('gistSlot'); } catch (e) {} }
-function slotInfo() { return slotRead(); }                                   // {id, v, p} or null
-// Each gist gets its own local copy of the tiles. Switching gists puts the current tiles away (with their sync record) and brings
-// back the copy kept for the new gist, so tiles from one gist are never mixed into, or uploaded over, another.
-const stashKey = id => 'gistLocal:' + id;
-function stashRead(id) { try { return JSON.parse(localStorage.getItem(stashKey(id)) || 'null'); } catch (e) { return null; } }
-function adoptLocalFor(id) {                       // returns true if the local tiles were swapped
-    if (!id) return false;
-    const slot = slotRead();
-    if (!slot || slot.id === id) return false;      // already this gist's (or tiles of our own that were never synced: those are asked about)
-    try { localStorage.setItem(stashKey(slot.id), JSON.stringify({ csv: loadCsvData(), stamp: localStamp(), v: slot.v, p: !!slot.p })); }
-    catch (e) { slotWrite(null); return false; }    // could not put them away: treat them as unsynced tiles (the conflict dialog will ask)
-    memStore = null; memStamp = 0;
-    try { localStorage.removeItem('csvData'); localStorage.removeItem('csvUpdated'); } catch (e) {}
-    slotWrite(null);
-    const st = stashRead(id);
-    if (st && typeof st.csv === 'string' && st.csv) { saveCsvData(st.csv, st.stamp || Date.now()); slotWrite({ id, v: st.v, p: !!st.p }); }
-    setData(loadCsvData());
-    undoStack.length = 0;
-    edit = null;
-    render();
-    return true;
-}
-function getBase() { const o = slotRead(); return o && o.id === syncId ? o.v : null; }
-function setBase(v) { if (!v || !syncId) { slotWrite(null); return; } const o = slotRead(); slotWrite({ id: syncId, v, p: !!(o && o.id === syncId && o.p) }); }
-function getPending() { const o = slotRead(); return !!(o && o.id === syncId && o.p); }
-function setPending(b) { const o = slotRead(); if (o && o.id === syncId) { o.p = !!b; slotWrite(o); } }
-function syncMsg(text) { $('syMsg').textContent = text || ''; }       // error line inside the dialog (toasts sit behind an open dialog)
-
-async function gh(path, opts, token) {
-    opts = opts || {};
-    const headers = { 'Accept': 'application/vnd.github+json', 'Authorization': 'Bearer ' + (token || syncToken) };
-    if (opts.body) headers['Content-Type'] = 'application/json';
-    const r = await fetch(GIST_API + path, { method: opts.method || 'GET', headers, body: opts.body, cache: 'no-store' });
-    if (r.status === 401) throw new Error('GitHub rejected the token (HTTP 401) – check it is correct and has not expired.');
-    if (r.status === 403 || r.status === 429) throw new Error('GitHub refused the request (HTTP ' + r.status + ') – the token needs the “Create gists” (gist) scope, or a rate limit was hit.');
-    if (r.status === 404) throw new Error('Gist not found (HTTP 404) – check the gist ID, and that the token belongs to the account that owns the gist.');
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-}
-function gistFiles() {
-    return {
-        [GIST_CSV]: { content: loadCsvData() || DEFAULT_HEADERS.join(',') + '\n' },
-        [GIST_META]: { content: JSON.stringify({ updated: localStamp() || Date.now() }) }
-    };
-}
-async function fileText(f) {
-    if (!f) return null;
-    if (f.truncated && f.raw_url) { const r = await fetch(f.raw_url, { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }
-    return f.content;
-}
-async function readGist(id, token) {
-    const g = await gh('/gists/' + id, null, token);
-    const csv = await fileText(g.files && g.files[GIST_CSV]);
-    const meta = await fileText(g.files && g.files[GIST_META]);
-    let updated = 0; try { updated = +JSON.parse(meta || '{}').updated || 0; } catch (e) {}
-    return { csv, updated, version: gistVersion(g), name: g.description || '' };
-}
-async function findGist(token) {                                   // look for an existing tiles gist in the account
-    for (let p = 1; p <= 5; p++) {
-        const list = await gh('/gists?per_page=100&page=' + p, null, token);
-        const hit = list.find(g => g.files && g.files[GIST_CSV] && g.files[GIST_META]);
-        if (hit) return hit.id;
-        if (list.length < 100) break;
-    }
-    return null;
-}
-async function createGist(token, name) {
-    const g = await gh('/gists', { method: 'POST', body: JSON.stringify({ description: name || GIST_DESC, public: false, files: gistFiles() }) }, token);
-    return g;
-}
-
-async function listGists(token) {                                  // every gist in the account (up to 1000)
-    const out = [];
-    for (let p = 1; p <= 10; p++) {
-        const list = await gh('/gists?per_page=100&page=' + p, null, token);
-        out.push(...list);
-        if (list.length < 100) break;
-    }
-    return out;
-}
-async function showGistList() {
-    const box = $('syGists'), btn = $('syList');
-    syncMsg('');
-    const token = syncToken || $('syId').value.trim() || storedToken();
-    if (!token) { syncMsg('Paste your GitHub token first.'); $('syId').focus(); return; }
-    btn.disabled = true; btn.textContent = 'Loading…';
-    try {
-        const gists = await listGists(token);
-        box.textContent = '';
-        box.style.display = 'block';
-        if (!gists.length) { box.textContent = 'No gists found in this account.'; return; }
-        gists.sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''));
-        gists.forEach(g => {
-            const names = Object.keys(g.files || {});
-            const isTiles = !!(g.files && g.files[GIST_CSV] && g.files[GIST_META]);
-            const isCur = g.id === syncId;
-            const row = document.createElement('div');
-            row.className = 'gl-row' + (isTiles ? '' : ' other') + (isCur ? ' current' : '');
-            const info = document.createElement('div'); info.className = 'gl-info';
-            const t = document.createElement('b');
-            t.textContent = (g.description || names[0] || '(no description)') + (isTiles ? '  · tiles' : '');
-            const d = document.createElement('small');
-            d.textContent = g.id + ' · ' + (g.public ? 'public' : 'secret') + ' · ' + (g.updated_at || '').slice(0, 10) + ' · ' + names.length + ' file' + (names.length === 1 ? '' : 's');
-            info.append(t, d); row.append(info);
-            if (isCur) {
-                const s = document.createElement('small'); s.textContent = 'in use'; row.append(s);
-            } else if (isTiles) {
-                const u = document.createElement('button'); u.type = 'button'; u.className = 'tbtn'; u.textContent = 'Use';
-                u.addEventListener('click', () => useListedGist(g.id, token));
-                row.append(u);
-            }
-            if (isTiles) {
-                const rn = document.createElement('button'); rn.type = 'button'; rn.className = 'tbtn'; rn.textContent = 'Rename';
-                rn.addEventListener('click', async () => {
-                    const cur = g.description || '';
-                    const name = prompt('Name for this gist:', cur);
-                    if (name === null || !name.trim() || name.trim() === cur) return;
-                    rn.disabled = true; rn.textContent = '…'; syncMsg('');
-                    try {
-                        await gh('/gists/' + g.id, { method: 'PATCH', body: JSON.stringify({ description: name.trim() }) }, token);
-                        g.description = name.trim();
-                        t.textContent = g.description + '  · tiles';
-                        if (g.id === syncId) setSyncName(g.description);
-                    } catch (e) { syncMsg(syncErr(e)); }
-                    rn.disabled = false; rn.textContent = 'Rename';
-                });
-                row.append(rn);
-            }
-            const a = document.createElement('a'); a.href = g.html_url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '↗';
-            a.title = 'Open on GitHub'; row.append(a);
-            box.append(row);
-        });
-    } catch (e) {
-        box.style.display = 'none';
-        syncMsg(syncErr(e));
-    } finally {
-        btn.disabled = false; btn.textContent = 'List my gists';
-    }
-}
-async function useListedGist(id, token) {
-    if (!syncId) {                                                      // not connected: just pick it for Connect
-        $('syGist').value = id; $('syNew').checked = false; $('syGist').disabled = false;
-        syncMsg(''); return;
-    }
-    if (!confirm('Switch syncing to this gist?\nThis device keeps a separate copy of the tiles for each gist, so the current ones are kept and come back if you switch back.')) return;
-    const prev = { id: syncId, token: syncToken };
-    try {
-        await readGist(id, token);                                      // verify access first
-        setSyncCreds(id, token);
-        const r = await pullSync(false, true, true);
-        if (!r || r === 'paused') { setSyncCreds(prev.id, prev.token); if (r === 'paused') syncMsg('Not switched: that gist and this device’s copy differ.'); return; }
-        syncDialog.close();
-        showToast('Switched to the selected gist ✓', true, 'ok');
-    } catch (e) {
-        setSyncCreds(prev.id, prev.token);
-        syncMsg(syncErr(e));
-    }
-}
-
-function setSyncUi(state) {                    // 'off' | 'ok' | 'busy' | 'err'
-    const b = $('syncBtn');
-    b.classList.toggle('synced', !!syncId && state === 'ok');
-    b.classList.toggle('err', !!syncId && (state === 'err' || state === 'conflict'));
-    b.title = !syncId ? 'Sync (not set up)' : state === 'conflict' ? 'Sync paused – online copy differs. Click, then “Sync now” to resolve' : state === 'err' ? 'Sync problem – click for details' : state === 'busy' ? 'Syncing…' : 'Synced';
-}
-function syncLink() {                          // the page address with the gist ID and token as variables
-    return location.href.split(/[?#]/)[0] + '?gist=' + encodeURIComponent(syncId) + '&token=' + encodeURIComponent(syncToken);
-}
-function setSyncUrl(id, token) {               // keep gist + token in the address bar (and remove them when sync stops)
-    try {
-        const u = new URL(location.href);
-        if (id && token) { u.searchParams.set('gist', id); u.searchParams.set('token', token); }
-        else { u.searchParams.delete('gist'); u.searchParams.delete('token'); }
-        history.replaceState(null, '', u.pathname + u.search + location.hash);
-    } catch (e) { console.warn('Could not update the address bar', e); }
-}
-function setSyncCreds(id, token) {
-    if (!id) slotWrite(null);                                                      // stopping sync: forget what the tiles were synced with
-    else adoptLocalFor(id);                                                        // swap in this gist's own local copy
-    if ((id || null) !== syncId) { syncName = ''; try { localStorage.removeItem('gistName'); } catch (e) {} }
-    syncId = id || null; syncToken = id ? token : null;
-    try {
-        if (id) { localStorage.setItem('gistId', id); localStorage.setItem('gistToken', token); }
-        else { localStorage.removeItem('gistId'); localStorage.removeItem('gistToken'); }
-    } catch (e) {}
-    setSyncUrl(syncId, syncToken);
-    setSyncUi(id ? 'ok' : 'off');
-    applyTitle();
-    refreshSyncDialog();
-}
-function refreshSyncDialog() {
-    const on = !!syncId;
-    $('syOff').style.display = on ? 'none' : 'block';
-    $('syOn').style.display = on ? 'block' : 'none';
-    $('syStop').style.display = on ? 'inline-block' : 'none';
-    $('syCopy').style.display = on ? 'inline-block' : 'none';
-    $('syGo').textContent = on ? 'Sync now' : 'Connect';
-    $('syGists').style.display = 'none'; $('syGists').textContent = '';
-    $('syLink').value = on ? syncLink() : '';
-    $('syId').placeholder = storedToken() ? '(token saved – leave blank to use it)' : '';
-    if (!on && pendingGist && !$('syGist').value) $('syGist').value = pendingGist;
-    $('syInfo').textContent = on
-        ? 'Gist in use: ' + (syncName ? syncName + ' · ' : '') + syncId + '\n\nSyncing is on. Changes upload automatically, and your other devices pick them up when they open or return to this page. The newest change wins.\n⚠ The sync link contains your GitHub token: anyone with it can read and change your gists. Only open or bookmark it on your own devices.'
-        : 'Keep your tiles in step across browsers and devices using a private GitHub Gist in your account.\nYour token stays in this browser (and in the address bar once connected).';
-}
-function scheduleSync() {
-    if (!syncId) return;
-    setPending(true);                           // local change not yet in the gist
-    setSyncUi('busy');                          // change is waiting to upload: not greyed yet
-    clearTimeout(syncTimer);
-    syncTimer = setTimeout(() => pushSync(), 1500);
-}
-let conflictOpen = false;
-// Asks what to do when this device's tiles and the gist differ and it isn't safe to pick one automatically.
-// Resolves 'keep' (overwrite the gist) | 'online' (take the gist) | 'later'.
-function askConflict(remote) {
-    if (conflictOpen) return Promise.resolve('later');
-    conflictOpen = true;
-    const dlg = $('conflictDialog'), mineCsv = loadCsvData() || '', slot = slotInfo();
-    const count = t => { try { return parseCsv(t).items.length; } catch (e) { return '?'; } };
-    const when = ts => ts ? new Date(ts).toLocaleString() : 'unknown time';
-    const short = v => v ? String(v).slice(0, 8) : 'none';
-    const sameGist = !!(slot && slot.id === syncId);
-    $('cfInfo').textContent =
-        (sameGist ? 'The online copy was changed (probably from another device) since this device last synced.'
-                  : !slot ? 'This device already has tiles of its own that were never synced with this gist.'
-                  : 'This device’s tiles were last synced with a different gist.') + '\n\n' +
-        'ONLINE (server) gist\n  ID: ' + syncId + (syncName ? '\n  Name: ' + syncName : '') + '\n  Version: ' + short(remote.version) +
-        '\n  ' + count(remote.csv) + ' rows · changed ' + when(remote.updated) + '\n\n' +
-        'THIS DEVICE (local)\n  Last synced with gist ID: ' + (slot ? slot.id : 'none – never synced') +
-        (slot ? '\n  Version: ' + short(slot.v) : '') + (sameGist ? '' : '   ⚠ different gist') +
-        '\n  ' + count(mineCsv) + ' rows · changed ' + when(localStamp()) + '\n\n' +
-        'Keep this device = overwrite the online gist with the tiles here.\n' +
-        'Use online = replace the tiles here with the online ones (you can undo this).\n' +
-        'Copy either CSV first if you want to merge them by hand.';
-    return new Promise(resolve => {
-        let choice = 'later';
-        const copyBtn = (id, label, text) => {
-            const btn = $(id); btn.textContent = label;
-            btn.onclick = () => copyToClipboard(text).then(() => 'Copied ✓', () => 'Copy failed')
-                .then(msg => { btn.textContent = msg; setTimeout(() => { btn.textContent = label; }, 1400); });
-        };
-        copyBtn('cfCopyMine', 'Copy this device’s CSV', mineCsv);
-        copyBtn('cfCopyOnline', 'Copy online CSV', remote.csv);
-        $('cfKeep').onclick = () => { choice = 'keep'; dlg.close(); };
-        $('cfOnline').onclick = () => { choice = 'online'; dlg.close(); };
-        $('cfLater').onclick = () => { choice = 'later'; dlg.close(); };
-        dlg.addEventListener('close', () => { conflictOpen = false; resolve(choice); }, { once: true });
-        dlg.showModal();
-    });
-}
-function applyRemote(remote) {                    // replace the local tiles with the online copy
-    pushUndo();
-    saveCsvData(remote.csv, remote.updated || Date.now());
-    setData(remote.csv);
-    edit = null;
-    render();
-    setBase(remote.version);
-    setPending(false);
-}
-// Uploads the local tiles. Before overwriting a gist it asks if (a) the gist changed since this device last synced with it, or
-// (b) the local tiles were never confirmed to belong to THIS gist (e.g. after switching gists). skipCheck = the user already chose.
-// `known` = a gist read the caller already has. Returns 'pushed' | 'updated' (online copy taken instead) | 'paused' | false.
-async function pushSync(throwOnError, known, skipCheck) {
-    if (!syncId) return false;
-    const sl = slotRead();
-    if (sl && sl.id !== syncId) return 'paused';                  // the local tiles now belong to another gist (another tab): wait until this tab is shown again
-    try {
-        setSyncUi('busy');
-        const remote = known || await readGist(syncId);
-        const base = getBase(), mine = loadCsvData();
-        const remoteHas = typeof remote.csv === 'string' && remote.csv.trim() !== '';
-        if (!skipCheck && remoteHas && remote.csv !== mine && (!base || (remote.version && remote.version !== base))) {
-            const choice = await askConflict(remote);
-            if (choice === 'online') { applyRemote(remote); setSyncUi('ok'); return 'updated'; }
-            if (choice !== 'keep') { setSyncUi('conflict'); return 'paused'; }
-        }
-        const g = await gh('/gists/' + syncId, { method: 'PATCH', body: JSON.stringify({ files: gistFiles() }) });
-        setBase(gistVersion(g)); setPending(false);
-        if (g.description) setSyncName(g.description);
-        setSyncUi('ok');
-        return 'pushed';
-    } catch (e) {
-        console.warn('Sync upload failed', e);
-        setSyncUi('err');
-        if (throwOnError) throw e;
-        showToast('Sync failed: ' + syncErr(e), true, 'err');
-        return false;
-    }
-}
-// force is no longer used (kept so callers stay the same); interactive = report errors inside the sync dialog;
-// quiet = no "updated" toast (the caller reports the result). Returns 'updated' | 'pushed' | 'same' | 'paused', or false on failure/cancel.
-async function pullSync(force, interactive, quiet) {
-    if (!syncId) return false;
-    try {
-        setSyncUi('busy');
-        const remote = await readGist(syncId);
-        if (remote.name) setSyncName(remote.name);
-        if (typeof remote.csv !== 'string' || !remote.csv.trim()) return await pushSync(true, remote);   // empty: start it with our tiles
-        const mine = loadCsvData(), mineStamp = localStamp();
-        if (remote.csv === mine) { setBase(remote.version); setPending(false); setSyncUi('ok'); return 'same'; }
-        if (mineStamp === 0 && !getPending()) {                                          // nothing of our own for this gist: just take it
-            applyRemote(remote);
-            if (!quiet) showToast('Updated from sync');
-            setSyncUi('ok');
-            return 'updated';
-        }
-        const base = getBase();
-        if (!base || getPending()) return await pushSync(true, remote);                  // unverified or changed here: upload (asks if unsafe)
-        if (remote.version === base) return await pushSync(true, remote);                // gist unchanged since last sync, so the difference is ours
-        const busy = (edit && edit.dirty) || drag || (!interactive && document.querySelector('dialog[open]'));
-        if (busy) { setSyncUi('ok'); return 'same'; }                                    // gist changed elsewhere; don't disturb work in progress
-        applyRemote(remote);
-        if (!quiet) showToast('Updated from sync');
-        setSyncUi('ok');
-        return 'updated';
-    } catch (e) {
-        console.warn('Sync download failed', e);
-        setSyncUi('err');
-        if (interactive) syncMsg(syncErr(e)); else showToast('Sync failed: ' + syncErr(e), true, 'err');
-        return false;
-    }
-}
-$('syncBtn').addEventListener('click', () => { syncMsg(''); refreshSyncDialog(); syncDialog.showModal(); });
-$('syClose').addEventListener('click', () => syncDialog.close());
-$('syLink').addEventListener('focus', e => e.target.select());
-$('syList').addEventListener('click', showGistList);
-$('syNew').addEventListener('change', e => { $('syGist').disabled = e.target.checked; if (e.target.checked) $('syGist').value = ''; });
-$('syCopy').addEventListener('click', () => {
-    const b = $('syCopy');
-    copyToClipboard($('syLink').value).then(() => { b.textContent = 'Copied ✓'; }, () => { b.textContent = 'Copy failed'; })
-        .then(() => setTimeout(() => { b.textContent = 'Copy link'; }, 1200));
-});
-$('syGo').addEventListener('click', async () => {
-    syncMsg('');
-    const btn = $('syGo'), wasOn = !!syncId;
-    btn.disabled = true; btn.textContent = wasOn ? 'Syncing…' : 'Connecting…';
-    try {
-        if (wasOn) {                                                                      // "Sync now"
-            const r = await pullSync(false, true, true);
-            if (!r) return;                                                               // error is shown in the dialog
-            syncDialog.close();
-            if (r === 'paused') { showToast('Sync paused – the online copy differs from this device', true, 'err'); return; }
-            showToast(r === 'updated' ? 'Synced ✓ – tiles updated from your gist' : r === 'pushed' ? 'Synced ✓ – your tiles were uploaded' : 'Synced ✓ – already up to date', true, 'ok');
-            return;
-        }
-        const token = $('syId').value.trim() || storedToken();
-        if (!token) { syncMsg('Paste your GitHub token first.'); $('syId').focus(); return; }
-        const given = $('syGist').value.trim(), forceNew = $('syNew').checked;
-        let id = null;
-        if (forceNew) {
-            id = null;                                                                    // always make a brand-new gist
-        } else if (given) {
-            const m = given.match(/([0-9a-f]{20,40})\/?(?:[?#].*)?$/i);
-            if (!m) { syncMsg('That does not look like a gist ID or URL.'); return; }
-            id = m[1];
-        } else {
-            id = await findGist(token);                                                   // reuse an existing tiles gist
-        }
-        let msg;
-        if (id) {
-            await readGist(id, token);                                                    // verify access before saving anything
-            setSyncCreds(id, token);
-            const r = await pullSync(false, true, true);
-            if (r === 'paused') { setSyncCreds(null); syncMsg('Not connected: this device and that gist have different tiles.'); return; }
-            if (!r) { setSyncCreds(null); return; }                                       // error is shown in the dialog
-            msg = r === 'updated' ? 'Connected ✓ – tiles loaded from your gist' : 'Connected ✓ – tiles synced';
-        } else {
-            const g = await createGist(token, $('syName').value.trim());                  // first device: create it from the local tiles
-            id = g.id;
-            slotWrite(null);                                                              // the tiles here were just uploaded as this gist: they are its copy
-            setSyncCreds(id, token);
-            setBase(gistVersion(g)); setSyncName(g.description); setPending(false);
-            msg = 'Connected ✓ – private gist created and tiles uploaded';
-        }
-        $('syId').value = ''; $('syGist').value = ''; $('syNew').checked = false; $('syGist').disabled = false; $('syName').value = ''; pendingGist = null;
-        syncDialog.close();                                                               // done: close the dialog …
-        showToast(msg + '. Sync link saved in the address bar.', true, 'ok');             // … and tell the user
-    } catch (e) {
-        console.warn('Sync connect failed', e);
-        if (!wasOn) setSyncCreds(null);
-        syncMsg(syncErr(e));                                                              // dialog stays open so the token can be fixed
-    } finally {
-        btn.disabled = false; refreshSyncDialog();
-    }
-});
-$('syStop').addEventListener('click', () => {
-    if (!confirm('Stop syncing on this device? Your tiles stay here and in the gist, and the token is removed from this browser and the address bar.')) return;
-    setSyncCreds(null);
-    syncDialog.close();
-    showToast('Syncing stopped', true);
-});
-document.addEventListener('visibilitychange', () => { if (!document.hidden && syncId) { adoptLocalFor(syncId); pullSync(); } });
-
 // Run on load and hash change (leaving the editor with unsaved changes asks first)
 let lastRoute = location.hash.slice(1) || 'home';
 function onRoute() {
+    closeSearch();
     const cur = location.hash.slice(1) || 'home';
     if (lastRoute === EDITOR_ROUTE && cur !== EDITOR_ROUTE && edit && edit.dirty &&
         !confirm('You have unsaved changes in the editor. Leave and discard them?')) {
@@ -1773,28 +1852,192 @@ function onRoute() {
     render();
 }
 window.onhashchange = onRoute;
-render();
-setSyncUi(syncId ? 'busy' : 'off');
-if (syncId) {
-    setSyncUrl(syncId, syncToken);             // keep ?gist=…&token=… in the address bar
-    adoptLocalFor(syncId);                     // if the tiles here belong to another gist, put them away and use this gist's own copy
-    pullSync(false, false, true).then(r => {
-        if (!r) return;                        // a failure toast was already shown
-        if (r === 'paused') { showToast('Sync paused – open ☁ and press Sync now to resolve', true, 'err'); return; }
-        if (syncFromUrl) showToast('Sync link recognised ✓ – ' + (r === 'updated' ? 'tiles loaded from your gist' : 'tiles are in sync'), true, 'ok');
-        else if (r === 'updated') showToast('Updated from sync');
-    });
-} else if (syncTokenOnly) {
-    showToast('Token recognised and saved – open ☁ to connect', true, 'ok');
-} else if (pendingGist) {
-    showToast('Gist ID recognised – open ☁ and add your token to connect', true);
+/* ======================= Search: header button, "/" or Ctrl/Cmd+K; click a result to open it, a folder to go there ======================= */
+const sbBox = byId('searchBox'), sbInput = byId('sbInput'), sbList = byId('sbList');
+let sbHits = [], sbSel = -1;          // -1 = nothing highlighted yet (Enter then opens the first result)
+function pagePath(page, cache) {                         // "Home › Tools › Diff Checkers"
+    if (cache && cache[page] != null) return cache[page];
+    const names = []; let p = page, guard = 0;
+    while (p && p !== 'home' && guard++ < 25) {
+        names.unshift(p.replace(/_/g, ' '));
+        const row = items.find(r => r.url === '#' + p);
+        p = row ? row.page : 'home';
+    }
+    names.unshift('Home');
+    const path = names.join(' › ');
+    if (cache) cache[page] = path;
+    return path;
 }
+function searchTiles(q) {                                // every tile on every page; all words must match (title, description, address, folder path)
+    const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!words.length) return [];
+    const cache = {}, hits = [];
+    items.forEach((it, idx) => {
+        if (!it.text && !it.url) return;
+        const title = (it.text || '').toLowerCase(), desc = (it.desc || '').toLowerCase();
+        const addr = /^#/.test(it.url) ? '' : (it.url || '').toLowerCase();
+        const path = pagePath(it.page, cache).toLowerCase();
+        let score = 0;
+        for (const w of words) {
+            if (title.startsWith(w)) score += 5;
+            else if (title.includes(w)) score += 3;
+            else if (desc.includes(w)) score += 2;
+            else if (addr.includes(w) || path.includes(w)) score += 1;
+            else return;
+        }
+        hits.push({ it, idx, score, path: pagePath(it.page, cache) });
+    });
+    hits.sort((a, b) => b.score - a.score || a.idx - b.idx);
+    return hits.slice(0, 60);
+}
+function sbIcon(it, isFolder) {
+    const box = document.createElement('span'); box.className = 'sb-ico';
+    const fa = faClasses(it.icon), low = String(it.icon || '').toLowerCase();
+    if (fa) {
+        ensureFontAwesome();
+        const i = document.createElement('i'); i.className = 'fa-icon ' + fa; i.setAttribute('aria-hidden', 'true'); box.appendChild(i);
+    } else if (it.icon && low !== 'false' && !(isFolder && low === 'true')) {     // folders show their assigned icon too (a "TRUE" favicon means nothing for a folder)
+        const img = document.createElement('img'); img.alt = ''; img.loading = 'lazy';
+        img.src = low === 'true' ? 'https://www.google.com/s2/favicons?sz=64&domain=' + (it.url.replace('#', '') || 'example.com') : it.icon;
+        box.appendChild(img);
+    } else {
+        box.textContent = isFolder ? '📁' : it.copy ? '📋' : '🔗';
+    }
+    return box;
+}
+function sbSelect(i) {
+    sbSel = i;
+    sbList.querySelectorAll('.sb-row').forEach((r, n) => {
+        r.classList.toggle('sel', n === i);
+        if (n === i) r.scrollIntoView({ block: 'nearest' });
+    });
+}
+function sbRender() {
+    const q = sbInput.value.trim();
+    sbHits = searchTiles(q); sbSel = -1;
+    sbList.textContent = '';
+    if (!q || !sbHits.length) {
+        const m = document.createElement('div'); m.className = 'sb-msg';
+        m.textContent = q ? 'No matches.' : 'Type to search all tiles and folders.';
+        sbList.appendChild(m); return;
+    }
+    sbHits.forEach((h, n) => {
+        const it = h.it, isFolder = it.url.startsWith('#') && it.url.length > 1;
+        const row = document.createElement('div'); row.setAttribute('role', 'option'); row.className = 'sb-row' + (isFolder ? ' folder' : ''); row.dataset.i = n;
+        const main = document.createElement('span'); main.className = 'sb-main';
+        const b = document.createElement('b'); b.textContent = it.text || it.url;
+        const sm = document.createElement('small'); sm.textContent = h.path + (it.desc ? ' · ' + it.desc : '');
+        main.appendChild(b); main.appendChild(sm);
+        row.appendChild(sbIcon(it, isFolder)); row.appendChild(main);
+        if (it.copy) { const t = document.createElement('span'); t.className = 'sb-tag'; t.textContent = 'copy'; row.appendChild(t); }
+        const up = document.createElement('button'); up.type = 'button'; up.className = 'sb-up'; up.textContent = '📂';
+        up.title = 'Open the folder containing this item (' + h.path + ')'; up.setAttribute('aria-label', up.title);
+        row.appendChild(up);
+        sbList.appendChild(row);
+    });
+}
+function openSearch() {
+    if (currentPage() === EDITOR_ROUTE || document.querySelector('dialog[open]')) return;
+    if (sbBox.classList.contains('open')) { sbInput.focus(); sbInput.select(); return; }
+    sbBox.classList.add('open'); sbInput.value = ''; sbRender(); sbInput.focus();
+}
+function closeSearch() { sbBox.classList.remove('open'); }
+function sbOpenHit(it) {
+    closeSearch();
+    const isFolder = it.url.startsWith('#') && it.url.length > 1;
+    if (it.copy) {                                        // same as clicking the tile: copy the text, then follow its link (if it has one)
+        copyToClipboard(it.copy)
+            .then(() => showToast('Copied “' + (it.text || 'text') + '”', true, 'ok'), () => showToast('Copy failed', true, 'err'))
+            .then(() => go(it.url));
+    } else if (isFolder) location.hash = it.url;          // go to that folder
+    else go(it.url);                                      // open the link
+}
+byId('searchBtn').addEventListener('click', openSearch);
+byId('sbClose').addEventListener('click', closeSearch);
+sbBox.addEventListener('click', e => { if (e.target === sbBox) closeSearch(); });          // click outside the panel
+sbInput.addEventListener('input', sbRender);
+sbInput.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (sbHits.length) sbSelect(sbSel < 0 ? (e.key === 'ArrowDown' ? 0 : sbHits.length - 1)
+                                              : (sbSel + (e.key === 'ArrowDown' ? 1 : -1) + sbHits.length) % sbHits.length);
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const hit = sbHits[sbSel < 0 ? 0 : sbSel];
+        if (hit) { if (e.shiftKey) sbOpenContaining(hit.it); else sbOpenHit(hit.it); }
+    } else if (e.key === 'Escape') { e.preventDefault(); closeSearch(); }
+});
+sbList.addEventListener('mouseover', e => {               // the highlight follows the mouse, so there is only ever one
+    const r = e.target.closest('.sb-row');
+    if (r && +r.dataset.i !== sbSel) sbSelect(+r.dataset.i);
+});
+function sbOpenContaining(it) {                          // go to the folder (page) that holds this item
+    closeSearch();
+    const page = it.page || 'home';
+    if (currentPage() === page) render(); else location.hash = page;
+}
+sbList.addEventListener('click', e => {
+    const r = e.target.closest('.sb-row'); if (!r) return;
+    const h = sbHits[+r.dataset.i]; if (!h) return;
+    if (e.target.closest('.sb-up')) sbOpenContaining(h.it); else sbOpenHit(h.it);
+});
+document.addEventListener('keydown', e => {              // "/" (when not typing) or Ctrl/Cmd+K opens the search
+    const typing = e.target.closest && e.target.closest('input,textarea,select,[contenteditable]');
+    if ((e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey && !typing) || ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'k')) {
+        if (currentPage() === EDITOR_ROUTE || document.querySelector('dialog[open]')) return;
+        e.preventDefault(); openSearch();
+    } else if (e.key === 'Escape' && sbBox.classList.contains('open')) closeSearch();
+});
+// ---- footer: shows this page's build time; hovering (or tapping) it lists the build times of this page and any plugin files ----
+const builds = [];                                             // [file name, build time]
+(function initBuildInfo() {
+    let name = 'This page';
+    try { name = decodeURIComponent(location.pathname.split('/').pop()) || name; } catch (e) {}
+    builds.push([name, byId('buildText').textContent.replace(/^BUILD:\s*/, '')]);
+})();
+function renderBuildInfo() {
+    const box = byId('buildInfo'); box.textContent = '';
+    builds.forEach(b => {
+        const row = document.createElement('div'); row.className = 'bi-row';
+        const n = document.createElement('span'); n.textContent = b[0];
+        const t = document.createElement('span'); t.textContent = b[1];
+        row.appendChild(n); row.appendChild(t); box.appendChild(row);
+    });
+}
+function addBuild(name, stamp) {
+    const i = builds.findIndex(b => b[0] === name);
+    if (i >= 0) builds[i][1] = stamp; else builds.push([name, stamp]);
+    renderBuildInfo();
+}
+(function buildHover() {
+    const text = byId('buildText'), box = byId('buildInfo');
+    const show = on => { if (on) renderBuildInfo(); box.style.display = on ? 'block' : 'none'; };
+    text.addEventListener('mouseenter', () => show(true));
+    text.addEventListener('mouseleave', () => show(false));
+    text.addEventListener('click', e => { e.stopPropagation(); show(box.style.display !== 'block'); });   // tap on touch screens
+    document.addEventListener('click', () => show(false));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') show(false); });
+})();
+// What plugins may use (see "optional plugins" above). Everything else in this script is private to the page.
+window.LinkPage = {
+    addBuild,                                                        // addBuild('file.js', 'YYYY-MM-DD HH:MM:SS'): list a plugin's build time in the footer hover
+    on(name, fn) { (pluginHooks[name] = pluginHooks[name] || []).push(fn); },
+    loadCsvData, saveCsvData, setData, render, parseCsv, showToast, copyToClipboard, pushUndo,
+    currentPage, defaultHeaders: DEFAULT_HEADERS,
+    isBusy() { return !!((edit && edit.dirty) || drag); },          // unsaved editor changes or a tile mid-drag
+    dropEdit() { edit = null; },                                      // discard the editor's working copy
+    clearUndo() { undoStack.length = 0; },
+    resetData() { memStore = null; try { localStorage.removeItem('csvData'); } catch (e) {} }   // forget stored tiles (falls back to the default)
+};
+render();
 </script>
+<!-- Optional: gist_sync.js adds GitHub Gist sync. If the file is missing the browser just skips it and the page works without sync. -->
+<script src="gist_sync.js"></script>
 </body>
 </html>
 <!--
   ============================================================
-  BUILD: 2026-11-07 16:45:00 (local)
+  BUILD: 2026-11-10 20:25:00 (local)
   ------------------------------------------------------------
   MAINTENANCE RULE — READ BEFORE EDITING THIS FILE:
   Whenever the code in this file is modified in any way,
