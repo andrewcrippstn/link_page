@@ -4,7 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title id="pageTitle">Home</title>
+<script>
+// site colour: apply the saved one before the page is drawn (no flash of the default blue)
+(function(){try{var c=localStorage.getItem('accentColor');if(/^#[0-9a-f]{6}$/i.test(c)){var s=document.documentElement.style,n=parseInt(c.slice(1),16);
+s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.587*((n>>8)&255)+0.114*(n&255))>170?'#222':'#fff');}}catch(e){}})();
+</script>
 <style>
+    :root{--accent:#667eea;--accent-contrast:#fff;
+          /* tints of the site colour (used for hover / selected backgrounds and soft borders) */
+          --accent-t1:color-mix(in srgb,var(--accent) 4%,white);--accent-t2:color-mix(in srgb,var(--accent) 9%,white);
+          --accent-t3:color-mix(in srgb,var(--accent) 12%,white);--accent-t4:color-mix(in srgb,var(--accent) 35%,white);
+          --accent-light:color-mix(in srgb,var(--accent) 65%,white)}
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:-apple-system,system-ui,sans-serif;background:#f0f0f0;min-height:100vh;color:#333;position:relative;padding-bottom:44px}
     header{background:white;padding:10px 20px;margin-bottom:40px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
@@ -12,31 +22,31 @@
     .container{max-width:1200px;margin:0 auto;padding:0 20px}
     .home-btn{position:absolute;top:0;right:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;
               border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
-              text-decoration:none;color:#667eea;font-size:24px;font-weight:bold;line-height:1}
-    .home-btn:hover{border-color:#667eea;background:#f8f8ff}
+              text-decoration:none;color:var(--accent);font-size:24px;font-weight:bold;line-height:1}
+    .home-btn:hover{border-color:var(--accent);background:var(--accent-t1)}
     .home-btn.show{display:flex}
     /* settings button (gear) in the header; its dropdown list is #settingsMenu */
     .settings-btn{width:40px;height:40px;background:white;border:2px solid #e0e0e0;border-radius:8px;display:none;align-items:center;
-                  justify-content:center;cursor:pointer;transition:.2s;color:#667eea;font-size:22px;font-weight:bold}
-    .settings-btn:hover,.settings-btn.open{border-color:#667eea;background:#f8f8ff}
+                  justify-content:center;cursor:pointer;transition:.2s;color:var(--accent);font-size:22px;font-weight:bold}
+    .settings-btn:hover,.settings-btn.open{border-color:var(--accent);background:var(--accent-t1)}
     .settings-btn.show{display:flex}
     #csvFileInput{display:none}
-    h1{font-size:2rem;color:#667eea;text-align:center;font-weight:700;margin:0}
+    h1{font-size:2rem;color:var(--accent);text-align:center;font-weight:700;margin:0}
     #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px}
     a.tile{text-decoration:none;color:#666;display:block;border-radius:12px;overflow:visible;
            transition:.2s;background:white;border:2px solid #e0e0e0;position:relative;
            box-shadow:2px 2px 5px rgba(0, 0, 0, 0.1)}
     a.tile.folder{background:rgb(233, 233, 233)}
-    a.tile:hover{transform:translateY(-2px);border-color:#667eea;box-shadow:0 4px 12px rgba(102,126,234,0.15)}
+    a.tile:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 4px 12px color-mix(in srgb,var(--accent) 15%,transparent)}
     .inner{position:relative;height:140px}
     .content{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;
              justify-content:center;padding:16px;text-align:center}
     .icon{width:40px;height:40px;margin-bottom:8px;object-fit:contain}
     /* Font Awesome icon on a tile, and the icon picker in the tile dialog */
-    i.fa-icon{width:40px;height:40px;line-height:40px;margin-bottom:8px;font-size:32px;text-align:center;color:#667eea;display:block}
+    i.fa-icon{width:40px;height:40px;line-height:40px;margin-bottom:8px;font-size:32px;text-align:center;color:var(--accent);display:block}
     .ic-box{display:flex;flex-direction:column;gap:8px;margin-top:-4px}
     .ic-bar{display:flex;align-items:center;gap:10px}
-    #tdIconPrev i{font-size:22px;color:#667eea}
+    #tdIconPrev i{font-size:22px;color:var(--accent)}
     #tdIconPrev img{width:28px;height:28px;object-fit:contain;vertical-align:middle}
     /* icon picker window */
     #iconDialog{margin:auto;border:0;border-radius:10px;padding:0;width:min(880px,96vw);box-shadow:0 12px 40px rgba(0,0,0,.35)}
@@ -44,7 +54,7 @@
     .icd{height:min(88vh,780px)}
     .icd-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 16px 0}
     .icd-bar input[type=text]{flex:1;min-width:160px;border:1px solid #c6c6c6;border-radius:4px;padding:7px 9px;font:inherit}
-    .icd-bar input[type=text]:focus,.icd-bar select:focus{border-color:#667eea;outline:0}
+    .icd-bar input[type=text]:focus,.icd-bar select:focus{border-color:var(--accent);outline:0}
     .icd-bar select{flex:1;min-width:140px;max-width:100%;border:1px solid #c6c6c6;border-radius:4px;padding:7px 8px;font:inherit;font-size:.88rem;background:#fff;color:#222}
     .icd-bar select:disabled{background:#f3f3f3;color:#999}
     .icd-colour{display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;color:#555}
@@ -53,7 +63,7 @@
     .icd-group h4{font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:#888;margin:4px 0 8px}
     .icd-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px}
     .icd-card{display:flex;flex-direction:column;gap:3px;text-align:left;border:1px solid #ddd;border-radius:10px;padding:10px 12px;background:#fff;cursor:pointer;font:inherit;color:#333}
-    .icd-card:hover{border-color:#667eea;background:#f8f8ff}
+    .icd-card:hover{border-color:var(--accent);background:var(--accent-t1)}
     .icd-samples{display:flex;gap:8px;height:30px;margin-bottom:4px}
     .icd-samples img{width:28px;height:28px}
     .icd-card b{font-size:.92rem}
@@ -61,8 +71,24 @@
     #icdGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:6px}
     #icdGrid button{height:52px;border:1px solid #eee;border-radius:8px;background:#fff;cursor:pointer;padding:8px}
     #icdGrid button img{width:100%;height:100%;object-fit:contain;display:block}
-    #icdGrid button:hover{background:#f0f2ff;border-color:#667eea}
-    #icdGrid button.sel{background:#eef0ff;border-color:#667eea;box-shadow:0 0 0 2px rgba(102,126,234,.35)}
+    #icdGrid button:hover{background:var(--accent-t2);border-color:var(--accent)}
+    #icdGrid button.sel{background:var(--accent-t3);border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent)}
+    #icdCtx{display:none;position:fixed;z-index:60;min-width:200px;max-width:280px;max-height:60vh;overflow:auto;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.22);padding:4px}
+    #icdCtx button{display:flex;width:100%;gap:8px;align-items:center;justify-content:space-between;background:none;border:0;border-radius:6px;padding:8px 10px;font:inherit;font-size:.88rem;color:#333;cursor:pointer;text-align:left}
+    #icdCtx button:hover,#icdCtx button:focus{background:var(--accent-t2);outline:none}
+    #icdCtx button small{color:#888;font-size:.74rem;flex:none}
+    #icdCtx .icd-ctx-h{padding:6px 10px 4px;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#888}
+    #icdCtx .icd-ctx-n{padding:8px 10px;font-size:.85rem;color:#888}
+    #icdCtx .icd-ctx-src{padding:2px 10px 8px;font-size:.78rem;color:#666;line-height:1.4;border-bottom:1px solid #eee;margin-bottom:4px}
+    #icdCtx .icd-ctx-src a,#creditsDialog a{color:var(--accent)}
+    #creditsDialog{margin:auto;border:0;border-radius:10px;padding:0;width:min(720px,96vw);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+    #creditsDialog::backdrop{background:rgba(0,0,0,.45)}
+    #creditsDialog .dlg{height:min(80vh,680px)}
+    #crBody{flex:1;min-height:0;overflow:auto;padding:12px 16px;font-size:.86rem;line-height:1.45;color:#444}
+    #crBody p{margin:0 0 12px}
+    .cr-item{padding:8px 0;border-top:1px solid #eee}
+    .cr-item b{color:#222}
+    .cr-item small{display:block;color:#777;font-size:.78rem}
     #icdMoreBtn{display:block;margin:14px auto 4px}
     .icd-msg{padding:20px 4px;color:#888;font-size:.88rem;line-height:1.4}
     .icd-note{margin-top:16px;font-size:.74rem;color:#999;line-height:1.4}
@@ -79,32 +105,66 @@
     .ribbon{position:absolute;right:0;bottom:0;width:48px;height:48px;overflow:hidden;
             border-bottom-right-radius:10px;pointer-events:none}
     .ribbon span{position:absolute;left:-6px;top:28px;width:80px;height:12px;line-height:12px;
-                 background:#667eea;color:#fff;font-size:8px;font-weight:700;letter-spacing:.6px;
+                 background:var(--accent);color:var(--accent-contrast);font-size:8px;font-weight:700;letter-spacing:.6px;
                  text-align:center;transform:rotate(-45deg);box-shadow:0 1px 2px rgba(0,0,0,.25)}
 
     /* ---- drag to rearrange / tile menu (no separate edit mode) ---- */
     a.tile{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
     a.tile *{-webkit-user-drag:none}
-    a.tile.lifted{transform:scale(1.06);z-index:20;border-color:#667eea;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+    a.tile.lifted{transform:scale(1.06);z-index:20;border-color:var(--accent);box-shadow:0 8px 20px rgba(0,0,0,.25)}
     body.dragging-tile{user-select:none;-webkit-user-select:none;cursor:grabbing}
     body.dragging-tile #trashZone{display:flex}
     #ctxMenu{display:none;position:fixed;z-index:40;min-width:170px;background:#fff;border:1px solid #ddd;border-radius:8px;
              box-shadow:0 8px 24px rgba(0,0,0,.22);padding:4px}
     #ctxMenu button{display:flex;width:100%;gap:10px;align-items:center;background:none;border:0;border-radius:6px;padding:8px 10px;
                     font:inherit;font-size:.9rem;color:#333;cursor:pointer;text-align:left}
-    #ctxMenu button:hover,#ctxMenu button:focus{background:#f0f2ff;outline:none}
+    #ctxMenu button:hover,#ctxMenu button:focus{background:var(--accent-t2);outline:none}
     /* settings: just the original square icon buttons, dropping down in a line directly under the gear button */
     #settingsMenu{display:none;position:fixed;z-index:40;flex-direction:column;gap:10px}
     #settingsMenu button{width:40px;height:40px;background:white;border:2px solid #e0e0e0;border-radius:8px;display:flex;align-items:center;
-                         justify-content:center;cursor:pointer;transition:.2s;color:#667eea;font-size:20px;font-weight:bold;padding:0;
+                         justify-content:center;cursor:pointer;transition:.2s;color:var(--accent);font-size:20px;font-weight:bold;padding:0;
                          box-shadow:0 2px 6px rgba(0,0,0,.15)}
-    #settingsMenu button:hover,#settingsMenu button:focus{border-color:#667eea;background:#f8f8ff;outline:none}
+    #settingsMenu button:hover,#settingsMenu button:focus{border-color:var(--accent);background:var(--accent-t1);outline:none}
+    /* site colour swatches (inside Settings > Appearance) */
+    .cm-swatches{display:grid;grid-template-columns:repeat(5,40px);gap:12px;margin-bottom:14px}
+    .cm-sw{width:36px;height:36px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #c8c8c8;cursor:pointer;padding:0}
+    .cm-sw:hover{transform:scale(1.1)}
+    .cm-sw.sel{box-shadow:0 0 0 2px #fff,0 0 0 4px #444}
+    .cm-row{display:flex;align-items:center;gap:8px;font-size:.85rem;color:#555}
+    #cmCustom{width:44px;height:32px;padding:0;border:1px solid #c6c6c6;border-radius:4px;background:#fff;cursor:pointer}
+    /* settings overlay */
+    #settingsDialog{margin:auto;border:0;border-radius:10px;padding:0;width:min(900px,96vw);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+    #settingsDialog::backdrop{background:rgba(0,0,0,.45)}
+    .st-dlg{height:min(86vh,720px)}
+    .st-main{flex:1;min-height:0;display:flex}
+    #stNav{display:flex;flex-direction:column;gap:4px;width:180px;flex:none;padding:10px;border-right:1px solid #e0e0e0;background:#fafafa;overflow:auto}
+    #stNav button{text-align:left;border:0;background:none;border-radius:6px;padding:9px 11px;font:inherit;font-size:.9rem;color:#444;cursor:pointer}
+    #stNav button:hover{background:var(--accent-t1)}
+    #stNav button.on{background:var(--accent-t3);color:#222;font-weight:600}
+    #stPanels{flex:1;min-width:0;overflow:auto;padding:16px 20px}
+    #stPanels h3{margin:0 0 4px;font-size:1.02rem}
+    #stPanels .st-sub{margin:0 0 14px;color:#777;font-size:.82rem;line-height:1.4}
+    #stPanels .st-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}
+    #stPanels .st-msg{font-size:.82rem;color:#555}
+    #stPanels label.st-check{display:flex;gap:8px;align-items:flex-start;font-size:.9rem;color:#333;cursor:pointer;line-height:1.35}
+    #stPanels label.st-check small{display:block;color:#777;font-size:.78rem}
+    #stDiag{width:100%;height:340px;box-sizing:border-box;resize:vertical;border:1px solid #c6c6c6;border-radius:6px;padding:8px;font:12px/1.4 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;white-space:pre;overflow:auto}
+    #stSavedGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}
+    .sv-card{border:1px solid #e0e0e0;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:4px;font-size:.76rem;color:#666;min-width:0}
+    .sv-card.use{border-color:var(--accent)}
+    .sv-thumb{height:72px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:repeating-conic-gradient(#f1f1f1 0 25%,#fff 0 50%) 0 0/12px 12px}
+    .sv-thumb img{max-width:64px;max-height:64px;object-fit:contain}
+    .sv-card b{color:#333;font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .sv-card .sv-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+    .sv-card .sv-acts a,.sv-card .sv-acts button{font:inherit;font-size:.74rem;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+    .sv-bad{font-size:.78rem;color:#555;padding:6px 0;border-top:1px solid #eee;word-break:break-all}
+    @media (max-width:640px){ .st-main{flex-direction:column} #stNav{flex-direction:row;width:auto;border-right:0;border-bottom:1px solid #e0e0e0;overflow-x:auto} #stNav button{white-space:nowrap} }
     #ctxMenu button.danger{color:#c0392b}
     #ctxMenu button.danger:hover,#ctxMenu button.danger:focus{background:#fdecea}
     #grid a.tile.dragging{z-index:20;opacity:.92;cursor:grabbing;transition:none;border-style:solid;
-                          border-color:#667eea;box-shadow:0 12px 28px rgba(0,0,0,.28)}
+                          border-color:var(--accent);box-shadow:0 12px 28px rgba(0,0,0,.28)}
     #grid a.tile.drop-before::before,#grid a.tile.drop-after::before{content:'';position:absolute;top:-2px;bottom:-2px;
-                          width:4px;background:#667eea;border-radius:2px;z-index:5}
+                          width:4px;background:var(--accent);border-radius:2px;z-index:5}
     #grid a.tile.drop-before::before{left:-10px}
     #grid a.tile.drop-after::before{right:-10px}
 
@@ -121,6 +181,7 @@
     #edFilter{padding:6px 10px;border:1px solid #c6c6c6;border-radius:4px;font:inherit;font-size:.85rem;min-width:200px}
     #edStatus{font-size:.8rem;color:#555;margin-left:auto}
     #edStatus.unsaved{color:#b45309;font-weight:600}
+    #edStatus.saved{color:#2e7d32;font-weight:600}
     .sheet-wrap{background:#fff;border:1px solid #bdbdbd;max-height:calc(100vh - 190px);overflow:auto}
     table.sheet{border-collapse:collapse;table-layout:fixed;font:13px Calibri,"Segoe UI",system-ui,sans-serif;color:#222}
     .sheet th,.sheet td{border:1px solid #d4d4d4;padding:0;height:26px;background:#fff}
@@ -159,16 +220,16 @@
     .dlg-foot label{font-size:.82rem;color:#444;display:flex;gap:5px;align-items:center;cursor:pointer}
     .dlg-foot .spacer{flex:1}
 
-    #grid a.tile.drop-into{border-color:#667eea;background:#eef0ff;box-shadow:0 0 0 3px rgba(102,126,234,.35)}
-    header.droppable{outline:2px dashed #9aa3f5;outline-offset:-4px}
-    header.droppable.over{outline:2px solid #667eea;background:#eef0ff}
+    #grid a.tile.drop-into{border-color:var(--accent);background:var(--accent-t3);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 35%,transparent)}
+    header.droppable{outline:2px dashed var(--accent-light);outline-offset:-4px}
+    header.droppable.over{outline:2px solid var(--accent);background:var(--accent-t3)}
     #trashZone{display:none;position:fixed;right:24px;bottom:44px;width:84px;height:84px;border-radius:50%;
                align-items:center;justify-content:center;flex-direction:column;gap:2px;z-index:15;
                background:#fff;border:2px dashed #e08a8a;color:#c0392b;font-size:.7rem;font-weight:600;
                box-shadow:0 2px 8px rgba(0,0,0,.15)}
     #trashZone .ico{font-size:28px;line-height:1}
     #trashZone.over{background:#fdecea;border-style:solid;border-color:#c0392b;transform:scale(1.12)}
-    #tdKind{font-size:.8rem;color:#445;background:#eef0ff;border:1px solid #c9ceff;border-radius:4px;padding:6px 8px}
+    #tdKind{font-size:.8rem;color:#445;background:var(--accent-t3);border:1px solid var(--accent-t4);border-radius:4px;padding:6px 8px}
     /* ---- new-tile dialog (opened by pasting a link) ---- */
     #tileDialog,#moveDialog{margin:auto;border:0;border-radius:10px;padding:0;width:min(520px,94vw);box-shadow:0 12px 40px rgba(0,0,0,.35)}
     #tileDialog::backdrop,#moveDialog::backdrop{background:rgba(0,0,0,.45)}
@@ -178,19 +239,19 @@
     .tile-fields label small{font-weight:400;color:#888}
     .tile-fields input,.tile-fields textarea{border:1px solid #c6c6c6;border-radius:4px;padding:6px 8px;font:inherit;
                                               font-size:.9rem;font-weight:400;color:#222;outline:none;resize:vertical}
-    .tile-fields input:focus,.tile-fields textarea:focus{border-color:#667eea}
+    .tile-fields input:focus,.tile-fields textarea:focus{border-color:var(--accent)}
     .tile-fields select{border:1px solid #c6c6c6;border-radius:4px;padding:6px 8px;font:inherit;font-size:.9rem;font-weight:400;color:#222;background:#fff}
     .back-btn{position:absolute;top:0;width:40px;height:40px;background:white;border:2px solid #e0e0e0;border-radius:8px;
-             display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;color:#667eea;font-size:20px;font-weight:bold}
-    .back-btn:hover{border-color:#667eea;background:#f8f8ff}
+             display:none;align-items:center;justify-content:center;cursor:pointer;transition:.2s;color:var(--accent);font-size:20px;font-weight:bold}
+    .back-btn:hover{border-color:var(--accent);background:var(--accent-t1)}
     .back-btn.show{display:flex}
     .back-btn{left:0;text-decoration:none}
     /* right-hand buttons: one flex group instead of hand-placed offsets, so they never sit on top of the title */
     header .hdr-actions{position:absolute;top:0;right:0;display:flex;gap:10px}
     header .hdr-actions > *{position:static;right:auto;flex:0 0 auto}
     .menu-btn{display:none;width:40px;height:40px;background:white;border:2px solid #e0e0e0;border-radius:8px;cursor:pointer;
-              align-items:center;justify-content:center;color:#667eea;font-size:22px;font-weight:bold;transition:.2s}
-    .menu-btn:hover,.menu-btn.open{border-color:#667eea;background:#f8f8ff}
+              align-items:center;justify-content:center;color:var(--accent);font-size:22px;font-weight:bold;transition:.2s}
+    .menu-btn:hover,.menu-btn.open{border-color:var(--accent);background:var(--accent-t1)}
     @media (max-width:720px){
         header{padding:10px 12px}
         .header-container{justify-content:space-between;gap:10px}
@@ -202,8 +263,8 @@
                             background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.18);padding:4px;overflow:hidden}
         header .hdr-actions.open{display:flex}
         header .hdr-actions > *{width:100%;height:44px;border:0;border-radius:6px;box-shadow:none;justify-content:flex-start;gap:12px;padding:0 12px;
-                                font-size:20px;text-decoration:none;color:#667eea;background:transparent}
-        header .hdr-actions > *:hover,header .hdr-actions > *.active{background:#f0f2ff}
+                                font-size:20px;text-decoration:none;color:var(--accent);background:transparent}
+        header .hdr-actions > *:hover,header .hdr-actions > *.active{background:var(--accent-t2)}
         header .hdr-actions > *::after{content:attr(title);font-size:.9rem;font-weight:500;color:#333;text-align:left;
                                        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     }
@@ -211,37 +272,37 @@
            background:#333;color:#fff;padding:10px 14px;border-radius:8px;font-size:.85rem;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:30}
     #toast.ok{background:#2e7d32}
     #toast.err{background:#c62828}
-    #toast button{background:none;border:0;color:#9aa3f5;font:inherit;font-weight:600;cursor:pointer}
+    #toast button{background:none;border:0;color:var(--accent-light);font:inherit;font-weight:600;cursor:pointer}
     .tbtn.danger{color:#c0392b;border-color:#e08a8a}
     .tbtn.danger:hover{background:#fdecea}
     /* search: header button + floating box */
     .search-btn{width:40px;height:40px;background:white;border:2px solid #e0e0e0;border-radius:8px;display:none;align-items:center;justify-content:center;
-                cursor:pointer;transition:.2s;color:#667eea}
-    .search-btn:hover{border-color:#667eea;background:#f8f8ff}
+                cursor:pointer;transition:.2s;color:var(--accent)}
+    .search-btn:hover{border-color:var(--accent);background:var(--accent-t1)}
     .search-btn.show{display:flex}
     #searchBox{display:none;position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.28)}
     #searchBox.open{display:block}
     .sb-panel{margin:78px auto 0;width:min(580px,94vw);background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.35);overflow:hidden}
-    .sb-input{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #eee;color:#667eea}
+    .sb-input{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #eee;color:var(--accent)}
     .sb-input input{flex:1;min-width:0;border:0;outline:0;font:inherit;font-size:1.05rem;color:#222;background:transparent}
     .sb-input button{border:0;background:none;color:#999;font-size:16px;cursor:pointer;padding:4px 8px;border-radius:4px}
     .sb-input button:hover{background:#f0f0f0;color:#333}
     #sbList{max-height:min(58vh,420px);overflow:auto}
     .sb-row{display:flex;align-items:center;gap:12px;width:100%;padding:8px 14px;border:0;background:#fff;text-align:left;cursor:pointer;font:inherit;color:#333}
-    .sb-row.sel{background:#f0f2ff}
+    .sb-row.sel{background:var(--accent-t2)}
     /* folders look like folder tiles on the page: grey background */
     .sb-row.folder{background:rgb(233,233,233)}
-    .sb-row.folder.sel{background:#d9dcf0}
+    .sb-row.folder.sel{background:color-mix(in srgb,var(--accent) 14%,#e9e9e9)}
     .sb-up{flex:none;width:32px;height:32px;border:1px solid transparent;border-radius:6px;background:transparent;cursor:pointer;font-size:17px;line-height:1;
-           display:flex;align-items:center;justify-content:center;color:#667eea;padding:0}
-    .sb-up:hover,.sb-up:focus{background:#fff;border-color:#667eea;outline:none}
+           display:flex;align-items:center;justify-content:center;color:var(--accent);padding:0}
+    .sb-up:hover,.sb-up:focus{background:#fff;border-color:var(--accent);outline:none}
     .sb-ico{flex:none;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:20px}
     .sb-ico img{width:28px;height:28px;object-fit:contain}
     .sb-ico i.fa-icon{width:28px;height:28px;line-height:28px;font-size:22px;margin:0}
     .sb-main{flex:1;min-width:0}
     .sb-main b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .sb-main small{display:block;color:#888;font-size:.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .sb-tag{flex:none;font-size:.68rem;color:#667eea;background:#eef0ff;border-radius:9px;padding:1px 8px}
+    .sb-tag{flex:none;font-size:.68rem;color:var(--accent);background:var(--accent-t3);border-radius:9px;padding:1px 8px}
     .sb-msg{padding:14px;color:#888;font-size:.85rem}
     .sb-hint{padding:6px 14px;font-size:.7rem;color:#aaa;border-top:1px solid #eee}
     @media (hover:none){.sb-hint{display:none}}
@@ -251,7 +312,7 @@
     #buildInfo{display:none;position:fixed;left:50%;bottom:36px;transform:translateX(-50%);z-index:30;background:#333;color:#fff;border-radius:8px;
                padding:8px 12px;font-size:.75rem;line-height:1.5;box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:94vw}
     #buildInfo .bi-row{display:flex;gap:14px;justify-content:space-between;white-space:nowrap}
-    #buildInfo .bi-row span:last-child{color:#c9ceff;font-variant-numeric:tabular-nums}
+    #buildInfo .bi-row span:last-child{color:var(--accent-t4);font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -284,6 +345,7 @@
     <button type="button" role="menuitem" id="editorBtn" title="Edit data (spreadsheet view)" aria-label="Edit data (spreadsheet view)">✎</button>
     <button type="button" role="menuitem" id="downloadBtn" title="Download CSV" aria-label="Download CSV">↓</button>
     <button type="button" role="menuitem" id="uploadBtn" title="Upload CSV" aria-label="Upload CSV">↑</button>
+    <button type="button" role="menuitem" id="settingsOpen" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="display:block"><path d="M4 6h8M18 6h2M4 12h2M12 12h8M4 18h10M20 18h0"/><circle cx="15" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg></button>
 </div>
 <dialog id="moveDialog">
     <form class="dlg tile-dlg" id="moveForm" autocomplete="off">
@@ -298,7 +360,7 @@
         </div>
     </form>
 </dialog>
-<div id="BUILD-FOOTER"><span id="buildText">BUILD: 2026-11-10 20:25:00</span></div>
+<div id="BUILD-FOOTER"><span id="buildText">BUILD: 2026-11-10 20:32:00</span></div>
 <div id="buildInfo" role="tooltip"></div>
 <div id="searchBox" role="dialog" aria-label="Search tiles">
     <div class="sb-panel">
@@ -331,9 +393,9 @@
             <div id="tdKind"></div>
             <label>Title<input id="tdText" type="text" required></label>
             <label>URL <small>(leave blank to create a folder)</small><input id="tdUrl" type="text" spellcheck="false"></label>
-            <label>Icon <small>(TRUE = site favicon, an image URL, or pick one below – or leave blank for none)</small><input id="tdIcon" type="text" spellcheck="false"></label>
+            <label>Icon <small>(TRUE = site favicon, an image URL, or pick / upload one below – or leave blank for none)</small><input id="tdIcon" type="text" spellcheck="false"></label>
             <div class="ic-box">
-                <div class="ic-bar"><button class="tbtn" id="icToggle" type="button">Pick an icon…</button><span id="tdIconPrev"></span></div>
+                <div class="ic-bar"><button class="tbtn" id="icToggle" type="button">Pick an icon…</button><button class="tbtn" id="icUploadBtn" type="button" title="Use an image file from your computer (SVG, PNG, JPG, ICO, GIF, WebP)">Upload image…</button><input type="file" id="icUpload" accept="image/*,.svg,.ico" style="display:none"><span id="tdIconPrev"></span></div>
             </div>
             <label>Description <small>(optional)</small><input id="tdDesc" type="text"></label>
             <label>Copy text <small>(optional – copied to the clipboard when the tile is clicked)</small><textarea id="tdCopy" rows="3" spellcheck="false"></textarea></label>
@@ -362,14 +424,67 @@
             <div id="icdMsg" class="icd-msg" style="display:none"></div>
             <div id="icdGrid" style="display:none"></div>
             <button class="tbtn" id="icdMoreBtn" type="button" style="display:none">Show more</button>
-            <div class="icd-note">Icons come from <a href="https://iconify.design" target="_blank" rel="noopener">Iconify</a> and need an internet connection. The tile stores an ordinary image URL with the colour built in (<code>…svg?color=%23667eea</code>), so any Iconify URL can also be pasted into the Icon box.</div>
+            
         </div>
+        <div id="icdCtx" role="menu"></div>
         <div class="dlg-foot">
             <div id="icdSel"></div>
             <span class="spacer"></span>
+            <button class="tbtn" id="icdCredits" type="button">Credits &amp; licences</button>
             <button class="tbtn" id="icdCancel" type="button">Cancel</button>
             <button class="tbtn primary" id="icdUse" type="button" disabled>Use icon</button>
         </div>
+    </div>
+</dialog>
+<dialog id="creditsDialog">
+    <div class="dlg">
+        <div class="dlg-head"><span>Icon credits &amp; licences</span></div>
+        <div id="crBody"></div>
+        <div class="dlg-foot"><span class="spacer"></span><button class="tbtn primary" id="crClose" type="button">Close</button></div>
+    </div>
+</dialog>
+<dialog id="settingsDialog">
+    <div class="dlg st-dlg">
+        <div class="dlg-head"><span>Settings</span></div>
+        <div class="st-main">
+            <nav id="stNav" aria-label="Settings groups">
+                <button type="button" data-p="appearance">Appearance</button>
+                <button type="button" data-p="icons">Icons</button>
+                <button type="button" data-p="saved">Saved images</button>
+                <button type="button" data-p="diag">Diagnostics</button>
+            </nav>
+            <div id="stPanels">
+                <section data-p="appearance">
+                    <h3>Site colour</h3>
+                    <p class="st-sub">Used for highlights, borders and the tile hover colour. Saved in this browser.</p>
+                    <div class="cm-swatches" id="cmSwatches"></div>
+                    <div class="cm-row"><label for="cmCustom">Custom</label><input type="color" id="cmCustom" value="#667eea"><button class="tbtn" id="cmReset" type="button">Reset</button></div>
+                </section>
+                <section data-p="icons" hidden>
+                    <h3>Icons</h3>
+                    <p class="st-sub">Tile icons that come from a web address are copied into your browser so they are not downloaded again.</p>
+                    <div id="stIconSummary" class="st-msg"></div>
+                    <div class="st-row">
+                        <label class="st-check"><input type="checkbox" id="stProxy"><span>Use a public proxy when a site refuses copies<small>Tries wsrv.nl, allorigins.win and codetabs.com, one after another, only after the direct download fails. They can see the image address (not your tiles or links).</small></span></label>
+                    </div>
+                    <div class="st-row"><button class="tbtn" id="stRetry" type="button">Try saving the missing icons</button><button class="tbtn" id="stClearAll" type="button">Remove all saved copies</button><span id="stIconMsg" class="st-msg"></span></div>
+                </section>
+                <section data-p="saved" hidden>
+                    <h3>Saved images</h3>
+                    <p class="st-sub">Copies kept in this browser (not the originals on the web). Icons uploaded from your computer live inside the tile itself and are not listed here.</p>
+                    <div class="st-row"><span id="stSavedInfo" class="st-msg"></span><button class="tbtn" id="stSavedClear" type="button" style="margin-left:auto">Remove all</button></div>
+                    <div id="stSavedGrid"></div>
+                    <div id="stSavedBad"></div>
+                </section>
+                <section data-p="diag" hidden>
+                    <h3>Diagnostics</h3>
+                    <p class="st-sub">Why are icons (not) being saved? Press <b>Run test</b> to retry the tile icons that are not saved yet and record what happened, then <b>Copy</b> and paste the text to share it. It contains the icon addresses and your browser name, nothing else.</p>
+                    <div class="st-row"><button class="tbtn primary" id="stCopy" type="button">Copy</button><button class="tbtn" id="stRerun" type="button">Run test (missing icons)</button><span id="stDiagMsg" class="st-msg"></span></div>
+                    <textarea id="stDiag" readonly spellcheck="false"></textarea>
+                </section>
+            </div>
+        </div>
+        <div class="dlg-foot"><span class="spacer"></span><button class="tbtn primary" id="stClose" type="button">Close</button></div>
     </div>
 </dialog>
 <script>
@@ -521,6 +636,220 @@ function ensureFontAwesome() {                 // the stylesheet is only fetched
     document.head.appendChild(l);
 }
 const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+/* ======================= Icon cache =======================
+   Tile and search-result icons are stored in the browser (IndexedDB) as image files, so they are not downloaded again on every visit.
+   An icon shows at once from the cache; one that is not cached yet is shown from its web address as before and copied into the cache
+   in the background. Cached copies are refreshed after 30 days. Some sites do not allow their images to be copied by another page
+   (no CORS): those just keep loading normally, and are only re-tried every 3 days. IconCache.clear() (browser console) empties it. */
+const IconCache = (function () {
+    const DB_NAME = 'iconCache', STORE = 'icons';
+    const RAW_MAX = 12 * 1024 * 1024, MAX_BYTES = 1024 * 1024, KEEP_PX = 256;       // biggest download we look at / biggest copy we keep / bigger pictures are shrunk to this
+    const FRESH_MS = 30 * 864e5, RETRY_FAIL_MS = 3 * 864e5;
+    const PROXIES = [                           // public "CORS proxies": only tried when the site itself refuses copies
+        ['wsrv.nl', u => 'https://wsrv.nl/?url=' + encodeURIComponent(u) + '&w=256&h=256&fit=inside&output=png'],
+        ['allorigins.win', u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u)],
+        ['codetabs.com', u => 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u)]
+    ];
+    const proxyOn = () => { try { return localStorage.getItem('iconProxy') !== '0'; } catch (e) { return true; } };
+    const mem = new Map();                      // address -> blob: URL of the cached copy (usable immediately)
+    const meta = new Map();                     // address -> { t: when stored, size, type, fail: true if no copy could be made }
+    const logs = new Map();                     // address -> { t, lines } what happened the last time a copy was attempted
+    const inflight = new Set(), pending = new Set();
+    let db = null, ready = false, loaded = false, dbError = '', writeError = '';
+    function openDb() {
+        return new Promise(res => {
+            try {
+                const rq = indexedDB.open(DB_NAME, 1);
+                rq.onupgradeneeded = () => rq.result.createObjectStore(STORE);
+                rq.onsuccess = () => res(rq.result);
+                rq.onerror = () => { dbError = (rq.error && (rq.error.name + ': ' + rq.error.message)) || 'open failed'; res(null); };
+                rq.onblocked = () => { dbError = 'open blocked by another tab'; res(null); };
+            } catch (e) { dbError = (e && e.message) || 'IndexedDB not available'; res(null); }
+        });
+    }
+    async function loadAll() {                  // read every stored icon once at start-up
+        try {
+            db = await openDb();
+            if (!db) return;
+            await new Promise(res => {
+                try {
+                    const rq = db.transaction(STORE).objectStore(STORE).openCursor();
+                    rq.onsuccess = () => {
+                        const c = rq.result;
+                        if (!c) { res(); return; }
+                        const v = c.value || {};
+                        meta.set(c.key, { t: (v.fail && v.v !== 2) ? 0 : (v.t || 0), fail: !!v.fail, size: v.blob ? v.blob.size : 0, type: v.blob ? v.blob.type : '' });
+                        if (v.blob) { try { mem.set(c.key, URL.createObjectURL(v.blob)); } catch (e) {} }
+                        c.continue();
+                    };
+                    rq.onerror = () => { dbError = 'read failed'; res(); };
+                } catch (e) { dbError = (e && e.message) || 'read failed'; res(); }
+            });
+        } finally { loaded = true; }
+    }
+    function put(url, rec) {
+        if (!db) return;
+        try {
+            const tx = db.transaction(STORE, 'readwrite'); tx.objectStore(STORE).put(rec, url);
+            tx.onerror = tx.onabort = () => { writeError = (tx.error && (tx.error.name + ': ' + tx.error.message)) || 'write failed'; };
+        } catch (e) { writeError = (e && e.message) || 'write failed'; }
+    }
+    function del(url) { if (db) { try { db.transaction(STORE, 'readwrite').objectStore(STORE).delete(url); } catch (e) {} } }
+    function candidates(url) {                  // [label, address] to try in turn: the address itself, equivalents, then the proxies
+        const out = [['direct', url]];
+        let m = /^https:\/\/api\.iconify\.design(\/.*)$/.exec(url);
+        if (m && typeof IC_HOSTS !== 'undefined') IC_HOSTS.forEach(h => { if (h !== 'api.iconify.design') out.push(['mirror ' + h, 'https://' + h + m[1]]); });
+        const useProxy = proxyOn() && !/^https:\/\/api\.iconify\.design\//.test(url);
+        if (useProxy) PROXIES.forEach(p => out.push(['proxy ' + p[0], p[1](url)]));
+        m = /^https:\/\/www\.google\.com\/s2\/favicons\?(.*)$/.exec(url);
+        if (m) {                                // Google has no icon for this site: ask other favicon sources for the same site
+            try {
+                let d = new URLSearchParams(m[1]).get('domain') || '';
+                if (d && !/^[a-z][a-z0-9+.-]*:\/\//i.test(d)) d = 'https://' + d;
+                const host = new URL(d).hostname;
+                if (host) {
+                    const ddg = 'https://icons.duckduckgo.com/ip3/' + host + '.ico', own = 'https://' + host + '/favicon.ico';
+                    out.push(['duckduckgo direct', ddg]);
+                    if (useProxy) { out.push(['duckduckgo via ' + PROXIES[0][0], PROXIES[0][1](ddg)]); out.push(['site favicon.ico via ' + PROXIES[0][0], PROXIES[0][1](own)]); }
+                }
+            } catch (e) {}
+        }
+        return out;
+    }
+    async function sniff(b) {                   // what kind of picture is this, judging by its first bytes? ('' = not a picture)
+        try {
+            const a = new Uint8Array(await b.slice(0, 600).arrayBuffer());
+            const is = (...x) => x.every((v, k) => a[k] === v);
+            if (is(0x89, 0x50, 0x4E, 0x47)) return 'image/png';
+            if (is(0xFF, 0xD8, 0xFF)) return 'image/jpeg';
+            if (is(0x47, 0x49, 0x46, 0x38)) return 'image/gif';
+            if (is(0x52, 0x49, 0x46, 0x46) && a[8] === 0x57 && a[9] === 0x45) return 'image/webp';
+            if (is(0, 0, 1, 0)) return 'image/x-icon';
+            if (is(0x42, 0x4D)) return 'image/bmp';
+            const txt = new TextDecoder().decode(a);
+            if (/<svg[\s>]/i.test(txt)) return 'image/svg+xml';
+        } catch (e) {}
+        return '';
+    }
+    async function shrink(blob) {               // big pictures are shrunk (tiles show them at 40 px), so copies stay small
+        if (!/^image\/(png|jpe?g|webp|bmp)/i.test(blob.type) || typeof createImageBitmap !== 'function') return blob;
+        try {
+            const bm = await createImageBitmap(blob), big = Math.max(bm.width, bm.height);
+            if (blob.size <= 40 * 1024 && big <= KEEP_PX) { if (bm.close) bm.close(); return blob; }
+            const k = Math.min(1, KEEP_PX / big), w = Math.max(1, Math.round(bm.width * k)), h = Math.max(1, Math.round(bm.height * k));
+            const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+            const cx = cv.getContext('2d'); cx.imageSmoothingQuality = 'high'; cx.drawImage(bm, 0, 0, w, h);
+            if (bm.close) bm.close();
+            const out = await new Promise(r => cv.toBlob(r, 'image/png'));
+            return out && out.size < blob.size ? out : blob;
+        } catch (e) { return blob; }
+    }
+    async function fetchBlob(u, label, log) {
+        try {
+            const r = await fetch(u, { mode: 'cors', credentials: 'omit', referrerPolicy: 'no-referrer' });
+            if (!r.ok) { log.push(label + ': HTTP ' + r.status + (r.statusText ? ' ' + r.statusText : '')); return null; }
+            let b = await r.blob();
+            const t = (b.type || '').split(';')[0].trim().toLowerCase();
+            if (!b.size) { log.push(label + ': empty response'); return null; }
+            if (b.size > RAW_MAX) { log.push(label + ': too large (' + b.size + ' bytes)'); return null; }
+            if (!/^image\//.test(t) || t === 'image/x-unknown') {
+                const g = await sniff(b);
+                if (!g) { log.push(label + ': not a picture (' + (t || 'no content type') + ')'); return null; }
+                b = new Blob([b], { type: g });
+            }
+            b = await shrink(b);
+            if (b.size > MAX_BYTES) { log.push(label + ': still too large after shrinking (' + b.size + ' bytes)'); return null; }
+            log.push(label + ': OK ' + b.size + ' bytes, ' + b.type);
+            return b;
+        } catch (e) {
+            let extra = '';
+            if (label === 'direct') {           // tell "refuses copies" from "cannot be reached at all"
+                try { await fetch(u, { mode: 'no-cors', credentials: 'omit', referrerPolicy: 'no-referrer' }); extra = ' – the site answers, but sends no permission header (CORS), so the browser refuses to let this page keep a copy'; }
+                catch (e2) { extra = ' – the site could not be reached at all (offline, blocked, or a bad address)'; }
+            }
+            log.push(label + ': ' + ((e && e.name) || 'Error') + ': ' + ((e && e.message) || '') + extra);
+            return null;
+        }
+    }
+    async function download(url) {
+        const log = []; logs.set(url, { t: Date.now(), lines: log });
+        for (const [label, u] of candidates(url)) { const b = await fetchBlob(u, label, log); if (b) return b; }
+        return null;
+    }
+    async function cache(url, force) {          // store a copy if there is none, or it is out of date (does nothing otherwise)
+        if (!loaded || !url || inflight.has(url) || !/^https?:/i.test(url)) return;
+        const m = meta.get(url), age = m ? Date.now() - m.t : Infinity;
+        if (!force && m && (m.fail ? age < RETRY_FAIL_MS : age < FRESH_MS)) return;
+        inflight.add(url);
+        try {
+            const blob = await download(url), t = Date.now();
+            if (blob) {
+                put(url, { blob, t, v: 2 }); meta.set(url, { t, size: blob.size, type: blob.type });
+                try { mem.set(url, URL.createObjectURL(blob)); } catch (e) {}
+            } else if (mem.has(url)) {
+                meta.set(url, { t, size: (m && m.size) || 0, type: (m && m.type) || '' });     // refresh failed (offline?): keep the old copy
+            } else {
+                put(url, { fail: true, t, v: 2 }); meta.set(url, { t, fail: true });
+            }
+        } finally { inflight.delete(url); }
+    }
+    function apply(img, url) {                  // show `url` in <img>, from the cache when possible
+        if (!img || !url) return;
+        img.dataset.isrc = url;
+        if (!/^https?:/i.test(url)) { img.src = url; return; }          // data: / other addresses: nothing to cache
+        const hit = mem.get(url);
+        if (hit) { img.src = hit; cache(url); return; }                 // (cache() only acts if the copy is out of date)
+        if (!ready) { pending.add(img); return; }                       // set as soon as the stored icons have been read
+        img.src = url;
+        cache(url);
+    }
+    function hydrate(root) { (root || document).querySelectorAll('img[data-isrc]').forEach(img => apply(img, img.dataset.isrc)); }
+    function flush() {
+        ready = true;
+        pending.forEach(img => { if (img.isConnected) apply(img, img.dataset.isrc); });
+        pending.clear();
+    }
+    // a cached copy that cannot be displayed is dropped and the original address used instead
+    document.addEventListener('error', e => {
+        const img = e.target;
+        if (!img || img.tagName !== 'IMG' || !img.dataset || !img.dataset.isrc || !/^blob:/.test(img.src)) return;
+        const url = img.dataset.isrc;
+        mem.delete(url); meta.delete(url); del(url);
+        img.src = url;
+    }, true);
+    const loading = loadAll();
+    Promise.race([loading, new Promise(r => setTimeout(r, 1500))]).then(flush, flush);
+    loading.then(() => hydrate(), () => {});        // a slow read: icons already shown from the internet are re-checked against the saved copies
+    async function clear() {
+        mem.clear(); meta.clear(); logs.clear();
+        if (db) { try { db.transaction(STORE, 'readwrite').objectStore(STORE).clear(); } catch (e) {} }
+    }
+    function remove(url) { mem.delete(url); meta.delete(url); logs.delete(url); del(url); }
+    function list() {
+        const out = [];
+        meta.forEach((m, url) => out.push({ url, blobUrl: mem.get(url) || '', t: m.t, size: m.size || 0, type: m.type || '', fail: !!m.fail, log: (logs.get(url) || {}).lines || [] }));
+        return out;
+    }
+    function logOf(url) { return logs.get(url) || null; }
+    async function retest(urls, progress) {     // try to make a copy of each address again, right now
+        let n = 0;
+        for (const u of urls) {
+            n++; if (progress) progress(n, urls.length);
+            if (!/^https?:/i.test(u)) continue;
+            let tries = 0; while (inflight.has(u) && tries++ < 100) await new Promise(r => setTimeout(r, 100));
+            await cache(u, true);
+        }
+        hydrate();
+    }
+    function has(url) { const m = meta.get(url); return !!(m && !m.fail && mem.has(url)); }
+    function info() {
+        let stored = 0, failed = 0, bytes = 0;
+        meta.forEach(m => { if (m.fail) failed++; else { stored++; bytes += m.size || 0; } });
+        return { dbAvailable: !!db, dbError, writeError, loaded, stored, failed, bytes, proxyOn: proxyOn(), proxies: PROXIES.map(p => p[0]) };
+    }
+    function setProxy(on) { try { localStorage.setItem('iconProxy', on ? '1' : '0'); } catch (e) {} }
+    return { apply, hydrate, clear, remove, list, logOf, retest, info, setProxy, has };
+})();
 function currentPage() { return location.hash.slice(1) || 'home'; }
 function render() {
     const current = currentPage();
@@ -573,7 +902,7 @@ function render() {
                     // Use the custom icon URL provided
                     iconUrl = item.icon;
                 }
-                iconHtml = `<img src="${esc(iconUrl)}" alt="" class="icon" draggable="false">`;
+                iconHtml = `<img data-isrc="${esc(iconUrl)}" alt="" class="icon" draggable="false">`;      // src is filled in by IconCache (cached copy or original address)
             }
            
             return `
@@ -589,6 +918,7 @@ function render() {
                 </a>`;
         }).join('');
     document.getElementById('grid').innerHTML = tiles;
+    IconCache.hydrate(document.getElementById('grid'));
 }
 function legacyCopy(text) {
     return new Promise((resolve, reject) => {
@@ -1002,7 +1332,7 @@ function updateIconPreview() {                // small preview next to the picke
         const id = ic.prefix + ':' + ic.name;
         if (!icBodies.has(id) && !icTried.has(id)) { icLoadBodies([id]).then(updateIconPreview); return; }   // fetch the drawing once, then recolour locally
         const img = document.createElement('img'); img.alt = ''; img.src = icDataUri(id, ic.color) || v; box.appendChild(img);
-    } else if (/^https?:\/\//i.test(v)) {
+    } else if (/^https?:\/\//i.test(v) || /^data:image\//i.test(v)) {
         const img = document.createElement('img'); img.alt = ''; img.src = v; box.appendChild(img);
     }
 }
@@ -1210,6 +1540,133 @@ byId('icdCards').addEventListener('click', e => {              // a library card
 });
 byId('icdGrid').addEventListener('click', e => { const b = e.target.closest('button[data-id]'); if (b) icdSelect(b.dataset.id); });
 byId('icdGrid').addEventListener('dblclick', e => { const b = e.target.closest('button[data-id]'); if (b) { icdSelect(b.dataset.id); icdUse(); } });
+/* ---- right-click (or long-press) an icon in the picker: jump to its category / its whole library ---- */
+const icdCtx = byId('icdCtx');
+function icdCloseCtx() { icdCtx.style.display = 'none'; icdCtx.textContent = ''; }
+async function icdGoTo(lib, cat) {
+    icdCloseCtx();
+    byId('icdSearch').value = '';
+    byId('icdLib').value = lib;
+    const catSel = byId('icdCat'); catSel.value = ''; delete catSel.dataset.lib;
+    try {
+        const col = await icCollection(lib);
+        icdFillCats(lib, col);
+        if (cat && col.cats[cat]) catSel.value = cat;
+    } catch (e) { /* icdRefresh shows the error */ }
+    byId('icdBody').scrollTop = 0;
+    icdRefresh();
+}
+const icdSafeUrl = u => (typeof u === 'string' && /^https:\/\//i.test(u)) ? u : '';
+function icdLink(text, url) {
+    const u = icdSafeUrl(url);
+    if (!u) return document.createTextNode(text);
+    const a = document.createElement('a'); a.href = u; a.target = '_blank'; a.rel = 'noopener'; a.textContent = text; return a;
+}
+function icdSourceLine(prefix) {                               // "Source: <set> · by <author> · <licence> · via Iconify"
+    const i = (icdLibs && icdLibs[prefix]) || {}, d = document.createElement('div'); d.className = 'icd-ctx-src';
+    d.appendChild(document.createTextNode('Source: ' + icdLabel(prefix)));
+    if (i.author && i.author.name) { d.appendChild(document.createTextNode(' · by ')); d.appendChild(icdLink(i.author.name, i.author.url)); }
+    if (i.license && i.license.title) { d.appendChild(document.createTextNode(' · ')); d.appendChild(icdLink(i.license.title, i.license.url)); }
+    d.appendChild(document.createTextNode(' · via ')); d.appendChild(icdLink('Iconify', 'https://iconify.design'));
+    return d;
+}
+async function icdOpenCtx(id, x, y) {
+    const [prefix, name] = id.split(':');
+    icdCtx.textContent = '';
+    const head = document.createElement('div'); head.className = 'icd-ctx-h'; head.textContent = name + ' – ' + icdLabel(prefix);
+    const note = document.createElement('div'); note.className = 'icd-ctx-n'; note.textContent = 'Loading categories…';
+    icdCtx.appendChild(head); icdCtx.appendChild(icdSourceLine(prefix)); icdCtx.appendChild(note);
+    icdCtx.style.display = 'block';
+    const place = () => {
+        icdCtx.style.left = Math.max(4, Math.min(x, window.innerWidth - icdCtx.offsetWidth - 4)) + 'px';
+        icdCtx.style.top = Math.max(4, Math.min(y, window.innerHeight - icdCtx.offsetHeight - 4)) + 'px';
+    };
+    place();
+    let col = null;
+    try { col = await icCollection(prefix); } catch (e) { note.textContent = 'Could not load categories (offline or rate limited).'; place(); return; }
+    if (icdCtx.style.display !== 'block' || icdCtx.firstChild !== head) return;     // closed or replaced meanwhile
+    note.remove();
+    const cats = Object.keys(col.cats).filter(k => col.cats[k].includes(name)).sort();
+    const add = (label, count, fn) => {
+        const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'menuitem');
+        const t = document.createElement('span'); t.textContent = label; b.appendChild(t);
+        if (count) { const sm = document.createElement('small'); sm.textContent = icdFmt(count); b.appendChild(sm); }
+        b.addEventListener('click', fn); icdCtx.appendChild(b);
+    };
+    if (cats.length) cats.forEach(c => add('Category: ' + c, col.cats[c].length, () => icdGoTo(prefix, c)));
+    else { const n = document.createElement('div'); n.className = 'icd-ctx-n'; n.textContent = 'This icon has no category in this library.'; icdCtx.appendChild(n); }
+    add('All of ' + icdLabel(prefix), col.names.length, () => icdGoTo(prefix, ''));
+    place();
+    const first = icdCtx.querySelector('button'); if (first) first.focus();
+}
+byId('icdGrid').addEventListener('contextmenu', e => {
+    const b = e.target.closest('button[data-id]'); if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    icdOpenCtx(b.dataset.id, e.clientX, e.clientY);
+});
+iconDialog.addEventListener('pointerdown', e => { if (!e.target.closest('#icdCtx')) icdCloseCtx(); }, true);
+iconDialog.addEventListener('keydown', e => { if (e.key === 'Escape' && icdCtx.style.display === 'block') { e.preventDefault(); e.stopPropagation(); icdCloseCtx(); } }, true);
+iconDialog.addEventListener('close', icdCloseCtx);
+byId('icdBody').addEventListener('scroll', icdCloseCtx);
+const creditsDialog = byId('creditsDialog');
+async function icdOpenCredits() {
+    const box = byId('crBody'); box.textContent = 'Loading…';
+    creditsDialog.showModal();
+    await icdLoadLibs();
+    box.textContent = '';
+    const p = document.createElement('p');
+    p.appendChild(document.createTextNode('The icon pictures are delivered by '));
+    p.appendChild(icdLink('Iconify', 'https://iconify.design'));
+    p.appendChild(document.createTextNode(', which gathers open-source icon sets from many different authors. Each set below keeps its own author and licence – follow the links for the exact terms (some, such as CC BY, ask for credit when you publish).'));
+    box.appendChild(p);
+    IC_LIBS.slice(1).forEach(l => {
+        const i = (icdLibs && icdLibs[l[0]]) || {}, row = document.createElement('div'); row.className = 'cr-item';
+        const b = document.createElement('b'); b.textContent = i.name || l[1]; row.appendChild(b);
+        if (i.total) row.appendChild(document.createTextNode(' – ' + icdFmt(i.total) + ' icons'));
+        const sm = document.createElement('small');
+        if (i.author && i.author.name) { sm.appendChild(document.createTextNode('Author: ')); sm.appendChild(icdLink(i.author.name, i.author.url)); }
+        else sm.appendChild(document.createTextNode('Author: (not available offline)'));
+        if (i.license && i.license.title) { sm.appendChild(document.createTextNode('  ·  Licence: ')); sm.appendChild(icdLink(i.license.title, i.license.url)); }
+        row.appendChild(sm); box.appendChild(row);
+    });
+}
+byId('icdCredits').addEventListener('click', icdOpenCredits);
+byId('crClose').addEventListener('click', () => creditsDialog.close());
+/* ---- upload an image file as a tile icon: shrunk to <=128px and stored right inside the tile's Icon field (a data: address),
+        so it lives in the browser's saved data with the rest of the tiles and never needs the internet ---- */
+const IMG_MAX = 128, IMG_LIMIT = 150000;
+async function fileToIconData(file) {
+    if (/svg/i.test(file.type) || /\.svg$/i.test(file.name)) {
+        const t = (await file.text()).trim();
+        if (!/<svg[\s>]/i.test(t)) throw new Error('that file is not a valid SVG');
+        if (t.length > 100000) throw new Error('that SVG is too large (over 100 KB)');
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(t);
+    }
+    if (file.size > 15 * 1024 * 1024) throw new Error('that image is too large (over 15 MB)');
+    const url = URL.createObjectURL(file);
+    try {
+        const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('this browser cannot read that image')); i.src = url; });
+        const w = img.naturalWidth, h = img.naturalHeight;
+        if (!w || !h) throw new Error('could not read the image size');
+        const k = Math.min(1, IMG_MAX / Math.max(w, h)), cw = Math.max(1, Math.round(w * k)), ch = Math.max(1, Math.round(h * k));
+        const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+        const cx = cv.getContext('2d'); cx.imageSmoothingQuality = 'high'; cx.drawImage(img, 0, 0, cw, ch);
+        let out = cv.toDataURL('image/png');
+        if (out.length > 60000) { const wp = cv.toDataURL('image/webp', 0.85); if (wp.startsWith('data:image/webp') && wp.length < out.length) out = wp; }
+        if (out.length > IMG_LIMIT) throw new Error('that image is still too big after shrinking it');
+        return out;
+    } finally { URL.revokeObjectURL(url); }
+}
+byId('icUploadBtn').addEventListener('click', () => byId('icUpload').click());
+byId('icUpload').addEventListener('change', async e => {
+    const f = e.target.files && e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    try {
+        byId('tdIcon').value = await fileToIconData(f);
+        updateIconPreview();
+        showToast('Image added as the icon – press Add / Save to keep it');
+    } catch (err) { alert('Could not use that file: ' + (err.message || err)); }
+});
 byId('icdColor').addEventListener('input', () => {             // fires continuously while dragging: re-draw locally (no network)
     clearTimeout(icdColorTimer);
     icdColorTimer = setTimeout(() => {
@@ -1252,6 +1709,171 @@ document.addEventListener('pointerdown', e => { if (!e.target.closest('#settings
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSettings(); });
 window.addEventListener('resize', closeSettings);
 window.addEventListener('scroll', closeSettings, true);
+/* ---- site colour: presets + a custom colour; stored in this browser (localStorage 'accentColor') and applied as the --accent CSS variable ---- */
+const ACCENT_DEFAULT = '#667eea';
+const ACCENT_PRESETS = [['Blue', '#667eea'], ['Indigo', '#4f46e5'], ['Purple', '#9b5de5'], ['Pink', '#e0559a'], ['Red', '#e05555'],
+                        ['Orange', '#f08a24'], ['Amber', '#d99a00'], ['Green', '#2e9e5b'], ['Teal', '#14919b'], ['Slate', '#64748b']];
+function getAccent() { return (document.documentElement.style.getPropertyValue('--accent').trim() || ACCENT_DEFAULT).toLowerCase(); }
+function setAccent(hex, save) {
+    if (!/^#[0-9a-f]{6}$/i.test(hex)) return;
+    hex = hex.toLowerCase();
+    const st = document.documentElement.style;
+    if (hex === ACCENT_DEFAULT) {                                  // the default is "nothing saved"
+        st.removeProperty('--accent'); st.removeProperty('--accent-contrast');
+        if (save) { try { localStorage.removeItem('accentColor'); } catch (e) {} }
+    } else {
+        const n = parseInt(hex.slice(1), 16), lum = 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255);
+        st.setProperty('--accent', hex);
+        st.setProperty('--accent-contrast', lum > 170 ? '#222' : '#fff');   // text on accent-coloured areas (the COPY ribbon)
+        if (save) { try { localStorage.setItem('accentColor', hex); } catch (e) {} }
+    }
+    markAccent();
+}
+function markAccent() {                                            // reflect the current colour in the swatches and the colour box
+    const cur = getAccent();
+    byId('cmSwatches').querySelectorAll('.cm-sw').forEach(b => b.classList.toggle('sel', b.dataset.c === cur));
+    byId('cmCustom').value = cur;
+}
+(function buildColorMenu() {
+    const box = byId('cmSwatches');
+    ACCENT_PRESETS.forEach(([name, hex]) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'cm-sw'; b.dataset.c = hex; b.title = name; b.setAttribute('aria-label', name);
+        b.style.background = hex;
+        b.addEventListener('click', () => setAccent(hex, true));
+        box.appendChild(b);
+    });
+    byId('cmCustom').addEventListener('input', e => setAccent(e.target.value, true));
+    byId('cmReset').addEventListener('click', () => setAccent(ACCENT_DEFAULT, true));
+    markAccent();
+})();
+/* ======================= Settings overlay: Appearance / Icons / Saved images / Diagnostics ======================= */
+const settingsDialog = byId('settingsDialog');
+const fmtBytes = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : n >= 1024 ? Math.round(n / 1024) + ' KB' : (n || 0) + ' B';
+const fmtAge = t => { if (!t) return ''; const d = Math.floor((Date.now() - t) / 864e5); return d < 1 ? 'today' : d === 1 ? 'yesterday' : d + ' days ago'; };
+let stCur = 'appearance';
+function tileIconUrls() {                                       // every web address a tile icon is loaded from (same rules as drawing the tile)
+    const set = new Set();
+    (items || []).forEach(it => {
+        const ic = String(it.icon || ''), low = ic.toLowerCase();
+        if (!ic || low === 'false' || faClasses(ic)) return;
+        if (low === 'true') set.add('https://www.google.com/s2/favicons?sz=128&domain=' + (String(it.url || '').replace('#', '') || 'example.com'));
+        else if (/^https?:/i.test(ic)) set.add(ic);
+    });
+    return Array.from(set);
+}
+const stHost = u => { try { return new URL(u).host; } catch (e) { return u.slice(0, 40); } };
+const stName = u => { try { const p = new URL(u).pathname.split('/').filter(Boolean).pop(); return (p || new URL(u).host).slice(0, 60); } catch (e) { return 'icon'; } };
+function stShow(name) {
+    stCur = name;
+    settingsDialog.querySelectorAll('#stNav button').forEach(b => { const on = b.dataset.p === name; b.classList.toggle('on', on); b.setAttribute('aria-current', on ? 'page' : 'false'); });
+    settingsDialog.querySelectorAll('#stPanels section').forEach(p => { p.hidden = p.dataset.p !== name; });
+    if (name === 'appearance') markAccent();
+    else if (name === 'icons') stRenderIcons();
+    else if (name === 'saved') stRenderSaved();
+    else if (name === 'diag') stRenderDiag();
+}
+function openSettingsDialog(name) {
+    if (!settingsDialog.open) settingsDialog.showModal();
+    stShow(name || 'appearance');
+}
+function stRenderIcons() {
+    const i = IconCache.info();
+    byId('stProxy').checked = i.proxyOn;
+    byId('stIconSummary').textContent = i.stored + ' saved cop' + (i.stored === 1 ? 'y' : 'ies') + ' (' + fmtBytes(i.bytes) + ')  ·  ' + i.failed + ' that could not be saved  ·  browser storage: ' + (i.dbAvailable ? 'working' : 'NOT available');
+}
+function stRenderSaved() {
+    const list = IconCache.list(), inUse = new Set(tileIconUrls());
+    const ok = list.filter(e => !e.fail && e.blobUrl).sort((a, b) => (inUse.has(b.url) - inUse.has(a.url)) || b.t - a.t);
+    const bad = list.filter(e => e.fail).sort((a, b) => (inUse.has(b.url) - inUse.has(a.url)) || b.t - a.t);
+    byId('stSavedInfo').textContent = ok.length + ' saved image' + (ok.length === 1 ? '' : 's') + '  ·  ' + fmtBytes(ok.reduce((n, e) => n + e.size, 0));
+    const grid = byId('stSavedGrid'); grid.textContent = '';
+    ok.forEach(e => {
+        const c = document.createElement('div'); c.className = 'sv-card' + (inUse.has(e.url) ? ' use' : '');
+        const th = document.createElement('div'); th.className = 'sv-thumb';
+        const im = document.createElement('img'); im.alt = ''; im.src = e.blobUrl; th.appendChild(im);
+        const nm = document.createElement('b'); nm.textContent = stName(e.url); nm.title = e.url;
+        const meta = document.createElement('span'); meta.textContent = stHost(e.url) + ' · ' + fmtBytes(e.size) + (e.t ? ' · ' + fmtAge(e.t) : '') + (inUse.has(e.url) ? ' · used by a tile' : '');
+        const acts = document.createElement('div'); acts.className = 'sv-acts';
+        const open = document.createElement('a'); open.href = e.url; open.target = '_blank'; open.rel = 'noopener'; open.textContent = 'Original';
+        const save = document.createElement('a'); save.href = e.blobUrl;
+        const ext = ({ 'image/png': '.png', 'image/jpeg': '.jpg', 'image/svg+xml': '.svg', 'image/gif': '.gif', 'image/webp': '.webp', 'image/x-icon': '.ico' })[e.type] || '.png';
+        const base = stName(e.url).replace(/\.[a-z0-9]{2,4}$/i, '').replace(/[^\w.-]+/g, '_') || 'icon';
+        save.download = base + ext; save.textContent = 'Save as file';
+        const rm = document.createElement('button'); rm.type = 'button'; rm.textContent = 'Remove';
+        rm.addEventListener('click', () => { IconCache.remove(e.url); stRenderSaved(); });
+        acts.appendChild(open); acts.appendChild(save); acts.appendChild(rm);
+        [th, nm, meta, acts].forEach(x => c.appendChild(x)); grid.appendChild(c);
+    });
+    const box = byId('stSavedBad'); box.textContent = '';
+    if (bad.length) {
+        const h = document.createElement('h3'); h.textContent = 'Could not be saved'; h.style.margin = '18px 0 4px'; box.appendChild(h);
+        bad.forEach(e => {
+            const d = document.createElement('div'); d.className = 'sv-bad';
+            const last = (e.log && e.log.length) ? e.log[e.log.length - 1] : 'no details yet – use Run test in Diagnostics';
+            d.textContent = e.url + '  →  ' + last;
+            box.appendChild(d);
+        });
+    }
+}
+async function stRunTest(msgEl) {                               // retry the tile icons that have no saved copy yet, and wait for the outcome
+    const all = tileIconUrls(), urls = all.filter(u => !IconCache.has(u));
+    ['stRetry', 'stRerun'].forEach(id => { byId(id).disabled = true; });
+    try {
+        if (!urls.length) { msgEl.textContent = all.length ? 'Nothing to do – all ' + all.length + ' icons are already saved.' : 'No tile uses a web-address icon.'; return; }
+        await IconCache.retest(urls, (n, t) => { msgEl.textContent = 'Trying ' + n + ' of ' + t + ' missing icons…'; });
+        const i = IconCache.info();
+        msgEl.textContent = 'Done – ' + i.stored + ' saved, ' + i.failed + ' could not be saved.';
+    } finally { ['stRetry', 'stRerun'].forEach(id => { byId(id).disabled = false; }); stShow(stCur); }
+}
+async function diagText() {
+    const i = IconCache.info(), L = [];
+    L.push('Icon cache diagnostics – ' + new Date().toString());
+    L.push('Page: ' + location.protocol + '//' + (location.host || '(local file)') + '   secure context: ' + window.isSecureContext + '   online: ' + navigator.onLine);
+    L.push('Browser: ' + navigator.userAgent);
+    L.push('IndexedDB: ' + (i.dbAvailable ? 'open' : 'NOT available') + (i.dbError ? ' [' + i.dbError + ']' : '') + (i.writeError ? '   last write error: ' + i.writeError : '') + '   start-up read finished: ' + i.loaded);
+    try {
+        if (navigator.storage && navigator.storage.estimate) { const e = await navigator.storage.estimate(); L.push('Browser storage used: ' + fmtBytes(e.usage || 0) + ' of about ' + fmtBytes(e.quota || 0)); }
+        if (navigator.storage && navigator.storage.persisted) L.push('Storage marked persistent: ' + (await navigator.storage.persisted()));
+    } catch (e) {}
+    L.push('Saved copies: ' + i.stored + ' (' + fmtBytes(i.bytes) + ')   could not be saved: ' + i.failed);
+    L.push('Proxy fallback: ' + (i.proxyOn ? 'ON (' + i.proxies.join(', ') + ')' : 'OFF'));
+    const imgs = Array.from(document.querySelectorAll('#grid img[data-isrc]'));
+    const inline = imgs.filter(m => !/^https?:/i.test(m.dataset.isrc)).length;
+    L.push('Tiles on this page with an icon image: ' + imgs.length + '   (stored inside the tile: ' + inline + ')');
+    const urls = tileIconUrls(), byUrl = new Map(IconCache.list().map(e => [e.url, e]));
+    L.push('', 'Web-address tile icons (' + urls.length + '):');
+    urls.slice(0, 60).forEach(u => {
+        const e = byUrl.get(u), shown = imgs.filter(m => m.dataset.isrc === u);
+        const from = shown.length ? (shown.some(m => /^blob:/.test(m.src)) ? 'saved copy' : 'INTERNET') : 'not on this page';
+        L.push('- ' + (u.length > 170 ? u.slice(0, 170) + '…' : u));
+        L.push('    shown from: ' + from + '   |   copy: ' + (e ? (e.fail ? 'none (failed ' + fmtAge(e.t) + ')' : 'saved, ' + fmtBytes(e.size) + ', ' + e.type + ', ' + fmtAge(e.t)) : 'never tried'));
+        (e && e.log.length ? e.log : ['(no attempt recorded this session – press Run test)']).forEach(l => L.push('    ' + l));
+    });
+    if (urls.length > 60) L.push('… and ' + (urls.length - 60) + ' more');
+    return L.join('\n');
+}
+async function stRenderDiag() { const ta = byId('stDiag'); ta.value = 'Collecting…'; ta.value = await diagText(); }
+byId('stNav').addEventListener('click', e => { const b = e.target.closest('button[data-p]'); if (b) stShow(b.dataset.p); });
+byId('stClose').addEventListener('click', () => settingsDialog.close());
+byId('settingsOpen').addEventListener('click', () => openSettingsDialog('appearance'));
+byId('stProxy').addEventListener('change', e => IconCache.setProxy(e.target.checked));
+byId('stRetry').addEventListener('click', () => stRunTest(byId('stIconMsg')));
+byId('stRerun').addEventListener('click', () => stRunTest(byId('stDiagMsg')));
+byId('stClearAll').addEventListener('click', async () => {
+    if (!confirm('Remove all saved icon copies? Tile icons will be downloaded again.')) return;
+    await IconCache.clear(); byId('stIconMsg').textContent = 'Removed.'; stRenderIcons();
+});
+byId('stSavedClear').addEventListener('click', async () => {
+    if (!confirm('Remove all saved icon copies? Tile icons will be downloaded again.')) return;
+    await IconCache.clear(); stRenderSaved();
+});
+byId('stCopy').addEventListener('click', async () => {
+    const ta = byId('stDiag'), msg = byId('stDiagMsg');
+    ta.value = await diagText();
+    try { await navigator.clipboard.writeText(ta.value); msg.textContent = 'Copied.'; }
+    catch (e) { try { await legacyCopy(ta.value); msg.textContent = 'Copied.'; } catch (e2) { ta.focus(); ta.select(); msg.textContent = 'Could not copy automatically – the text is selected, press Ctrl+C.'; } }
+});
 (function headerMenu() {                      // ☰ dropdown (only visible on narrow screens)
     const btn = byId('menuBtn'), panel = byId('hdrActions');
     const setOpen = o => { panel.classList.toggle('open', o); btn.classList.toggle('open', o); };
@@ -1296,7 +1918,7 @@ byId('tileForm').addEventListener('submit', e => {
         edit.rows.forEach((r, i) => { if (r.page === page) lastR = i; });
         if (lastR < 0) edit.rows.push(row); else edit.rows.splice(lastR + 1, 0, row);
         setDirty(); clearFilter(); renderRows();
-        updateEditStatus('Added "' + text + '" — press Save to keep it');
+        updateEditStatus('Added "' + text + '" – saving…');
         return;
     }
     let last = -1;                                              // place it after the last tile already on that page
@@ -1431,15 +2053,20 @@ function blankRow(pageValue) {
     if ('page' in o) o.page = pageValue || 'home';
     return o;
 }
-function setDirty() { if (!edit.dirty) { edit.dirty = true; updateEditStatus(); } }
+let autoSaveTimer = null, autoSaveWarned = false;
+function setDirty() {                                      // any change: save it automatically a moment later
+    if (!edit) return;
+    edit.dirty = true; updateEditStatus('Saving…');
+    clearTimeout(autoSaveTimer); autoSaveTimer = setTimeout(saveEdit, 700);
+}
 function updateEditStatus(msg) {
-    const st = document.getElementById('edStatus'), save = document.getElementById('edSave');
+    const st = document.getElementById('edStatus');
     if (!st || !edit) return;
     const total = edit.rows.length;
     const count = edit.filter.trim() ? `Showing ${edit.shown} of ${total} rows` : `${total} rows`;
     st.textContent = count + ' • ' + (msg || (edit.dirty ? 'Unsaved changes' : 'Saved'));
     st.classList.toggle('unsaved', edit.dirty);
-    save.classList.toggle('dirty', edit.dirty);
+    st.classList.toggle('saved', !edit.dirty && /Saved/.test(msg || ''));
 }
 
 function renderEditor() {
@@ -1447,17 +2074,13 @@ function renderEditor() {
     const host = document.getElementById('editor');
     host.innerHTML = `
         <div class="toolbar">
-            <button class="tbtn primary" id="edSave" title="Ctrl+S">Save</button>
-            <button class="tbtn" id="edDiscard">Discard changes</button>
-            <button class="tbtn" id="edAdd">+ Add row</button>
             <button class="tbtn" id="edSort" title="Order rows the way the app displays them: page rows first, then each folder followed by its contents and sub-folders">Sort by hierarchy</button>
-            <button class="tbtn" id="edDownload">Download CSV</button>
             <input type="search" id="edFilter" placeholder="Filter rows…">
             <span id="edStatus"></span>
         </div>
         <div class="sheet-wrap"><table class="sheet"><colgroup></colgroup><thead><tr></tr></thead><tbody></tbody></table></div>
         <div class="hint">Drag the ⠿ handle in the row-number column to move a row. Cells longer than ${LONG_LEN} characters (or with line breaks) are read-only here – click one to edit the full text in a dialog.
-            Pasting long text into any cell opens the same dialog. Changes are only stored when you press Save.</div>`;
+            Pasting long text into any cell opens the same dialog. Changes are saved automatically a moment after you make them.</div>`;
     const table = host.querySelector('table');
     let width = RN_COL_W + 76;
     const cols = [colEl(RN_COL_W)];
@@ -1474,15 +2097,6 @@ function renderEditor() {
     const filter = document.getElementById('edFilter');
     filter.value = edit.filter;
     filter.addEventListener('input', () => { edit.filter = filter.value; renderRows(); });
-    document.getElementById('edSave').addEventListener('click', saveEdit);
-    document.getElementById('edDiscard').addEventListener('click', discardEdit);
-    document.getElementById('edDownload').addEventListener('click', () =>
-        downloadText('homepage-data.csv', serializeCsv(csvHeaders, edit.rows), 'text/csv'));
-    document.getElementById('edAdd').addEventListener('click', () => {
-        const last = edit.rows[edit.rows.length - 1];
-        edit.rows.push(blankRow(last && last.page));
-        setDirty(); clearFilter(); renderRows(); focusRow(edit.rows.length - 1);
-    });
     document.getElementById('edSort').addEventListener('click', sortByHierarchy);
 
     // drag & drop of whole rows (delegated on <tbody>, which survives re-renders)
@@ -1657,7 +2271,7 @@ function sortByHierarchy() {
     setDirty();
     clearFilter();
     renderRows();
-    updateEditStatus('Sorted by hierarchy — press Save to keep it');
+    updateEditStatus('Sorted by hierarchy – saving…');
 }
 
 // One cell: short text = normal editable input; long / multi-line text = read-only preview that opens the dialog
@@ -1749,25 +2363,26 @@ document.getElementById('dlgCopy').addEventListener('click', () => {
         .then(() => setTimeout(() => { b.textContent = 'Copy'; }, 1200));
 });
 
-// ---- save / discard ----
+// ---- automatic save ----
 function saveEdit() {
-    if (!edit) return;
+    clearTimeout(autoSaveTimer);
+    if (!edit || !edit.dirty) return true;
     const text = serializeCsv(csvHeaders, edit.rows);
     try { saveCsvData(text); }
-    catch (e) { alert('Could not save to browser storage (' + e.message + ').\nUse "Download CSV" to keep a copy.'); return; }
-    const filter = edit.filter;
+    catch (e) {
+        updateEditStatus('NOT saved – ' + e.message);
+        if (!autoSaveWarned) { autoSaveWarned = true; alert('Could not save to browser storage (' + e.message + ').\nUse "Download CSV" in the settings list to keep a copy.'); }
+        return false;
+    }
+    autoSaveWarned = false;
     setData(text);                       // re-parse so the app sees exactly what a reload would
-    startEdit(); edit.filter = filter;
-    renderRows();
-    updateEditStatus('Saved at ' + new Date().toLocaleTimeString());
+    edit.dirty = false;
+    updateEditStatus('Saved ✓ ' + new Date().toLocaleTimeString());
+    showToast('Saved ✓', true, 'ok');
+    return true;
 }
-function discardEdit() {
-    if (edit.dirty && !confirm('Discard all unsaved changes?')) return;
-    const filter = edit.filter;
-    startEdit(); edit.filter = filter;
-    renderEditor();
-}
-window.addEventListener('beforeunload', e => { if (edit && edit.dirty) { e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('beforeunload', e => { if (edit && edit.dirty) { saveEdit(); if (edit.dirty) { e.preventDefault(); e.returnValue = ''; } } });
+window.addEventListener('pagehide', () => { if (edit && edit.dirty) saveEdit(); });
 document.addEventListener('keydown', e => {
     if (edit && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && location.hash.slice(1) === EDITOR_ROUTE) { e.preventDefault(); saveEdit(); }
 });
@@ -1842,8 +2457,9 @@ let lastRoute = location.hash.slice(1) || 'home';
 function onRoute() {
     closeSearch();
     const cur = location.hash.slice(1) || 'home';
+    if (lastRoute === EDITOR_ROUTE && cur !== EDITOR_ROUTE && edit && edit.dirty) saveEdit();      // (normally already saved)
     if (lastRoute === EDITOR_ROUTE && cur !== EDITOR_ROUTE && edit && edit.dirty &&
-        !confirm('You have unsaved changes in the editor. Leave and discard them?')) {
+        !confirm('The last changes could not be saved. Leave and discard them?')) {
         location.hash = EDITOR_ROUTE;          // stay (the working copy is kept in memory)
         return;
     }
@@ -1897,8 +2513,9 @@ function sbIcon(it, isFolder) {
         ensureFontAwesome();
         const i = document.createElement('i'); i.className = 'fa-icon ' + fa; i.setAttribute('aria-hidden', 'true'); box.appendChild(i);
     } else if (it.icon && low !== 'false' && !(isFolder && low === 'true')) {     // folders show their assigned icon too (a "TRUE" favicon means nothing for a folder)
-        const img = document.createElement('img'); img.alt = ''; img.loading = 'lazy';
-        img.src = low === 'true' ? 'https://www.google.com/s2/favicons?sz=64&domain=' + (it.url.replace('#', '') || 'example.com') : it.icon;
+        const img = document.createElement('img'); img.alt = '';
+        // same address as the tile itself uses (sz=128), so the search results share the tile's cached copy
+        IconCache.apply(img, low === 'true' ? 'https://www.google.com/s2/favicons?sz=128&domain=' + (it.url.replace('#', '') || 'example.com') : it.icon);
         box.appendChild(img);
     } else {
         box.textContent = isFolder ? '📁' : it.copy ? '📋' : '🔗';
@@ -2037,7 +2654,7 @@ render();
 </html>
 <!--
   ============================================================
-  BUILD: 2026-11-10 20:25:00 (local)
+  BUILD: 2026-11-10 20:32:00 (local)
   ------------------------------------------------------------
   MAINTENANCE RULE — READ BEFORE EDITING THIS FILE:
   Whenever the code in this file is modified in any way,
