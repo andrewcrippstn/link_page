@@ -462,7 +462,7 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
                 </section>
                 <section data-p="icons" hidden>
                     <h3>Icons</h3>
-                    <p class="st-sub">Tile icons that come from a web address are copied into your browser so they are not downloaded again.</p>
+                    <p class="st-sub">Tile icons that come from a web address are copied into your browser so they are not downloaded again. Copies no tile uses any more are removed automatically.</p>
                     <div id="stIconSummary" class="st-msg"></div>
                     <div class="st-row">
                         <label class="st-check"><input type="checkbox" id="stProxy"><span>Use a public proxy when a site refuses copies<small>Tries wsrv.nl, allorigins.win and codetabs.com, one after another, only after the direct download fails. They can see the image address (not your tiles or links).</small></span></label>
@@ -568,6 +568,15 @@ function saveCsvData(csvContent) {
     memStore = csvContent;
     localStorage.setItem('csvData', csvContent);
     runHooks('save', csvContent);
+    schedulePrune();
+}
+// Saved icon copies that no tile uses any more (tile deleted, icon changed, page removed) are deleted automatically.
+let prunePending = null;
+function schedulePrune() {
+    clearTimeout(prunePending);
+    prunePending = setTimeout(() => {
+        try { if (typeof tileIconUrls === 'function' && IconCache.info().loaded) IconCache.prune(tileIconUrls()); } catch (e) { console.warn('Icon clean-up failed', e); }
+    }, 2000);
 }
 
 let csvData = '', items = [], csvHeaders = [];
@@ -819,12 +828,18 @@ const IconCache = (function () {
     }, true);
     const loading = loadAll();
     Promise.race([loading, new Promise(r => setTimeout(r, 1500))]).then(flush, flush);
-    loading.then(() => hydrate(), () => {});        // a slow read: icons already shown from the internet are re-checked against the saved copies
+    loading.then(() => { hydrate(); setTimeout(() => { if (typeof schedulePrune === 'function') schedulePrune(); }, 3000); }, () => {});        // a slow read: icons already shown from the internet are re-checked against the saved copies
     async function clear() {
         mem.clear(); meta.clear(); logs.clear();
         if (db) { try { db.transaction(STORE, 'readwrite').objectStore(STORE).clear(); } catch (e) {} }
     }
     function remove(url) { mem.delete(url); meta.delete(url); logs.delete(url); del(url); }
+    function prune(keep) {                     // drop every stored copy (and failed-attempt record) whose address no tile or search result uses any more
+        if (!loaded || !db) return 0;
+        const k = new Set(keep); let n = 0;
+        Array.from(meta.keys()).forEach(u => { if (!k.has(u) && !inflight.has(u)) { remove(u); n++; } });
+        return n;
+    }
     function list() {
         const out = [];
         meta.forEach((m, url) => out.push({ url, blobUrl: mem.get(url) || '', t: m.t, size: m.size || 0, type: m.type || '', fail: !!m.fail, log: (logs.get(url) || {}).lines || [] }));
@@ -848,7 +863,7 @@ const IconCache = (function () {
         return { dbAvailable: !!db, dbError, writeError, loaded, stored, failed, bytes, proxyOn: proxyOn(), proxies: PROXIES.map(p => p[0]) };
     }
     function setProxy(on) { try { localStorage.setItem('iconProxy', on ? '1' : '0'); } catch (e) {} }
-    return { apply, hydrate, clear, remove, list, logOf, retest, info, setProxy, has };
+    return { apply, hydrate, clear, remove, prune, list, logOf, retest, info, setProxy, has };
 })();
 function currentPage() { return location.hash.slice(1) || 'home'; }
 function render() {
