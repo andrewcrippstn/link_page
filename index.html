@@ -393,9 +393,10 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
             <div id="tdKind"></div>
             <label>Title<input id="tdText" type="text" required></label>
             <label>URL <small>(leave blank to create a folder)</small><input id="tdUrl" type="text" spellcheck="false"></label>
-            <label>Icon <small>(TRUE = site favicon, an image URL, or pick / upload one below – or leave blank for none)</small><input id="tdIcon" type="text" spellcheck="false"></label>
+            <label>Icon <small>(TRUE = site favicon, an image URL, or pick / upload / paste one below – or leave blank for none)</small><input id="tdIcon" type="text" spellcheck="false"></label>
             <div class="ic-box">
-                <div class="ic-bar"><button class="tbtn" id="icToggle" type="button">Pick an icon…</button><button class="tbtn" id="icUploadBtn" type="button" title="Use an image file from your computer (SVG, PNG, JPG, ICO, GIF, WebP)">Upload image…</button><input type="file" id="icUpload" accept="image/*,.svg,.ico" style="display:none"><span id="tdIconPrev"></span></div>
+                <div class="ic-bar"><button class="tbtn" id="icToggle" type="button">Pick an icon…</button><button class="tbtn" id="icUploadBtn" type="button" title="Use an image file from your computer (SVG, PNG, JPG, ICO, GIF, WebP)">Upload image…</button><button class="tbtn" id="icPasteBtn" type="button" title="Use an image you copied (screenshot, copied picture). You can also just press Ctrl+V / ⌘V while this window is open.">Paste image</button><input type="file" id="icUpload" accept="image/*,.svg,.ico" style="display:none"><span id="tdIconPrev"></span></div>
+                <small class="ic-hint" style="opacity:.7">Tip: copy an image (or take a screenshot) and press Ctrl+V / ⌘V anywhere in this window to use it as the icon.</small>
             </div>
             <label>Description <small>(optional)</small><input id="tdDesc" type="text"></label>
             <label>Copy text <small>(optional – copied to the clipboard when the tile is clicked)</small><textarea id="tdCopy" rows="3" spellcheck="false"></textarea></label>
@@ -1681,6 +1682,35 @@ byId('icUpload').addEventListener('change', async e => {
         updateIconPreview();
         showToast('Image added as the icon – press Add / Save to keep it');
     } catch (err) { alert('Could not use that file: ' + (err.message || err)); }
+});
+async function useIconImage(file) {
+    try {
+        byId('tdIcon').value = await fileToIconData(file);
+        updateIconPreview();
+        showToast('Pasted image added as the icon – press Add / Save to keep it');
+    } catch (err) { alert('Could not use that image: ' + (err.message || err)); }
+}
+function clipboardImage(dt) {                                   // first image file in a paste event's clipboard, or null
+    if (!dt) return null;
+    const items = Array.from(dt.items || []).filter(i => i.kind === 'file' && /^image\//i.test(i.type));
+    if (items.length) return items[0].getAsFile();
+    return Array.from(dt.files || []).find(f => /^image\//i.test(f.type)) || null;
+}
+tileDialog.addEventListener('paste', e => {                     // Ctrl+V / ⌘V with an image on the clipboard, anywhere in the tile window
+    const f = clipboardImage(e.clipboardData);
+    if (!f) return;                                             // plain text pastes behave as usual
+    e.preventDefault();
+    useIconImage(f);
+});
+byId('icPasteBtn').addEventListener('click', async () => {      // button version (needs the browser's clipboard permission)
+    try {
+        if (!navigator.clipboard || !navigator.clipboard.read) throw new Error('unsupported');
+        for (const it of await navigator.clipboard.read()) {
+            const type = it.types.find(t => /^image\//i.test(t));
+            if (type) { const b = await it.getType(type); await useIconImage(new File([b], 'pasted.' + (type.split('/')[1] || 'png').replace('svg+xml', 'svg'), { type })); return; }
+        }
+        showToast('No image on the clipboard – copy an image first');
+    } catch (err) { showToast('Could not read the clipboard here – click in the window and press Ctrl+V / ⌘V instead'); }
 });
 byId('icdColor').addEventListener('input', () => {             // fires continuously while dragging: re-draw locally (no network)
     clearTimeout(icdColorTimer);
