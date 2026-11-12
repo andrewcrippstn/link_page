@@ -114,6 +114,9 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
     a.tile.lifted{transform:scale(1.06);z-index:20;border-color:var(--accent);box-shadow:0 8px 20px rgba(0,0,0,.25)}
     body.dragging-tile{user-select:none;-webkit-user-select:none;cursor:grabbing}
     body.dragging-tile #trashZone{display:flex}
+    /* while a tile is held it is moved with transform, which counts as scrollable overflow: dragging it to the bottom-right (the bin) made scroll bars appear */
+    html.drag-noscroll{overflow:hidden}
+    html.drag-noscroll.drag-gutter{scrollbar-gutter:stable}   /* a page that already had a scroll bar keeps its width, so nothing shifts */
     #ctxMenu{display:none;position:fixed;z-index:40;min-width:170px;background:#fff;border:1px solid #ddd;border-radius:8px;
              box-shadow:0 8px 24px rgba(0,0,0,.22);padding:4px}
     #ctxMenu button{display:flex;width:100%;gap:10px;align-items:center;background:none;border:0;border-radius:6px;padding:8px 10px;
@@ -148,7 +151,6 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
     #stPanels .st-msg{font-size:.82rem;color:#555}
     #stPanels label.st-check{display:flex;gap:8px;align-items:flex-start;font-size:.9rem;color:#333;cursor:pointer;line-height:1.35}
     #stPanels label.st-check small{display:block;color:#777;font-size:.78rem}
-    #stDiag{width:100%;height:340px;box-sizing:border-box;resize:vertical;border:1px solid #c6c6c6;border-radius:6px;padding:8px;font:12px/1.4 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;white-space:pre;overflow:auto}
     #stSavedGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}
     .sv-card{border:1px solid #e0e0e0;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:4px;font-size:.76rem;color:#666;min-width:0}
     .sv-card.use{border-color:var(--accent)}
@@ -313,6 +315,81 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
                padding:8px 12px;font-size:.75rem;line-height:1.5;box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:94vw}
     #buildInfo .bi-row{display:flex;gap:14px;justify-content:space-between;white-space:nowrap}
     #buildInfo .bi-row span:last-child{color:var(--accent-t4);font-variant-numeric:tabular-nums}
+    /* ---- storage warning banner (shown at 90% full) ---- */
+    #storageBanner{display:none;align-items:center;gap:12px;width:min(1160px,calc(100% - 24px));margin:-22px auto 18px;padding:10px 14px;
+                   background:#fff4dc;border:1px solid #f0b94a;border-radius:8px;color:#6b4600;font-size:.88rem;line-height:1.35;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+    #storageBanner.crit{background:#fdecea;border-color:#e08a8a;color:#8a1c14}
+    #storageBanner .sbn-ico{font-size:20px;flex:none;line-height:1}
+    #storageBanner .sbn-msg{flex:1;min-width:0}
+    #storageBanner button{flex:none;font:inherit;font-size:.82rem;border:1px solid currentColor;background:transparent;color:inherit;border-radius:6px;padding:4px 10px;cursor:pointer}
+    #storageBanner button:hover{background:rgba(0,0,0,.06)}
+    #storageBanner button.x{border:0;font-size:16px;padding:2px 8px;line-height:1}
+    @media (max-width:560px){#storageBanner{flex-wrap:wrap}#storageBanner .sbn-msg{flex-basis:calc(100% - 40px)}}
+    /* ---- Settings > Storage ---- */
+    #stPanels .st-h4{margin:18px 0 8px;font-size:.76rem;text-transform:uppercase;letter-spacing:.05em;color:#888;font-weight:600}
+    .mt{margin:0 0 14px}
+    .mt-head{display:flex;justify-content:space-between;gap:10px;font-size:.84rem;margin-bottom:4px;flex-wrap:wrap}
+    .mt-head span{color:#555;font-variant-numeric:tabular-nums}
+    .mt-track{position:relative;height:12px;border-radius:6px;background:#e9e9e9;overflow:hidden}
+    .mt-fill{height:100%;background:var(--accent);border-radius:6px 0 0 6px}
+    .mt-track.warn .mt-fill{background:#e0a100}
+    .mt-track.bad .mt-fill{background:#c62828}
+    .mt-tick{position:absolute;left:90%;top:0;bottom:0;width:2px;background:rgba(0,0,0,.35)}
+    .mt-sub{font-size:.76rem;color:#888;margin-top:3px}
+    .mt-warn{font-size:.8rem;color:#b3261e;font-weight:600;margin-top:4px}
+    .bk{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(50px,1fr) 74px 26px;gap:10px;align-items:center;padding:6px 4px;border-top:1px solid #eee;font-size:.84rem}
+    .bk.sub{padding-left:18px;border-top:0;padding-top:3px;padding-bottom:3px;font-size:.8rem;color:#555}
+    .bk-l{min-width:0}
+    .bk-l small{display:block;color:#888;font-size:.74rem;overflow:hidden;text-overflow:ellipsis}
+    .bk-l button{font:inherit;font-size:.74rem;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+    .bk-bar{height:8px;border-radius:4px;background:#eee;overflow:hidden}
+    .bk-bar span{display:block;height:100%;background:var(--accent-light)}
+    .bk-n{text-align:right;font-variant-numeric:tabular-nums;color:#444}
+    .bk-group{display:flex;justify-content:space-between;gap:10px;margin:20px 0 2px;padding-top:8px;border-top:2px solid #ccc;font-size:.88rem}
+    .bk-group span{color:#555;font-variant-numeric:tabular-nums}
+    .bk-note{margin:0 0 6px}
+    .bk-db{display:flex;justify-content:space-between;gap:10px;margin:14px 0 2px;font-size:.84rem;color:#555}
+    .bk-db b{color:#333}
+    .bk-db small{margin-left:8px;color:#888;font-size:.74rem}
+    .bk-item{cursor:default}
+    .bk-item:hover{background:#f6f7fd}
+    .bk-item:focus{outline:2px solid var(--accent);outline-offset:-2px;border-radius:4px}
+    .bk-m button{border:0;background:none;color:#777;font-size:16px;line-height:1;cursor:pointer;padding:2px 5px;border-radius:4px;opacity:0}
+    .bk-item:hover .bk-m button,.bk-item:focus-within .bk-m button,.bk-m button:focus{opacity:1}
+    .bk-m button:hover{background:#e3e3e3;color:#222}
+    @media (hover:none){.bk-m button{opacity:1}}
+    .bk-more{margin:8px 0 0}
+    .st-reminder{margin-top:22px;padding:10px 12px;border:1px dashed #d9a400;background:#fff9e6;border-radius:8px;font-size:.8rem;color:#6b4600;line-height:1.45}
+    #stCtx{display:none;position:fixed;z-index:60;min-width:230px;max-width:340px;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.22);padding:4px}
+    #stCtx .stc-h{padding:6px 10px 4px;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #stCtx button{display:flex;width:100%;background:none;border:0;border-radius:6px;padding:8px 10px;font:inherit;font-size:.88rem;color:#333;cursor:pointer;text-align:left}
+    #stCtx button:hover,#stCtx button:focus{background:var(--accent-t2);outline:none}
+    #stCtx button.danger{color:#c0392b}
+    #stCtx button.danger:hover,#stCtx button.danger:focus{background:#fdecea}
+    /* ---- shrink-a-big-image window ---- */
+    #shrinkDialog{margin:auto;border:0;border-radius:10px;padding:0;width:min(780px,96vw);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+    #shrinkDialog::backdrop{background:rgba(0,0,0,.45)}
+    .shr-body{padding:12px 16px 4px;overflow:auto;display:flex;flex-direction:column;gap:12px}
+    .shr-intro{font-size:.85rem;color:#555;line-height:1.4;margin:0}
+    .shr-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .shr-col{border:1px solid #e0e0e0;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0}
+    .shr-col h4{font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:#888;margin:0}
+    .shr-col.pick{border-color:var(--accent)}
+    .shr-box{height:190px;border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;
+             background:repeating-conic-gradient(#f1f1f1 0 25%,#fff 0 50%) 0 0/12px 12px}
+    .shr-box img{max-width:100%;max-height:100%}
+    .shr-box.big img{width:100%;height:100%;object-fit:contain}
+    .shr-meta{font-size:.78rem;color:#555;line-height:1.35;min-height:2.7em}
+    .shr-tile{display:flex;align-items:center;gap:8px;font-size:.74rem;color:#888}
+    .shr-tile img{width:40px;height:40px;object-fit:contain;border:1px solid #e6e6e6;border-radius:6px;padding:3px;background:#fff}
+    .shr-ctl{display:grid;grid-template-columns:110px minmax(0,1fr) 64px;gap:8px 10px;align-items:center;font-size:.85rem;color:#444}
+    .shr-ctl input[type=range]{width:100%;accent-color:var(--accent)}
+    .shr-ctl select{border:1px solid #c6c6c6;border-radius:4px;padding:5px 8px;font:inherit;font-size:.85rem;background:#fff;color:#222}
+    .shr-ctl span{text-align:right;font-variant-numeric:tabular-nums;color:#666}
+    label.shr-big{display:flex;gap:8px;align-items:center;font-size:.82rem;color:#555;cursor:pointer}
+    .shr-note{font-size:.8rem;min-height:1.2em;color:#777}
+    .shr-note.bad{color:#b3261e;font-weight:600}
+    @media (max-width:560px){.shr-cols{grid-template-columns:1fr}.shr-box{height:150px}}
 </style>
 </head>
 <body>
@@ -329,6 +406,7 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
         <input type="file" id="csvFileInput" accept=".csv">
     </div>
 </header>
+<div id="storageBanner" role="alert"></div>
 <div class="container">
     <div id="grid"></div>
     <datalist id="pageList"></datalist>
@@ -360,7 +438,7 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
         </div>
     </form>
 </dialog>
-<div id="BUILD-FOOTER"><span id="buildText">BUILD: 2026-11-10 20:32:00</span></div>
+<div id="BUILD-FOOTER"><span id="buildText">BUILD: 2026-11-12 11:23:44</span></div>
 <div id="buildInfo" role="tooltip"></div>
 <div id="searchBox" role="dialog" aria-label="Search tiles">
     <div class="sb-panel">
@@ -395,12 +473,13 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
             <label>URL <small>(leave blank to create a folder)</small><input id="tdUrl" type="text" spellcheck="false"></label>
             <label>Icon <small>(TRUE = site favicon, an image URL, or pick / upload / paste one below – or leave blank for none)</small><input id="tdIcon" type="text" spellcheck="false"></label>
             <div class="ic-box">
-                <div class="ic-bar"><button class="tbtn" id="icToggle" type="button">Pick an icon…</button><button class="tbtn" id="icUploadBtn" type="button" title="Use an image file from your computer (SVG, PNG, JPG, ICO, GIF, WebP)">Upload image…</button><button class="tbtn" id="icPasteBtn" type="button" title="Use an image you copied (screenshot, copied picture). You can also just press Ctrl+V / ⌘V while this window is open.">Paste image</button><input type="file" id="icUpload" accept="image/*,.svg,.ico" style="display:none"><span id="tdIconPrev"></span></div>
+                <div class="ic-bar"><button class="tbtn" id="icToggle" type="button">Pick an icon…</button><button class="tbtn" id="icUploadBtn" type="button" title="Use an image file from your computer (SVG, PNG, JPG, ICO, GIF, WebP)">Upload image…</button><input type="file" id="icUpload" accept="image/*,.svg,.ico" style="display:none"><span id="tdIconPrev"></span></div>
                 <small class="ic-hint" style="opacity:.7">Tip: copy an image (or take a screenshot) and press Ctrl+V / ⌘V anywhere in this window to use it as the icon.</small>
             </div>
             <label>Description <small>(optional)</small><input id="tdDesc" type="text"></label>
             <label>Copy text <small>(optional – copied to the clipboard when the tile is clicked)</small><textarea id="tdCopy" rows="3" spellcheck="false"></textarea></label>
         </div>
+        <div id="tdError" role="alert" style="display:none;margin:0 18px 10px;color:#b3261e;font-size:.84rem;font-weight:600;line-height:1.35"></div>
         <div class="dlg-foot">
             <button class="tbtn danger" id="tdDelete" type="button" style="display:none">Delete</button>
             <span class="spacer"></span>
@@ -444,15 +523,50 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
         <div class="dlg-foot"><span class="spacer"></span><button class="tbtn primary" id="crClose" type="button">Close</button></div>
     </div>
 </dialog>
+<dialog id="shrinkDialog">
+    <div class="dlg tile-dlg">
+        <div class="dlg-head"><span>This image is large &ndash; shrink it?</span><span class="dlg-count" id="shrCount"></span></div>
+        <div class="shr-body">
+            <p class="shr-intro" id="shrIntro"></p>
+            <div class="shr-cols">
+                <div class="shr-col">
+                    <h4>Original</h4>
+                    <div class="shr-box" id="shrOrigBox"><img id="shrOrigImg" alt="Original image"></div>
+                    <div class="shr-meta" id="shrOrigMeta"></div>
+                    <div class="shr-tile"><img id="shrOrigTile" alt=""><span>on a tile</span></div>
+                </div>
+                <div class="shr-col pick">
+                    <h4>Shrunken</h4>
+                    <div class="shr-box" id="shrNewBox"><img id="shrNewImg" alt="Shrunken image"></div>
+                    <div class="shr-meta" id="shrNewMeta"></div>
+                    <div class="shr-tile"><img id="shrNewTile" alt=""><span>on a tile</span></div>
+                </div>
+            </div>
+            <div class="shr-ctl">
+                <label for="shrSize">Longest side</label><input type="range" id="shrSize" min="16" max="512" step="1"><span id="shrSizeVal"></span>
+                <label for="shrQual">Quality</label><input type="range" id="shrQual" min="30" max="100" step="1" value="85"><span id="shrQualVal"></span>
+                <label for="shrFmt">Format</label>
+                <select id="shrFmt"><option value="auto">Automatic (smallest that keeps transparency)</option><option value="png">PNG (lossless)</option><option value="webp">WebP</option><option value="jpeg">JPEG (no transparency)</option></select><span></span>
+            </div>
+            <label class="shr-big"><input type="checkbox" id="shrBig"> Enlarge both previews to fill their boxes (to inspect the detail)</label>
+            <div class="shr-note" id="shrNote"></div>
+        </div>
+        <div class="dlg-foot">
+            <button class="tbtn" id="shrCancel" type="button">Cancel</button>
+            <span class="spacer"></span>
+            <button class="tbtn" id="shrKeep" type="button">Keep original</button>
+            <button class="tbtn primary" id="shrUse" type="button">Use shrunken image</button>
+        </div>
+    </div>
+</dialog>
 <dialog id="settingsDialog">
     <div class="dlg st-dlg">
         <div class="dlg-head"><span>Settings</span></div>
         <div class="st-main">
             <nav id="stNav" aria-label="Settings groups">
                 <button type="button" data-p="appearance">Appearance</button>
-                <button type="button" data-p="icons">Icons</button>
-                <button type="button" data-p="saved">Saved images</button>
-                <button type="button" data-p="diag">Diagnostics</button>
+                <button type="button" data-p="storage">Storage</button>
+                <button type="button" data-p="images">Images</button>
             </nav>
             <div id="stPanels">
                 <section data-p="appearance">
@@ -461,30 +575,35 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
                     <div class="cm-swatches" id="cmSwatches"></div>
                     <div class="cm-row"><label for="cmCustom">Custom</label><input type="color" id="cmCustom" value="#667eea"><button class="tbtn" id="cmReset" type="button">Reset</button></div>
                 </section>
-                <section data-p="icons" hidden>
-                    <h3>Icons</h3>
-                    <p class="st-sub">Tile icons that come from a web address are copied into your browser so they are not downloaded again. Copies no tile uses any more are removed automatically.</p>
-                    <div id="stIconSummary" class="st-msg"></div>
+                <section data-p="storage" hidden>
+                    <h3>Storage</h3>
+                    <p class="st-sub">Everything this page can see in your browser's storage, listed like files. Right-click an item (or press its &ldquo;&hellip;&rdquo; button) to delete it.</p>
+                    <div id="stStoreNote" class="st-msg"></div>
+                    <div id="stStatus" class="st-msg" style="color:#2e7d32;font-weight:600"></div>
+                    <h4 class="st-h4">How full</h4>
+                    <div id="stMeters"></div>
+                    <div class="st-row"><span id="stPersist" class="st-msg"></span><button class="tbtn" id="stPersistBtn" type="button" style="display:none">Ask the browser to keep my data</button></div>
+                    <div class="mt-sub">Browsers may delete a site's stored data (IndexedDB and localStorage) when the disk is nearly full and the site has not been used for a while. This button asks the browser to exempt this site from that clean-up. It does not give you more space, and the browser may decline.</div>
+                    <h4 class="st-h4">What is stored</h4>
+                    <div id="stBreak"></div>
+                    <div class="st-reminder"><b>Reminder:</b> the one-time transition code that moves your tiles from localStorage to IndexedDB is still in this page. Search the HTML for <b>TRANSITION CODE</b> and delete it once everything you use has been transitioned.</div>
+                </section>
+                <section data-p="images" hidden>
+                    <h3>Images</h3>
                     <div class="st-row">
                         <label class="st-check"><input type="checkbox" id="stProxy"><span>Use a public proxy when a site refuses copies<small>Tries wsrv.nl, allorigins.win and codetabs.com, one after another, only after the direct download fails. They can see the image address (not your tiles or links).</small></span></label>
                     </div>
-                    <div class="st-row"><button class="tbtn" id="stRetry" type="button">Try saving the missing icons</button><button class="tbtn" id="stClearAll" type="button">Remove all saved copies</button><span id="stIconMsg" class="st-msg"></span></div>
-                </section>
-                <section data-p="saved" hidden>
-                    <h3>Saved images</h3>
+                    <div class="st-row"><label class="st-check" style="align-items:center"><span>Offer to shrink uploaded or pasted images larger than</span><input type="number" id="stImgKb" min="10" max="5000" step="10" style="width:84px;border:1px solid #c6c6c6;border-radius:4px;padding:5px 6px;font:inherit"><span>KB</span></label></div>
+                    <div class="st-row"><button class="tbtn" id="stRetry" type="button">Try saving the missing icons</button><span id="stIconMsg" class="st-msg"></span></div>
+                    <h4 class="st-h4">Saved images</h4>
                     <p class="st-sub">Copies kept in this browser (not the originals on the web). Icons uploaded from your computer live inside the tile itself and are not listed here.</p>
                     <div class="st-row"><span id="stSavedInfo" class="st-msg"></span><button class="tbtn" id="stSavedClear" type="button" style="margin-left:auto">Remove all</button></div>
                     <div id="stSavedGrid"></div>
                     <div id="stSavedBad"></div>
                 </section>
-                <section data-p="diag" hidden>
-                    <h3>Diagnostics</h3>
-                    <p class="st-sub">Why are icons (not) being saved? Press <b>Run test</b> to retry the tile icons that are not saved yet and record what happened, then <b>Copy</b> and paste the text to share it. It contains the icon addresses and your browser name, nothing else.</p>
-                    <div class="st-row"><button class="tbtn primary" id="stCopy" type="button">Copy</button><button class="tbtn" id="stRerun" type="button">Run test (missing icons)</button><span id="stDiagMsg" class="st-msg"></span></div>
-                    <textarea id="stDiag" readonly spellcheck="false"></textarea>
-                </section>
             </div>
         </div>
+        <div id="stCtx" role="menu"></div>
         <div class="dlg-foot"><span class="spacer"></span><button class="tbtn primary" id="stClose" type="button">Close</button></div>
     </div>
 </dialog>
@@ -557,25 +676,113 @@ function runHooks(name, arg) {
     (pluginHooks[name] || []).forEach(fn => { try { fn(arg); } catch (e) { console.warn('Plugin hook "' + name + '" failed', e); } });
 }
 
-// Load CSV data from localStorage (falls back to an in-memory copy if storage is blocked) or use default
+/* ======================= Tile storage: IndexedDB (localStorage only as a fallback) =======================
+   The tiles used to be ONE localStorage value, which browsers cap at about 5 MB (pasted images and long copy text fill that quickly).
+   They now live in IndexedDB ('tileStore'), which has room for hundreds of MB. The page itself still reads and writes through an
+   in-memory copy (memStore), so loadCsvData()/saveCsvData() stay synchronous for the rest of the page and for plugins; the database
+   write follows right behind (one at a time, always the newest text). A copy that an older version left in localStorage is moved across
+   once: copied, read back and compared, and only then removed. If IndexedDB is not available the page keeps using localStorage. */
+const TileStore = (function () {
+    const DB_NAME = 'tileStore', STORE = 'kv', KEY = 'csvData';
+    let db = null, mode = 'mem', dbError = '', writeError = '', migrated = false, latest = null, writing = false, idle = [];
+    const api = { onError: null, onOk: null };
+    const describe = e => (e && (e.name ? e.name + (e.message ? ': ' + e.message : '') : e.message)) || String(e || 'unknown error');
+    const lsGet = () => { try { return localStorage.getItem(KEY); } catch (e) { return null; } };
+    const lsWorks = () => { try { localStorage.getItem(KEY); return true; } catch (e) { return false; } };
+    function open() {
+        return new Promise(res => {
+            try {
+                const rq = indexedDB.open(DB_NAME, 1);
+                rq.onupgradeneeded = () => rq.result.createObjectStore(STORE);
+                rq.onsuccess = () => res(rq.result);
+                rq.onerror = () => { dbError = describe(rq.error) || 'open failed'; res(null); };
+                rq.onblocked = () => { dbError = 'open blocked by another tab'; res(null); };
+            } catch (e) { dbError = describe(e); res(null); }
+        });
+    }
+    const get = () => new Promise((res, rej) => {
+        try { const rq = db.transaction(STORE).objectStore(STORE).get(KEY); rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); } catch (e) { rej(e); }
+    });
+    const put = value => new Promise((res, rej) => {                      // resolves only when the data is really committed
+        try {
+            const tx = db.transaction(STORE, 'readwrite');
+            tx.objectStore(STORE).put(value, KEY);
+            tx.oncomplete = () => res();
+            tx.onerror = tx.onabort = () => rej(tx.error || new Error('write failed'));
+        } catch (e) { rej(e); }
+    });
+    async function init() {                                               // never rejects; resolves with the saved CSV text (or null)
+        try {
+            const legacy = lsGet();
+            db = await open();
+            if (!db) { mode = lsWorks() ? 'local' : 'mem'; return legacy; }
+            mode = 'idb';
+            let saved = null;
+            try { saved = await get(); } catch (e) { dbError = 'read failed: ' + describe(e); mode = lsWorks() ? 'local' : 'mem'; return legacy; }
+            if (typeof saved === 'string' && saved) return saved;        // (a different old copy still in localStorage is left alone as a backup)
+            // ===== TRANSITION CODE (localStorage -> IndexedDB): delete this whole `if (legacy) {...}` block once everything has been moved =====
+            if (legacy) {                                                 // first run with the database: move the old copy across
+                try {
+                    await put(legacy);
+                    if ((await get()) !== legacy) throw new Error('the stored copy did not match');
+                    try { localStorage.removeItem(KEY); } catch (e) {}
+                    migrated = true;
+                } catch (e) { dbError = 'moving the tiles failed: ' + describe(e); mode = 'local'; }
+                return legacy;
+            }
+            // ===== end TRANSITION CODE =====
+            return null;
+        } catch (e) { dbError = describe(e); return lsGet(); }
+    }
+    async function pump() {
+        if (writing) return;
+        writing = true;
+        let failed = false;
+        try {
+            while (latest !== null) { const t = latest; latest = null; await put(t); }
+        } catch (e) {
+            failed = true; latest = null; writeError = describe(e);
+            if (api.onError) { try { api.onError(writeError); } catch (e2) {} }
+        } finally {
+            writing = false;
+            const waiting = idle; idle = []; waiting.forEach(r => r());
+        }
+        if (!failed && writeError) { writeError = ''; if (api.onOk) { try { api.onOk(); } catch (e) {} } }
+    }
+    api.init = init;
+    api.save = function (text) {                                          // in the fallback mode this can throw (quota), like localStorage always did
+        if (mode === 'idb') { latest = text; pump(); }
+        else if (mode === 'local') localStorage.setItem(KEY, text);
+    };
+    api.clear = function () {
+        latest = null;
+        try { localStorage.removeItem(KEY); } catch (e) {}
+        if (db) { try { db.transaction(STORE, 'readwrite').objectStore(STORE).delete(KEY); } catch (e) {} }
+    };
+    api.whenIdle = () => writing ? new Promise(r => idle.push(r)) : Promise.resolve();
+    // TRANSITION CODE: only used to remove the leftover localStorage copy of the tiles
+    api.removeLegacy = () => { try { localStorage.removeItem(KEY); } catch (e) {} };
+    api.info = () => ({ mode, dbError, writeError, migrated, legacyBytes: (lsGet() || '').length, legacyCopy: mode === 'idb' && lsGet() != null });
+    return api;
+})();
 let memStore = null;
-function loadCsvData() {
-    try { const saved = localStorage.getItem('csvData'); if (saved) return saved; } catch (e) {}
-    return memStore || defaultCsvData;
-}
+function loadCsvData() { return memStore || defaultCsvData; }
+const storeReady = TileStore.init().then(text => { if (text) memStore = text; });
 
 // Storage functions
 function saveCsvData(csvContent) {
     memStore = csvContent;
-    localStorage.setItem('csvData', csvContent);
+    TileStore.save(csvContent);
     runHooks('save', csvContent);
     schedulePrune();
+    scheduleStorageCheck();
 }
 // Saved icon copies that no tile uses any more (tile deleted, icon changed, page removed) are deleted automatically.
 let prunePending = null;
 function schedulePrune() {
     clearTimeout(prunePending);
     prunePending = setTimeout(() => {
+        if (!appReady) { schedulePrune(); return; }                    // tiles not read from storage yet: wait (an empty list would wipe the icon copies)
         try { if (typeof tileIconUrls === 'function' && IconCache.info().loaded) IconCache.prune(tileIconUrls()); } catch (e) { console.warn('Icon clean-up failed', e); }
     }, 2000);
 }
@@ -587,15 +794,32 @@ function setData(text) {
     items = p.items;
     csvHeaders = p.headers;
 }
-setData(loadCsvData());
+let appReady = false;      // set once the saved tiles have been read from the database
 let visibleItems = [];
 // ---- undo history (every change to the tiles can be undone with Ctrl/Cmd+Z or the toast button) ----
 const undoStack = [];
 let toastTimer = null;
 function pushUndo() { undoStack.push(csvData); if (undoStack.length > 30) undoStack.shift(); }
+/* A modal <dialog> is drawn in the browser's "top layer", above everything on the page, so the toast could never be seen (or clicked) while one is
+   open. The toast therefore moves INTO the top-most open modal window while there is one, and back to the page when that window closes. */
+const modalStack = [];
+(function () {
+    const orig = HTMLDialogElement.prototype.showModal;
+    HTMLDialogElement.prototype.showModal = function () { const r = orig.apply(this, arguments); modalStack.push(this); return r; };
+})();
+function topModal() {
+    for (let i = modalStack.length - 1; i >= 0; i--) { if (modalStack[i].open) return modalStack[i]; modalStack.splice(i, 1); }
+    return null;
+}
+document.addEventListener('close', e => {                          // 'close' does not bubble, so listen while it travels down
+    const t = document.getElementById('toast');
+    if (t && e.target !== t && e.target.contains && e.target.contains(t)) document.body.appendChild(t);
+}, true);
 // kind: '' (normal) | 'ok' (green) | 'err' (red)
 function showToast(msg, noUndo, kind) {
     const t = document.getElementById('toast');
+    const host = topModal() || document.body;
+    if (t.parentNode !== host) host.appendChild(t);
     document.getElementById('toastMsg').textContent = msg;
     document.getElementById('toastUndo').style.display = (undoStack.length && !noUndo) ? '' : 'none';
     t.className = kind || '';
@@ -868,6 +1092,7 @@ const IconCache = (function () {
 })();
 function currentPage() { return location.hash.slice(1) || 'home'; }
 function render() {
+    if (!appReady) return;
     const current = currentPage();
     const editing = current === EDITOR_ROUTE;
     document.getElementById('pageTitle').textContent =
@@ -1089,6 +1314,7 @@ gridEl.addEventListener('pointerdown', e => {
 });
 document.addEventListener('pointermove', e => {
     if (!drag) return;
+    if (e.pointerType === 'mouse' && drag.moved && !(e.buttons & 1)) { endDrag(false); return; }   // the button was released outside the window: never leave the page stuck
     const dx = e.clientX - drag.x + (window.scrollX - drag.sx);
     const dy = e.clientY - drag.y + (window.scrollY - drag.sy);
     if (!drag.moved) {
@@ -1097,6 +1323,9 @@ document.addEventListener('pointermove', e => {
         drag.moved = true;
         closeMenu();
         document.body.classList.add('dragging-tile');   // shows the bin
+        const root = document.documentElement;          // no scroll bars while the tile is held (see CSS)
+        if (window.innerWidth > root.clientWidth) root.classList.add('drag-gutter');
+        root.classList.add('drag-noscroll');
         if (currentPage() !== 'home') document.querySelector('header').classList.add('droppable');   // title bar = "move up a level"
         drag.tile.classList.remove('lifted');
         drag.tile.classList.add('dragging');
@@ -1130,6 +1359,7 @@ function endDrag(commit) {
     clearTimeout(d.timer);
     d.tile.classList.remove('lifted');
     document.body.classList.remove('dragging-tile');
+    document.documentElement.classList.remove('drag-noscroll', 'drag-gutter');
     document.querySelector('header').classList.remove('droppable');
     if (d.moved) suppressClick(d.touch ? 350 : 60);
     else if (commit && d.touch && d.armed) {            // long press without moving: open the tile menu
@@ -1238,10 +1468,12 @@ function addLinkTiles(hrefs) {
 }
 // what will be created, based on the form (no URL and no copy text => folder)
 function tileKind() {
-    if (byId('tdUrl').value.trim()) return 'tile';
+    const u = byId('tdUrl').value.trim();
+    if (u && u !== '#') return 'tile';                      // a bare "#" is no address at all
     return byId('tdCopy').value ? 'copy' : 'folder';
 }
 function updateTileKind(prefix) {
+    const er = byId('tdError'); if (er) er.style.display = 'none';
     if (prefix != null) updateTileKind.prefix = prefix;
     const k = tileKind();
     const editing = !!editTarget, u = byId('tdUrl').value.trim();
@@ -1257,6 +1489,7 @@ function updateTileKind(prefix) {
                         'no URL, so this will create a folder.');
 }
 ['tdUrl', 'tdCopy'].forEach(id => byId(id).addEventListener('input', () => updateTileKind()));
+byId('tdText').addEventListener('input', () => { byId('tdError').style.display = 'none'; });
 // ---- Icon picker in the tile dialog (Iconify: https://iconify.design) ----
 // The picked icon is stored as a plain image URL, e.g. https://api.iconify.design/tabler/home.svg?color=%23667eea
 // Iconify applies the colour itself, so no extra syntax is needed and the stored value works anywhere an image URL does.
@@ -1648,9 +1881,36 @@ async function icdOpenCredits() {
 }
 byId('icdCredits').addEventListener('click', icdOpenCredits);
 byId('crClose').addEventListener('click', () => creditsDialog.close());
-/* ---- upload an image file as a tile icon: shrunk to <=128px and stored right inside the tile's Icon field (a data: address),
-        so it lives in the browser's saved data with the rest of the tiles and never needs the internet ---- */
-const IMG_MAX = 128, IMG_LIMIT = 150000;
+/* ---- use an image as a tile icon: an SVG file, or a picture (upload or Ctrl+V). The result is a data: address stored right inside the
+        tile's Icon field. A picture is shrunk to <=128 px automatically; one that is larger than the limit in Settings > Storage
+        (default 100 KB) opens a window that shows the shrunken result next to the original, so you can judge the quality first ---- */
+const IMG_MAX = 128, IMG_LIMIT = 150000, IMG_KEEP_MAX = 1000000;       // auto size (px) / biggest automatic result / biggest address stored in a tile
+const askBytes = () => { try { const v = parseInt(localStorage.getItem('imgAskKb'), 10); if (v >= 10 && v <= 5000) return v * 1024; } catch (e) {} return 100 * 1024; };
+function loadImage(url) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('this browser cannot read that image')); i.src = url; }); }
+// draw `img` no larger than `maxPx` on its longest side (in halving steps, which keeps big reductions smooth) and encode it
+function encodeIcon(img, maxPx, fmt, q) {
+    const w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, maxPx / Math.max(w, h));
+    const cw = Math.max(1, Math.round(w * k)), ch = Math.max(1, Math.round(h * k));
+    let src = img, sw = w, sh = h;
+    while (sw / 2 >= cw && sh / 2 >= ch) {
+        const c = document.createElement('canvas'); c.width = Math.max(1, Math.floor(sw / 2)); c.height = Math.max(1, Math.floor(sh / 2));
+        const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(src, 0, 0, c.width, c.height);
+        src = c; sw = c.width; sh = c.height;
+    }
+    const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+    const cx = cv.getContext('2d');
+    if (fmt === 'jpeg') { cx.fillStyle = '#fff'; cx.fillRect(0, 0, cw, ch); }
+    cx.imageSmoothingQuality = 'high'; cx.drawImage(src, 0, 0, cw, ch);
+    let out;
+    if (fmt === 'jpeg') out = cv.toDataURL('image/jpeg', q);
+    else if (fmt === 'webp') { out = cv.toDataURL('image/webp', q); if (!out.startsWith('data:image/webp')) out = cv.toDataURL('image/png'); }   // a browser that cannot write WebP
+    else {
+        out = cv.toDataURL('image/png');
+        if (fmt !== 'png' && out.length > 60000) { const wp = cv.toDataURL('image/webp', q); if (wp.startsWith('data:image/webp') && wp.length < out.length) out = wp; }
+    }
+    return { url: out, w: cw, h: ch };
+}
+// resolves with the data: address to store, or null if the person cancelled in the shrink window
 async function fileToIconData(file) {
     if (/svg/i.test(file.type) || /\.svg$/i.test(file.name)) {
         const t = (await file.text()).trim();
@@ -1661,33 +1921,81 @@ async function fileToIconData(file) {
     if (file.size > 15 * 1024 * 1024) throw new Error('that image is too large (over 15 MB)');
     const url = URL.createObjectURL(file);
     try {
-        const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('this browser cannot read that image')); i.src = url; });
-        const w = img.naturalWidth, h = img.naturalHeight;
-        if (!w || !h) throw new Error('could not read the image size');
-        const k = Math.min(1, IMG_MAX / Math.max(w, h)), cw = Math.max(1, Math.round(w * k)), ch = Math.max(1, Math.round(h * k));
-        const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
-        const cx = cv.getContext('2d'); cx.imageSmoothingQuality = 'high'; cx.drawImage(img, 0, 0, cw, ch);
-        let out = cv.toDataURL('image/png');
-        if (out.length > 60000) { const wp = cv.toDataURL('image/webp', 0.85); if (wp.startsWith('data:image/webp') && wp.length < out.length) out = wp; }
-        if (out.length > IMG_LIMIT) throw new Error('that image is still too big after shrinking it');
-        return out;
+        const img = await loadImage(url);
+        if (!img.naturalWidth || !img.naturalHeight) throw new Error('could not read the image size');
+        if (file.size <= askBytes()) {
+            const out = encodeIcon(img, IMG_MAX, 'auto', 0.85).url;
+            if (out.length <= IMG_LIMIT) return out;
+        }
+        return await askShrink(file, img, url);                         // big file (or still big after shrinking): let the person decide
     } finally { URL.revokeObjectURL(url); }
 }
-byId('icUploadBtn').addEventListener('click', () => byId('icUpload').click());
-byId('icUpload').addEventListener('change', async e => {
-    const f = e.target.files && e.target.files[0]; e.target.value = '';
-    if (!f) return;
+/* ---- the shrink window ---- */
+const shrinkDialog = byId('shrinkDialog');
+let shr = null, shrTimer = null;                                       // shr = { file, img, resolve, result, cur } while the window is open
+const imgKind = t => ({ 'image/png': 'PNG', 'image/jpeg': 'JPEG', 'image/webp': 'WebP', 'image/gif': 'GIF', 'image/x-icon': 'ICO', 'image/vnd.microsoft.icon': 'ICO', 'image/bmp': 'BMP' })[t] || (String(t).split('/')[1] || 'image').toUpperCase();
+function askShrink(file, img, objUrl) {
+    return new Promise(resolve => {
+        const w = img.naturalWidth, h = img.naturalHeight, top = Math.max(32, Math.min(1024, Math.max(w, h)));
+        shr = { file, img, resolve, result: null, cur: null };
+        const size = byId('shrSize'); size.max = top; size.value = Math.min(IMG_MAX, top);
+        byId('shrQual').value = 85; byId('shrFmt').value = 'auto'; byId('shrBig').checked = false;
+        ['shrOrigBox', 'shrNewBox'].forEach(id => byId(id).classList.remove('big'));
+        byId('shrOrigImg').src = objUrl; byId('shrOrigTile').src = objUrl;
+        byId('shrCount').textContent = fmtBytes(file.size) + ' · ' + w + ' × ' + h;
+        byId('shrIntro').textContent = 'This image is bigger than ' + fmtBytes(askBytes()) + '. A tile only draws its icon about 40 px wide, so a smaller copy looks the same and keeps your saved data small. Check the preview, adjust if you like, then choose.';
+        byId('shrOrigMeta').textContent = w + ' × ' + h + ' px · ' + imgKind(file.type) + ' · ' + fmtBytes(file.size);
+        const keepOk = Math.ceil(file.size / 3) * 4 + 40 <= IMG_KEEP_MAX;
+        const keep = byId('shrKeep'); keep.disabled = !keepOk; keep.title = keepOk ? 'Store the picture exactly as it is' : 'Too large to store inside a tile – shrink it instead';
+        shrinkDialog.showModal();
+        shrinkUpdate();
+    });
+}
+function shrinkUpdate() {
+    if (!shr) return;
+    const maxPx = +byId('shrSize').value, q = (+byId('shrQual').value) / 100, fmt = byId('shrFmt').value;
+    byId('shrSizeVal').textContent = maxPx + ' px';
+    byId('shrQualVal').textContent = Math.round(q * 100) + '%';
+    byId('shrQual').disabled = fmt === 'png';
+    let cur;
+    try { cur = encodeIcon(shr.img, maxPx, fmt, q); } catch (e) { byId('shrNote').textContent = 'Could not shrink this image (' + (e.message || e) + ').'; byId('shrUse').disabled = true; return; }
+    shr.cur = cur;
+    byId('shrNewImg').src = cur.url; byId('shrNewTile').src = cur.url;
+    const kind = imgKind((/^data:([^;,]+)/.exec(cur.url) || [])[1] || '');
+    const bin = Math.round((cur.url.length - cur.url.indexOf(',') - 1) * 3 / 4), saved = Math.round((1 - bin / shr.file.size) * 100);
+    byId('shrNewMeta').textContent = cur.w + ' × ' + cur.h + ' px · ' + kind + ' · ' + fmtBytes(bin) + (saved > 0 ? ' · ' + saved + '% smaller' : ' · not smaller than the original');
+    const tooBig = cur.url.length > IMG_KEEP_MAX, note = byId('shrNote');
+    byId('shrUse').disabled = tooBig;
+    note.className = 'shr-note' + (tooBig ? ' bad' : '');
+    note.textContent = tooBig ? 'Still too big to store inside a tile – lower the size or the quality.'
+        : cur.url.length > IMG_LIMIT ? 'This is fairly large for a tile icon – a smaller size would look just as sharp.'
+        : fmt === 'jpeg' ? 'JPEG has no transparency: see-through areas become white.' : '';
+}
+['shrSize', 'shrQual', 'shrFmt'].forEach(id => byId(id).addEventListener('input', () => { clearTimeout(shrTimer); shrTimer = setTimeout(shrinkUpdate, 60); }));
+byId('shrBig').addEventListener('change', e => ['shrOrigBox', 'shrNewBox'].forEach(id => byId(id).classList.toggle('big', e.target.checked)));
+byId('shrUse').addEventListener('click', () => { if (shr && shr.cur) { shr.result = shr.cur.url; shrinkDialog.close(); } });
+byId('shrCancel').addEventListener('click', () => shrinkDialog.close());
+byId('shrKeep').addEventListener('click', async () => {
+    if (!shr) return;
+    const s = shr;
     try {
-        byId('tdIcon').value = await fileToIconData(f);
-        updateIconPreview();
-        showToast('Image added as the icon – press Add / Save to keep it');
-    } catch (err) { alert('Could not use that file: ' + (err.message || err)); }
+        s.result = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(new Error('could not read the file')); fr.readAsDataURL(s.file); });
+    } catch (e) { showToast('Could not read that file', true, 'err'); return; }
+    shrinkDialog.close();
 });
-async function useIconImage(file) {
+shrinkDialog.addEventListener('close', () => { const s = shr; shr = null; if (s) s.resolve(s.result); });    // Esc / Cancel => null
+byId('icUploadBtn').addEventListener('click', () => byId('icUpload').click());
+byId('icUpload').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0]; e.target.value = '';
+    if (f) useIconImage(f, false);
+});
+async function useIconImage(file, pasted) {                     // upload or Ctrl+V
     try {
-        byId('tdIcon').value = await fileToIconData(file);
+        const data = await fileToIconData(file);
+        if (!data) return;                                      // cancelled in the shrink window
+        byId('tdIcon').value = data;
         updateIconPreview();
-        showToast('Pasted image added as the icon – press Add / Save to keep it');
+        showToast((pasted ? 'Pasted image' : 'Image') + ' added as the icon – press Add / Save to keep it');
     } catch (err) { alert('Could not use that image: ' + (err.message || err)); }
 }
 function clipboardImage(dt) {                                   // first image file in a paste event's clipboard, or null
@@ -1700,17 +2008,7 @@ tileDialog.addEventListener('paste', e => {                     // Ctrl+V / ⌘V
     const f = clipboardImage(e.clipboardData);
     if (!f) return;                                             // plain text pastes behave as usual
     e.preventDefault();
-    useIconImage(f);
-});
-byId('icPasteBtn').addEventListener('click', async () => {      // button version (needs the browser's clipboard permission)
-    try {
-        if (!navigator.clipboard || !navigator.clipboard.read) throw new Error('unsupported');
-        for (const it of await navigator.clipboard.read()) {
-            const type = it.types.find(t => /^image\//i.test(t));
-            if (type) { const b = await it.getType(type); await useIconImage(new File([b], 'pasted.' + (type.split('/')[1] || 'png').replace('svg+xml', 'svg'), { type })); return; }
-        }
-        showToast('No image on the clipboard – copy an image first');
-    } catch (err) { showToast('Could not read the clipboard here – click in the window and press Ctrl+V / ⌘V instead'); }
+    useIconImage(f, true);
 });
 byId('icdColor').addEventListener('input', () => {             // fires continuously while dragging: re-draw locally (no network)
     clearTimeout(icdColorTimer);
@@ -1792,7 +2090,7 @@ function markAccent() {                                            // reflect th
     byId('cmReset').addEventListener('click', () => setAccent(ACCENT_DEFAULT, true));
     markAccent();
 })();
-/* ======================= Settings overlay: Appearance / Icons / Saved images / Diagnostics ======================= */
+/* ======================= Settings overlay: Appearance / Storage / Images ======================= */
 const settingsDialog = byId('settingsDialog');
 const fmtBytes = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : n >= 1024 ? Math.round(n / 1024) + ' KB' : (n || 0) + ' B';
 const fmtAge = t => { if (!t) return ''; const d = Math.floor((Date.now() - t) / 864e5); return d < 1 ? 'today' : d === 1 ? 'yesterday' : d + ' days ago'; };
@@ -1814,18 +2112,17 @@ function stShow(name) {
     settingsDialog.querySelectorAll('#stNav button').forEach(b => { const on = b.dataset.p === name; b.classList.toggle('on', on); b.setAttribute('aria-current', on ? 'page' : 'false'); });
     settingsDialog.querySelectorAll('#stPanels section').forEach(p => { p.hidden = p.dataset.p !== name; });
     if (name === 'appearance') markAccent();
-    else if (name === 'icons') stRenderIcons();
-    else if (name === 'saved') stRenderSaved();
-    else if (name === 'diag') stRenderDiag();
+    else if (name === 'storage') { stSay(''); stRenderStorage(); }
+    else if (name === 'images') stRenderImages();
 }
 function openSettingsDialog(name) {
     if (!settingsDialog.open) settingsDialog.showModal();
     stShow(name || 'appearance');
 }
-function stRenderIcons() {
-    const i = IconCache.info();
-    byId('stProxy').checked = i.proxyOn;
-    byId('stIconSummary').textContent = i.stored + ' saved cop' + (i.stored === 1 ? 'y' : 'ies') + ' (' + fmtBytes(i.bytes) + ')  ·  ' + i.failed + ' that could not be saved  ·  browser storage: ' + (i.dbAvailable ? 'working' : 'NOT available');
+function stRenderImages() {
+    byId('stProxy').checked = IconCache.info().proxyOn;
+    byId('stImgKb').value = Math.round(askBytes() / 1024);
+    stRenderSaved();
 }
 function stRenderSaved() {
     const list = IconCache.list(), inUse = new Set(tileIconUrls());
@@ -1855,69 +2152,342 @@ function stRenderSaved() {
         const h = document.createElement('h3'); h.textContent = 'Could not be saved'; h.style.margin = '18px 0 4px'; box.appendChild(h);
         bad.forEach(e => {
             const d = document.createElement('div'); d.className = 'sv-bad';
-            const last = (e.log && e.log.length) ? e.log[e.log.length - 1] : 'no details yet – use Run test in Diagnostics';
+            const last = (e.log && e.log.length) ? e.log[e.log.length - 1] : 'no details yet – press \u201cTry saving the missing icons\u201d';
             d.textContent = e.url + '  →  ' + last;
             box.appendChild(d);
         });
     }
 }
+/* ======================= Settings > Storage, and the "nearly full" banner ======================= */
+const THIS_PAGE_KEYS = ['accentColor', 'iconProxy', 'imgAskKb', 'csvData'];      // the only localStorage keys this page uses; the rest belong to other pages on the same site
+const LS_LIMIT = 5 * 1024 * 1024, WARN_AT = 0.9;                   // localStorage allows about 5 MB; warn from 90 %
+let storageProblem = '', bannerDismissed = false, storageTimer = null;
+const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const fmtPct = f => { const p = f * 100; return (p >= 10 ? Math.round(p) : p >= 0.1 ? p.toFixed(1) : '<0.1') + '%'; };
+const utf8Len = (() => { const enc = new TextEncoder(); return s => enc.encode(String(s)).length; })();
+function lsUsage() {                                               // everything in localStorage, counted in characters (what the 5 MB limit is about)
+    let used = 0; const keys = [];
+    try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i), n = k.length + (localStorage.getItem(k) || '').length; used += n; keys.push({ k, n }); } } catch (e) {}
+    return { used, keys };
+}
+async function originEstimate() {                                  // all storage of this site (IndexedDB, caches, …) against the browser's allowance
+    try { if (navigator.storage && navigator.storage.estimate) { const e = await navigator.storage.estimate(); if (e && e.quota) return { usage: e.usage || 0, quota: e.quota }; } } catch (e) {}
+    return null;
+}
+function csvBreakdown() {                                          // what the tile data is made of
+    let images = 0, imgN = 0, copy = 0, copyN = 0;
+    items.forEach(it => {
+        const ic = String(it.icon || '');
+        if (/^data:/i.test(ic)) { images += ic.length; imgN++; }
+        if (it.copy) { copy += utf8Len(it.copy); copyN++; }
+    });
+    const total = utf8Len(csvData);
+    return { total, images, imgN, copy, copyN, other: Math.max(0, total - images - copy), rows: items.length };
+}
+async function checkStorageLevel(problem) {                        // shows the banner when something is 90 % full (or a save just failed)
+    if (problem) storageProblem = problem;
+    const ls = lsUsage(), est = await originEstimate(), info = TileStore.info(), msgs = [];
+    if (ls.used / LS_LIMIT >= WARN_AT) {
+        const safe = info.mode === 'idb';                          // tiles are in IndexedDB: a full localStorage does not endanger them
+        const top = ls.keys.filter(k => !THIS_PAGE_KEYS.includes(k.k)).sort((a, b) => b.n - a.n).slice(0, 3).map(k => k.k + ' ' + fmtBytes(k.n)).join(', ');
+        msgs.push({ risk: !safe, t: 'Browser localStorage is ' + fmtPct(ls.used / LS_LIMIT) + ' full (' + fmtBytes(ls.used) + ' of about ' + fmtBytes(LS_LIMIT) + ')' +
+            (safe ? ' – used mostly by ' + (location.protocol === 'file:' ? 'other pages opened from a local file' : 'other pages on this domain') + (top ? ' (' + top + ')' : '') + '. Your tiles are in IndexedDB, so they are not affected' : '') });
+    }
+    if (est && est.usage / est.quota >= WARN_AT) msgs.push({ risk: true, t: 'Browser storage is ' + fmtPct(est.usage / est.quota) + ' full (' + fmtBytes(est.usage) + ' of ' + fmtBytes(est.quota) + ')' });
+    renderBanner(msgs);
+}
+function scheduleStorageCheck() {
+    clearTimeout(storageTimer);
+    storageTimer = setTimeout(() => TileStore.whenIdle().then(() => checkStorageLevel()), 1500);
+}
+function renderBanner(msgs) {
+    const b = byId('storageBanner');
+    const all = (storageProblem ? [{ risk: true, t: 'Your last change could not be saved (' + storageProblem + ')' }] : []).concat(msgs);
+    if (!all.length || (bannerDismissed && !storageProblem)) { b.style.display = 'none'; return; }
+    b.textContent = '';
+    b.className = storageProblem ? 'crit' : '';
+    const ico = mk('span', 'sbn-ico', '⚠'); ico.setAttribute('aria-hidden', 'true');
+    const msg = mk('span', 'sbn-msg', all.map(m => m.t).join(' · ') + '.' + (all.some(m => m.risk) ? ' Saving may start to fail – remove large images or text, or keep a copy with Download CSV.' : ''));
+    const open = mk('button', '', 'Storage settings'); open.type = 'button'; open.addEventListener('click', () => openSettingsDialog('storage'));
+    const x = mk('button', 'x', '✕'); x.type = 'button'; x.title = 'Hide until the page is reloaded'; x.setAttribute('aria-label', 'Hide this warning');
+    x.addEventListener('click', () => { bannerDismissed = true; b.style.display = 'none'; });
+    b.append(ico, msg, open, x);
+    b.style.display = 'flex';
+}
+TileStore.onError = msg => {                                       // a database write failed (usually: out of space)
+    showToast('Could not save your tiles (' + msg + ') – use Download CSV to keep a copy', true, 'err');
+    if (typeof edit !== 'undefined' && edit) updateEditStatus('NOT saved – ' + msg);
+    checkStorageLevel(msg);
+};
+TileStore.onOk = () => { storageProblem = ''; checkStorageLevel(); };
+function stMeter(label, used, limit, sub) {
+    const f = limit ? used / limit : 0, w = mk('div', 'mt');
+    const head = mk('div', 'mt-head'); head.append(mk('b', '', label), mk('span', '', fmtBytes(used) + ' of ' + fmtBytes(limit) + ' · ' + fmtPct(f)));
+    const track = mk('div', 'mt-track' + (f >= WARN_AT ? ' bad' : f >= 0.75 ? ' warn' : '')), fill = mk('div', 'mt-fill');
+    fill.style.width = Math.min(100, Math.max(f * 100, used ? 0.6 : 0)) + '%';
+    track.append(fill, mk('i', 'mt-tick')); track.title = 'The tick marks 90 %, where the warning banner appears';
+    w.append(head, track);
+    if (sub) w.append(mk('div', 'mt-sub', sub));
+    if (f >= WARN_AT) w.append(mk('div', 'mt-warn', '⚠ ' + fmtPct(f) + ' full – free some space soon.'));
+    return w;
+}
+/* ---- Settings > Storage: everything stored is listed as items (like localStorage's key list); right-click an item (or its ... button) to delete it ---- */
+const SAME_SITE = location.protocol === 'file:' ? 'another page opened from a local file' : 'another page on this domain';
+const SHARED_BY = location.protocol === 'file:' ? 'every page opened from a local file' : 'every page on this domain';
+const stCtx = byId('stCtx');
+function stCloseCtx() { stCtx.style.display = 'none'; stCtx.textContent = ''; }
+function stOpenCtx(x, y, head, actions) {
+    stCtx.textContent = '';
+    stCtx.append(mk('div', 'stc-h', head));
+    actions.forEach(a => {
+        const b = mk('button', a.danger === false ? '' : 'danger', a.label); b.type = 'button'; b.setAttribute('role', 'menuitem');
+        b.addEventListener('click', () => { stCloseCtx(); a.fn(); });
+        stCtx.append(b);
+    });
+    stCtx.style.display = 'block';
+    stCtx.style.left = Math.max(4, Math.min(x, window.innerWidth - stCtx.offsetWidth - 4)) + 'px';
+    stCtx.style.top = Math.max(4, Math.min(y, window.innerHeight - stCtx.offsetHeight - 4)) + 'px';
+    const f = stCtx.querySelector('button'); if (f) f.focus();
+}
+settingsDialog.addEventListener('pointerdown', e => { if (!e.target.closest('#stCtx')) stCloseCtx(); }, true);
+settingsDialog.addEventListener('keydown', e => { if (e.key === 'Escape' && stCtx.style.display === 'block') { e.preventDefault(); e.stopPropagation(); stCloseCtx(); } }, true);
+settingsDialog.addEventListener('close', stCloseCtx);
+byId('stPanels').addEventListener('scroll', stCloseCtx);
+function stSay(msg) { const el = byId('stStatus'); if (el) el.textContent = msg || ''; }
+const stAfter = () => { stRenderStorage(); checkStorageLevel(); };
+
+/* one row of the listing. o = { sub, approx, title, actions: [{ label, fn, danger }] } */
+function stRow(label, detail, bytes, max, o) {
+    o = o || {};
+    const r = mk('div', 'bk' + (o.sub ? ' sub' : '') + (o.actions ? ' bk-item' : '')), l = mk('div', 'bk-l'), bar = mk('div', 'bk-bar'), fill = mk('span');
+    l.append(mk('b', '', label));
+    if (detail) { const d = mk('small', '', detail); if (o.title) d.title = o.title; l.append(d); }
+    fill.style.width = (max ? Math.min(100, Math.max(bytes ? 1 : 0, bytes / max * 100)) : 0) + '%'; bar.append(fill);
+    r.append(l, bar, mk('span', 'bk-n', (o.approx ? '~' : '') + fmtBytes(bytes)));
+    const m = mk('span', 'bk-m');
+    if (o.actions) {
+        const open = (x, y) => stOpenCtx(x, y, label, o.actions);
+        r.tabIndex = 0; r.title = 'Right-click for options';
+        r.addEventListener('contextmenu', e => { e.preventDefault(); open(e.clientX, e.clientY); });
+        r.addEventListener('keydown', e => { if (e.key === 'Delete') { e.preventDefault(); o.actions[0].fn(); } });
+        const b = mk('button', '', '⋯'); b.type = 'button'; b.title = 'Options'; b.setAttribute('aria-label', 'Options for ' + label);
+        b.addEventListener('click', () => { const rc = b.getBoundingClientRect(); open(rc.left, rc.bottom); });
+        m.append(b);
+    }
+    r.append(m);
+    return r;
+}
+const stGroup = (title, total, note) => {
+    const g = mk('div', 'bk-group'); g.append(mk('b', '', title), mk('span', '', total));
+    const out = document.createDocumentFragment(); out.append(g); if (note) out.append(mk('div', 'mt-sub bk-note', note)); return out;
+};
+const stDbHead = (name, tag, total) => { const g = mk('div', 'bk-db'), l = mk('span'); l.append(mk('b', '', name), mk('small', '', tag)); g.append(l, mk('span', '', total)); return g; };
+function stIconLabel(u) {
+    try { const x = new URL(u); if (x.host === 'www.google.com' && x.pathname === '/s2/favicons') { const d = x.searchParams.get('domain') || ''; return 'favicon · ' + (d.replace(/^https?:\/\//, '').split(/[\/?#]/)[0] || '?'); } } catch (e) {}
+    return stName(u);
+}
+
+/* ---- reading the other IndexedDB databases on this site (name, stores, record counts, approximate size) ---- */
+const idbOpen = name => new Promise((res, rej) => { const rq = indexedDB.open(name); rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error || new Error('could not be opened')); rq.onblocked = () => rej(new Error('blocked')); });
+function valSize(v, budget) {                                      // rough size of a stored value (strings count their length, blobs/buffers their bytes)
+    if (v == null) return 0;
+    const t = typeof v;
+    if (t === 'string') return v.length;
+    if (t === 'number' || t === 'boolean') return 8;
+    if (v instanceof Blob) return v.size;
+    if (v instanceof ArrayBuffer || ArrayBuffer.isView(v)) return v.byteLength;
+    if (t !== 'object' || --budget.n < 0) return 0;
+    let n = 0;
+    if (Array.isArray(v)) { for (const x of v) n += valSize(x, budget); return n; }
+    for (const k in v) n += k.length + valSize(v[k], budget);
+    return n;
+}
+function storeSize(db, store) {                                    // walks the records (at most ~5000 / 1.5 s, then extrapolates)
+    return new Promise(res => {
+        try {
+            const os = db.transaction(store).objectStore(store), cnt = os.count();
+            cnt.onerror = () => res({ count: 0, bytes: 0, approx: true });
+            cnt.onsuccess = () => {
+                const total = cnt.result, t0 = Date.now(); let n = 0, bytes = 0;
+                const rq = os.openCursor();
+                rq.onerror = () => res({ count: total, bytes: n ? Math.round(bytes / n * total) : 0, approx: true });
+                rq.onsuccess = () => {
+                    const c = rq.result;
+                    if (!c) { res({ count: total, bytes, approx: true }); return; }
+                    n++; bytes += valSize(c.value, { n: 5000 }) + (typeof c.key === 'string' ? c.key.length : 8);
+                    if (n >= 5000 || Date.now() - t0 > 1500) { res({ count: total, bytes: Math.round(bytes / n * total), approx: true }); return; }
+                    c.continue();
+                };
+            };
+        } catch (e) { res({ count: 0, bytes: 0, approx: true }); }
+    });
+}
+async function stInventory() {
+    let names;
+    try { if (!indexedDB.databases) return { supported: false, dbs: [] }; names = (await indexedDB.databases()).map(d => d.name).filter(n => n && n !== 'tileStore' && n !== 'iconCache'); }
+    catch (e) { return { supported: false, dbs: [] }; }
+    const dbs = [];
+    for (const name of names) {
+        const d = { name, stores: [], error: '' };
+        try {
+            const db = await idbOpen(name);
+            for (const sn of Array.from(db.objectStoreNames)) d.stores.push(Object.assign({ name: sn }, await storeSize(db, sn)));
+            db.close();
+        } catch (e) { d.error = (e && e.message) || 'could not be read'; }
+        dbs.push(d);
+    }
+    return { supported: true, dbs };
+}
+
+/* ---- deleting ---- */
+function stDelLs(key, n, legacy) {
+    const mine = THIS_PAGE_KEYS.includes(key);
+    if (!mine && !confirm('Delete "' + key + '" (' + fmtBytes(n) + ') from localStorage?\n\nIt belongs to ' + SAME_SITE + ' and cannot be undone.')) return;
+    if (legacy && !confirm('Delete the old copy of your tiles from localStorage?\n(Your current tiles are in IndexedDB and are not affected.)')) return;
+    if (key === 'accentColor') setAccent(ACCENT_DEFAULT, true);
+    else if (legacy) TileStore.removeLegacy();
+    else { try { localStorage.removeItem(key); } catch (e) {} }
+    stSay(mine && !legacy ? 'Reset "' + key + '".' : 'Deleted "' + key + '".');
+    stAfter();
+}
+function stDelTiles() {
+    if (!confirm('Delete ALL ' + items.length + ' tiles?\n\nThe default tiles come back. Use "Download CSV" first if you want a backup.')) return;
+    TileStore.clear(); memStore = null; edit = null;
+    setData(defaultCsvData);
+    render();
+    stSay('All tiles deleted – the default tiles are back.');
+    stAfter();
+}
+function stDelIcon(url) { IconCache.remove(url); stSay('Deleted the saved copy. It is downloaded again the next time a tile needs it.'); stAfter(); }
+function stDelFailed() { IconCache.list().filter(e => e.fail).forEach(e => IconCache.remove(e.url)); stSay('Deleted the failed-attempt records.'); stAfter(); }
+async function stClearStore(db, store, count) {
+    if (!confirm('Delete all ' + count.toLocaleString() + ' record' + (count === 1 ? '' : 's') + ' in "' + db + ' › ' + store + '"?\n\nIt belongs to ' + SAME_SITE + ' and cannot be undone.')) return;
+    try {
+        const d = await idbOpen(db);
+        await new Promise((res, rej) => { const tx = d.transaction(store, 'readwrite'); tx.objectStore(store).clear(); tx.oncomplete = res; tx.onerror = tx.onabort = () => rej(tx.error); });
+        d.close();
+        stSay('Deleted the records in "' + db + ' › ' + store + '".');
+    } catch (e) { stSay('Could not delete: ' + ((e && e.message) || e)); }
+    stAfter();
+}
+function stDelDb(name) {
+    if (!confirm('Delete the whole database "' + name + '"?\n\nIt belongs to ' + SAME_SITE + ' and cannot be undone.')) return;
+    const rq = indexedDB.deleteDatabase(name);
+    rq.onsuccess = () => { stSay('Deleted the database "' + name + '".'); stAfter(); };
+    rq.onerror = () => { stSay('Could not delete "' + name + '".'); };
+    rq.onblocked = () => { stSay('"' + name + '" is in use by another tab or page – close it and try again.'); };
+}
+
+/* ---- the panel ---- */
+let stRenderId = 0, stMoreIcons = false, stMoreLs = false;
+async function stRenderStorage() {
+    const my = ++stRenderId;
+    const info = TileStore.info(), ls = lsUsage(), est = await originEstimate(), cb = csvBreakdown(), ic = IconCache.info();
+    let persisted = null;
+    try { if (navigator.storage && navigator.storage.persisted) persisted = await navigator.storage.persisted(); } catch (e) {}
+    if (stCur !== 'storage' || my !== stRenderId) return;
+    const inIdb = info.mode === 'idb';
+    const where = inIdb ? 'IndexedDB' : info.mode === 'local' ? 'localStorage (fallback)' : 'memory only (nothing can be saved)';
+    byId('stStoreNote').textContent = 'Tiles are stored in: ' + where + (info.migrated ? '  ·  moved here from localStorage when the page opened' : '') +
+        (info.mode !== 'idb' && info.dbError ? '  ·  IndexedDB problem: ' + info.dbError : '') + (info.writeError ? '  ·  last save failed: ' + info.writeError : '');
+    // how full
+    const meters = byId('stMeters'); meters.textContent = '';
+    if (est) meters.append(stMeter('This site’s browser storage', est.usage, est.quota, 'Everything this site keeps in your browser (IndexedDB, caches and more) against what the browser allows.'));
+    meters.append(stMeter('localStorage', ls.used, LS_LIMIT, 'Shared by ' + SHARED_BY + ' (your other tools count too). This page keeps only a few tiny settings here, and your tiles only if IndexedDB is not available. Measured in characters, limit about 5 million.'));
+    if (!est) meters.append(mk('div', 'mt-sub', 'This browser does not report how much room is left for the database.'));
+    const pb = byId('stPersistBtn'); pb.style.display = 'none';
+    byId('stPersist').textContent = persisted === null ? '' : persisted ? 'Protected from automatic clean-up by the browser: yes' : 'Protected from automatic clean-up by the browser: no';
+    if (persisted === false && navigator.storage.persist) pb.style.display = '';
+    // the listing
+    const box = byId('stBreak'); box.textContent = ''; box.append(mk('div', 'mt-sub', 'Reading what is stored…'));
+    const inv = await stInventory();
+    if (stCur !== 'storage' || my !== stRenderId) return;
+    box.textContent = '';
+    const allIcons = IconCache.list(), stored = allIcons.filter(e => !e.fail && e.blobUrl).sort((a, b) => b.size - a.size), failed = allIcons.filter(e => e.fail);
+    const inUse = new Set(tileIconUrls()), others = inv.dbs;
+    const otherTotal = others.reduce((n, d) => n + d.stores.reduce((m, st) => m + (st.bytes || 0), 0), 0);
+    const idbTotal = (inIdb ? cb.total : 0) + ic.bytes + otherTotal;
+    const idbMax = Math.max(1, inIdb ? cb.total : 0, ...stored.map(e => e.size), ...others.flatMap(d => d.stores.map(st => st.bytes || 0)));
+    const tileActions = [{ label: 'Delete all tiles…', fn: stDelTiles }];
+    const tileSubs = max => [
+        stRow('Uploaded / pasted images', cb.imgN + ' tile' + (cb.imgN === 1 ? '' : 's') + ' with an image stored inside', cb.images, max, { sub: true }),
+        stRow('Copy text', cb.copyN + ' tile' + (cb.copyN === 1 ? '' : 's') + ' with text to copy', cb.copy, max, { sub: true }),
+        stRow('Titles, links, descriptions, layout', '', cb.other, max, { sub: true })
+    ];
+    // 1. IndexedDB: database > store > item
+    box.append(stGroup('IndexedDB', fmtBytes(idbTotal), 'The browser’s database, no 5 MB limit. Listed as database › items.' + (inv.supported ? '' : ' This browser cannot list other pages’ databases, so only this page’s are shown.')));
+    if (inIdb) {
+        box.append(stDbHead('tileStore', 'this page · your tiles', fmtBytes(cb.total)));
+        box.append(stRow('csvData', cb.rows + ' tiles', cb.total, idbMax, { actions: tileActions }));
+        tileSubs(idbMax).forEach(r => box.append(r));
+    }
+    box.append(stDbHead('iconCache', 'this page · saved web icons', fmtBytes(ic.bytes)));
+    (stMoreIcons ? stored : stored.slice(0, 25)).forEach(e => {
+        box.append(stRow(stIconLabel(e.url), stHost(e.url) + ' · ' + fmtAge(e.t) + (inUse.has(e.url) ? ' · used by a tile' : ' · not used by a tile'), e.size, idbMax,
+            { title: e.url, actions: [{ label: 'Delete this saved copy', fn: () => stDelIcon(e.url) }] }));
+    });
+    if (stored.length > 25) { const b = mk('button', 'tbtn bk-more', stMoreIcons ? 'Show fewer' : 'Show all ' + stored.length + ' saved icons'); b.type = 'button'; b.addEventListener('click', () => { stMoreIcons = !stMoreIcons; stRenderStorage(); }); box.append(b); }
+    if (failed.length) box.append(stRow(failed.length + ' failed attempt' + (failed.length === 1 ? '' : 's'), 'icons that could not be saved (tiny records, retried automatically)', 0, idbMax, { actions: [{ label: 'Delete these records', fn: stDelFailed }] }));
+    if (!stored.length && !failed.length) box.append(mk('div', 'mt-sub', 'Nothing saved yet.'));
+    others.forEach(d => {
+        const tot = d.stores.reduce((n, st) => n + (st.bytes || 0), 0);
+        box.append(stDbHead(d.name, SAME_SITE, '~' + fmtBytes(tot)));
+        const dbAction = { label: 'Delete the whole database “' + d.name + '”…', fn: () => stDelDb(d.name) };
+        if (d.error) box.append(stRow('could not be read', d.error, 0, idbMax, { actions: [dbAction] }));
+        else if (!d.stores.length) box.append(stRow('(no stores)', 'empty database', 0, idbMax, { actions: [dbAction] }));
+        d.stores.forEach(st => box.append(stRow(st.name, st.count.toLocaleString() + ' record' + (st.count === 1 ? '' : 's'), st.bytes, idbMax,
+            { approx: true, actions: [{ label: 'Delete all ' + st.count.toLocaleString() + ' record' + (st.count === 1 ? '' : 's') + ' in this store…', fn: () => stClearStore(d.name, st.name, st.count) }, dbAction] })));
+    });
+    // 2. localStorage: key > size
+    box.append(stGroup('localStorage', fmtBytes(ls.used) + ' of ' + fmtBytes(LS_LIMIT), 'Shared by ' + SHARED_BY + ', so other tools you run from the same place count against the same limit. Biggest first.'));
+    if (!inIdb) {                                                  // fallback mode: the tiles themselves are in here
+        box.append(stRow('csvData', cb.rows + ' tiles · your tiles (stored here because IndexedDB is not available)', cb.total, LS_LIMIT, { actions: tileActions }));
+        tileSubs(LS_LIMIT).forEach(r => box.append(r));
+    }
+    const rows = ls.keys.filter(k => !(k.k === 'csvData' && !inIdb)).sort((a, b) => b.n - a.n);
+    (stMoreLs ? rows : rows.slice(0, 40)).forEach(k => {
+        const legacy = k.k === 'csvData' && info.legacyCopy, mine = THIS_PAGE_KEYS.includes(k.k);   // (legacy = TRANSITION CODE: the leftover copy from before the move)
+        box.append(stRow(k.k, legacy ? 'old copy of your tiles, left from before the move (kept as a backup)' : mine ? 'a setting of this page' : SAME_SITE, k.n, LS_LIMIT,
+            { actions: [{ label: legacy ? 'Delete the old copy…' : mine ? 'Reset this setting' : 'Delete…', fn: () => stDelLs(k.k, k.n, legacy), danger: !mine || legacy }] }));
+    });
+    if (rows.length > 40) { const b = mk('button', 'tbtn bk-more', stMoreLs ? 'Show fewer' : 'Show all ' + rows.length + ' items'); b.type = 'button'; b.addEventListener('click', () => { stMoreLs = !stMoreLs; stRenderStorage(); }); box.append(b); }
+    if (!rows.length && inIdb) box.append(mk('div', 'mt-sub', 'Nothing stored.'));
+    // 3. whatever else the browser counts for this site (caches, service workers, overhead) - listed too, but it cannot be opened or deleted from here
+    if (est) {
+        const rest = Math.max(0, est.usage - idbTotal - ls.used);
+        box.append(stGroup('Not itemised', '~' + fmtBytes(rest), ''));
+        box.append(stRow('Browser caches and overhead', 'everything else the browser counts for this site \u00b7 cannot be listed or deleted here \u00b7 the browser\u2019s total is approximate', rest, Math.max(1, est.usage), { approx: true }));
+    }
+}
+byId('stPersistBtn').addEventListener('click', async () => {
+    let granted = false;
+    try { granted = await navigator.storage.persist(); } catch (e) {}
+    await stRenderStorage();
+    if (!granted) byId('stPersist').textContent += '  –  the browser said no this time (Chrome decides by itself, mostly for sites you visit often or have bookmarked or installed)';
+});
+byId('stImgKb').addEventListener('change', e => {
+    const v = Math.max(10, Math.min(5000, parseInt(e.target.value, 10) || 100));
+    e.target.value = v;
+    try { if (v === 100) localStorage.removeItem('imgAskKb'); else localStorage.setItem('imgAskKb', String(v)); } catch (err) {}
+});
 async function stRunTest(msgEl) {                               // retry the tile icons that have no saved copy yet, and wait for the outcome
     const all = tileIconUrls(), urls = all.filter(u => !IconCache.has(u));
-    ['stRetry', 'stRerun'].forEach(id => { byId(id).disabled = true; });
+    byId('stRetry').disabled = true;
     try {
         if (!urls.length) { msgEl.textContent = all.length ? 'Nothing to do – all ' + all.length + ' icons are already saved.' : 'No tile uses a web-address icon.'; return; }
         await IconCache.retest(urls, (n, t) => { msgEl.textContent = 'Trying ' + n + ' of ' + t + ' missing icons…'; });
         const i = IconCache.info();
         msgEl.textContent = 'Done – ' + i.stored + ' saved, ' + i.failed + ' could not be saved.';
-    } finally { ['stRetry', 'stRerun'].forEach(id => { byId(id).disabled = false; }); stShow(stCur); }
+    } finally { byId('stRetry').disabled = false; stShow(stCur); }
 }
-async function diagText() {
-    const i = IconCache.info(), L = [];
-    L.push('Icon cache diagnostics – ' + new Date().toString());
-    L.push('Page: ' + location.protocol + '//' + (location.host || '(local file)') + '   secure context: ' + window.isSecureContext + '   online: ' + navigator.onLine);
-    L.push('Browser: ' + navigator.userAgent);
-    L.push('IndexedDB: ' + (i.dbAvailable ? 'open' : 'NOT available') + (i.dbError ? ' [' + i.dbError + ']' : '') + (i.writeError ? '   last write error: ' + i.writeError : '') + '   start-up read finished: ' + i.loaded);
-    try {
-        if (navigator.storage && navigator.storage.estimate) { const e = await navigator.storage.estimate(); L.push('Browser storage used: ' + fmtBytes(e.usage || 0) + ' of about ' + fmtBytes(e.quota || 0)); }
-        if (navigator.storage && navigator.storage.persisted) L.push('Storage marked persistent: ' + (await navigator.storage.persisted()));
-    } catch (e) {}
-    L.push('Saved copies: ' + i.stored + ' (' + fmtBytes(i.bytes) + ')   could not be saved: ' + i.failed);
-    L.push('Proxy fallback: ' + (i.proxyOn ? 'ON (' + i.proxies.join(', ') + ')' : 'OFF'));
-    const imgs = Array.from(document.querySelectorAll('#grid img[data-isrc]'));
-    const inline = imgs.filter(m => !/^https?:/i.test(m.dataset.isrc)).length;
-    L.push('Tiles on this page with an icon image: ' + imgs.length + '   (stored inside the tile: ' + inline + ')');
-    const urls = tileIconUrls(), byUrl = new Map(IconCache.list().map(e => [e.url, e]));
-    L.push('', 'Web-address tile icons (' + urls.length + '):');
-    urls.slice(0, 60).forEach(u => {
-        const e = byUrl.get(u), shown = imgs.filter(m => m.dataset.isrc === u);
-        const from = shown.length ? (shown.some(m => /^blob:/.test(m.src)) ? 'saved copy' : 'INTERNET') : 'not on this page';
-        L.push('- ' + (u.length > 170 ? u.slice(0, 170) + '…' : u));
-        L.push('    shown from: ' + from + '   |   copy: ' + (e ? (e.fail ? 'none (failed ' + fmtAge(e.t) + ')' : 'saved, ' + fmtBytes(e.size) + ', ' + e.type + ', ' + fmtAge(e.t)) : 'never tried'));
-        (e && e.log.length ? e.log : ['(no attempt recorded this session – press Run test)']).forEach(l => L.push('    ' + l));
-    });
-    if (urls.length > 60) L.push('… and ' + (urls.length - 60) + ' more');
-    return L.join('\n');
-}
-async function stRenderDiag() { const ta = byId('stDiag'); ta.value = 'Collecting…'; ta.value = await diagText(); }
 byId('stNav').addEventListener('click', e => { const b = e.target.closest('button[data-p]'); if (b) stShow(b.dataset.p); });
 byId('stClose').addEventListener('click', () => settingsDialog.close());
 byId('settingsOpen').addEventListener('click', () => openSettingsDialog('appearance'));
 byId('stProxy').addEventListener('change', e => IconCache.setProxy(e.target.checked));
 byId('stRetry').addEventListener('click', () => stRunTest(byId('stIconMsg')));
-byId('stRerun').addEventListener('click', () => stRunTest(byId('stDiagMsg')));
-byId('stClearAll').addEventListener('click', async () => {
-    if (!confirm('Remove all saved icon copies? Tile icons will be downloaded again.')) return;
-    await IconCache.clear(); byId('stIconMsg').textContent = 'Removed.'; stRenderIcons();
-});
 byId('stSavedClear').addEventListener('click', async () => {
     if (!confirm('Remove all saved icon copies? Tile icons will be downloaded again.')) return;
     await IconCache.clear(); stRenderSaved();
-});
-byId('stCopy').addEventListener('click', async () => {
-    const ta = byId('stDiag'), msg = byId('stDiagMsg');
-    ta.value = await diagText();
-    try { await navigator.clipboard.writeText(ta.value); msg.textContent = 'Copied.'; }
-    catch (e) { try { await legacyCopy(ta.value); msg.textContent = 'Copied.'; } catch (e2) { ta.focus(); ta.select(); msg.textContent = 'Could not copy automatically – the text is selected, press Ctrl+C.'; } }
 });
 (function headerMenu() {                      // ☰ dropdown (only visible on narrow screens)
     const btn = byId('menuBtn'), panel = byId('hdrActions');
@@ -1938,10 +2508,15 @@ byId('tileForm').addEventListener('submit', e => {
     const kind = tileKind();
     const text = byId('tdText').value.trim();
     let url = byId('tdUrl').value.trim();
+    if (url === '#') url = '';                                 // "#" on its own means no address: a copy-only tile (or a folder)
     // empty URL => folder: "#" + the title with spaces as underscores (e.g. "Diff Checkers" -> #Diff_Checkers)
     const slug = s => s.trim().replace(/\s+/g, '_').replace(/[^\w-]/g, '');
-    if (kind === 'folder') { url = '#' + slug(text); byId('tdUrl').value = url; }
-    if (!text || url === '#') return;
+    const fail = msg => { const er = byId('tdError'); er.textContent = msg; er.style.display = ''; };   // say why instead of silently doing nothing
+    if (!text) return fail('Give the tile a title.');
+    if (kind === 'folder') {
+        if (!slug(text)) return fail('A folder needs a title with at least one letter or number \u2013 its page name is made from it. (Or add a URL or some copy text to make a tile instead.)');
+        url = '#' + slug(text); byId('tdUrl').value = url;
+    }
     const page = currentPage() === EDITOR_ROUTE ? 'home' : currentPage();   // new tiles go on the page being viewed
     const icon = kind === 'folder' ? '' : byId('tdIcon').value.trim();
     const vals = { page, text, url, icon: (kind === 'copy' && icon.toLowerCase() === 'true') ? '' : icon,
@@ -2689,17 +3264,27 @@ window.LinkPage = {
     isBusy() { return !!((edit && edit.dirty) || drag); },          // unsaved editor changes or a tile mid-drag
     dropEdit() { edit = null; },                                      // discard the editor's working copy
     clearUndo() { undoStack.length = 0; },
-    resetData() { memStore = null; try { localStorage.removeItem('csvData'); } catch (e) {} }   // forget stored tiles (falls back to the default)
+    resetData() { memStore = null; TileStore.clear(); },             // forget stored tiles (falls back to the default)
+    ready: storeReady                                                // resolves once the saved tiles have been read (plugins are loaded after that anyway)
 };
-render();
+// ---- start: wait for the saved tiles (IndexedDB), draw the page, then load the optional plugin so it sees the same data as before ----
+function loadPlugin(src) { const sc = document.createElement('script'); sc.src = src; sc.onerror = () => {}; document.body.appendChild(sc); }
+storeReady.then(() => {
+    setData(loadCsvData());
+    appReady = true;
+    render();
+    checkStorageLevel();
+    // TRANSITION CODE: tells you the one-time move to IndexedDB just happened
+    if (TileStore.info().migrated) showToast('Your tiles were moved to IndexedDB storage (no more 5 MB limit)', true, 'ok');
+    loadPlugin('gist_sync.js');
+});
 </script>
-<!-- Optional: gist_sync.js adds GitHub Gist sync. If the file is missing the browser just skips it and the page works without sync. -->
-<script src="gist_sync.js"></script>
+<!-- Optional plugin: gist_sync.js (GitHub Gist sync) is loaded by the script above once the saved tiles have been read. If the file is missing the page works without it. -->
 </body>
 </html>
 <!--
   ============================================================
-  BUILD: 2026-11-10 20:32:00 (local)
+  BUILD: 2026-11-12 11:23:44 (local)
   ------------------------------------------------------------
   MAINTENANCE RULE — READ BEFORE EDITING THIS FILE:
   Whenever the code in this file is modified in any way,
