@@ -438,7 +438,7 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
         </div>
     </form>
 </dialog>
-<div id="BUILD-FOOTER"><span id="buildText">BUILD: 2026-11-12 11:23:44</span></div>
+<div id="BUILD-FOOTER"><span id="buildText">BUILD: 2026-11-13 12:15:00</span></div>
 <div id="buildInfo" role="tooltip"></div>
 <div id="searchBox" role="dialog" aria-label="Search tiles">
     <div class="sb-panel">
@@ -770,7 +770,12 @@ function loadCsvData() { return memStore || defaultCsvData; }
 const storeReady = TileStore.init().then(text => { if (text) memStore = text; });
 
 // Storage functions
+let previewMode = null;     // set while an old (gist) version is being looked at: nothing is written to storage and no plugin hears about it
 function saveCsvData(csvContent) {
+    if (previewMode) {                                                   // preview only: changes made here are thrown away when the preview ends
+        if (!previewMode.warned) { previewMode.warned = true; showToast('Preview only – changes made here are not kept', true, 'err'); }
+        return;
+    }
     memStore = csvContent;
     TileStore.save(csvContent);
     runHooks('save', csvContent);
@@ -782,6 +787,7 @@ let prunePending = null;
 function schedulePrune() {
     clearTimeout(prunePending);
     prunePending = setTimeout(() => {
+        if (previewMode) return;                                       // the tiles on screen are an old version: never prune by them (done again when the preview ends)
         if (!appReady) { schedulePrune(); return; }                    // tiles not read from storage yet: wait (an empty list would wipe the icon copies)
         try { if (typeof tileIconUrls === 'function' && IconCache.info().loaded) IconCache.prune(tileIconUrls()); } catch (e) { console.warn('Icon clean-up failed', e); }
     }, 2000);
@@ -2351,6 +2357,7 @@ function stDelLs(key, n, legacy) {
     stAfter();
 }
 function stDelTiles() {
+    if (previewMode) { showToast('Exit the preview first', true, 'err'); return; }
     if (!confirm('Delete ALL ' + items.length + ' tiles?\n\nThe default tiles come back. Use "Download CSV" first if you want a backup.')) return;
     TileStore.clear(); memStore = null; edit = null;
     setData(defaultCsvData);
@@ -3255,6 +3262,24 @@ function addBuild(name, stamp) {
     document.addEventListener('click', () => show(false));
     document.addEventListener('keydown', e => { if (e.key === 'Escape') show(false); });
 })();
+// ---- preview of an old version: shows other tiles in the normal page, without touching the stored tiles ----
+let previewUndo = null;
+function previewEnter(csv, label) {
+    if (!previewMode) previewUndo = undoStack.splice(0);               // keep this device's undo history for afterwards
+    previewMode = { label: label || '', warned: false };
+    edit = null; undoStack.length = 0;
+    setData(csv);
+    if (currentPage() === EDITOR_ROUTE) location.hash = 'home'; else render();
+}
+function previewExit() {
+    if (!previewMode) return;
+    previewMode = null; edit = null; undoStack.length = 0;
+    if (previewUndo) undoStack.push(...previewUndo);
+    previewUndo = null;
+    setData(loadCsvData());                                           // back to this device's own tiles
+    render();
+    schedulePrune();
+}
 // What plugins may use (see "optional plugins" above). Everything else in this script is private to the page.
 window.LinkPage = {
     addBuild,                                                        // addBuild('file.js', 'YYYY-MM-DD HH:MM:SS'): list a plugin's build time in the footer hover
@@ -3265,6 +3290,9 @@ window.LinkPage = {
     dropEdit() { edit = null; },                                      // discard the editor's working copy
     clearUndo() { undoStack.length = 0; },
     resetData() { memStore = null; TileStore.clear(); },             // forget stored tiles (falls back to the default)
+    preview: { enter: previewEnter, exit: previewExit, active: () => !!previewMode },   // preview.enter(csvText, label) / exit() / active()
+    whenSaved: () => TileStore.whenIdle(),                           // resolves when the newest tiles are really written to the database
+    storeError: () => TileStore.info().writeError,                   // '' unless the last database write failed
     ready: storeReady                                                // resolves once the saved tiles have been read (plugins are loaded after that anyway)
 };
 // ---- start: wait for the saved tiles (IndexedDB), draw the page, then load the optional plugin so it sees the same data as before ----
@@ -3284,7 +3312,7 @@ storeReady.then(() => {
 </html>
 <!--
   ============================================================
-  BUILD: 2026-11-12 11:23:44 (local)
+  BUILD: 2026-11-13 12:15:00 (local)
   ------------------------------------------------------------
   MAINTENANCE RULE — READ BEFORE EDITING THIS FILE:
   Whenever the code in this file is modified in any way,
