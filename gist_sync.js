@@ -14,7 +14,7 @@
 */
 (function () {
 'use strict';
-const BUILD = '2026-11-10 11:23:00';
+const BUILD = '2026-11-13 12:15:00';
 const LP = window.LinkPage;
 if (!LP || !document.getElementById('hdrActions')) { console.warn('gist_sync.js: page not recognised, sync not loaded'); return; }
 if (LP.addBuild) LP.addBuild('gist_sync.js', BUILD);
@@ -32,12 +32,19 @@ styleEl.textContent = `
     .sync-btn.show{display:flex}
     .sync-btn.synced{color:#aaa;opacity:.6}
     .sync-btn.err{border-color:#f87171}
+    .sync-btn.paused{opacity:.35;cursor:not-allowed;border-style:dashed}
     @media (max-width:720px){ header .hdr-actions > .sync-btn.synced{opacity:1} }
-    #syncDialog,#conflictDialog{margin:auto;border:0;border-radius:10px;padding:0;width:min(520px,94vw);box-shadow:0 12px 40px rgba(0,0,0,.35)}
-    #syncDialog::backdrop,#conflictDialog::backdrop{background:rgba(0,0,0,.45)}
+    #syncDialog,#conflictDialog,#histDialog{margin:auto;border:0;border-radius:10px;padding:0;width:min(520px,94vw);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+    #syncDialog::backdrop,#conflictDialog::backdrop,#histDialog::backdrop{background:rgba(0,0,0,.45)}
     #syInfo{font-size:.8rem;color:#445;background:#eef0ff;border:1px solid #c9ceff;border-radius:4px;padding:6px 8px}
     #syMsg{font-size:.82rem;color:#c0392b;background:#fdecea;border:1px solid #e08a8a;border-radius:4px;padding:6px 8px;white-space:pre-line}
-    #syMsg:empty{display:none}
+    #hiMsg{font-size:.82rem;color:#c0392b;background:#fdecea;border:1px solid #e08a8a;border-radius:4px;padding:6px 8px;white-space:pre-line}
+    #syMsg:empty,#hiMsg:empty{display:none}
+    #previewBar{position:fixed;top:0;left:0;right:0;z-index:60;display:none;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 10px;
+                background:#fff3cd;border-bottom:2px solid #e0a800;color:#533f03;font-size:.8rem}
+    #previewBar.show{display:flex}
+    #previewBar .spacer{flex:1}
+    body.previewing{padding-top:var(--pvh,48px)}
     .gl-list{border:1px solid #ddd;border-radius:4px;max-height:220px;overflow:auto;font-size:.8rem}
     .gl-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #eee;flex-wrap:wrap}
     .gl-row:last-child{border-bottom:0}
@@ -70,7 +77,7 @@ document.body.insertAdjacentHTML('beforeend', `
             <div id="syOn" style="display:none">
                 <label>Your sync link <small>(open it on any of your devices to use the same tiles)</small><input id="syLink" type="text" readonly></label>
             </div>
-            <div><button class="tbtn" id="syList" type="button">List my gists</button></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="tbtn" id="syList" type="button">List my gists</button><button class="tbtn" id="syHist" type="button" style="display:none">Version history…</button></div>
             <div id="syGists" class="gl-list" style="display:none"></div>
         </div>
         <div class="dlg-foot">
@@ -82,6 +89,24 @@ document.body.insertAdjacentHTML('beforeend', `
         </div>
     </div>
 </dialog>
+<dialog id="histDialog">
+    <div class="dlg tile-dlg">
+        <div class="dlg-head"><span>Version history</span></div>
+        <div class="tile-fields">
+            <div id="hiInfo" style="font-size:.8rem;color:#445;background:#eef0ff;border:1px solid #c9ceff;border-radius:4px;padding:6px 8px">Every upload creates a version in your gist. “Preview” opens that version in the page as a read-only copy: nothing on this device or in the gist changes until you choose “Sync to this version”.</div>
+            <div id="hiMsg"></div>
+            <div id="hiList" class="gl-list" style="max-height:340px"></div>
+            <div><button class="tbtn" id="hiMore" type="button" style="display:none">Load older versions</button></div>
+        </div>
+        <div class="dlg-foot"><span class="spacer"></span><button class="tbtn" id="hiClose" type="button">Close</button></div>
+    </div>
+</dialog>
+<div id="previewBar" role="status">
+    <span id="pvText"></span><span class="spacer"></span>
+    <button class="tbtn primary" id="pvSync" type="button">Sync: overwrite online with this</button>
+    <button class="tbtn" id="pvHist" type="button">Other versions</button>
+    <button class="tbtn" id="pvExit" type="button">Exit preview</button>
+</div>
 <dialog id="conflictDialog">
     <div class="dlg tile-dlg">
         <div class="dlg-head"><span>Sync conflict</span></div>
@@ -192,6 +217,24 @@ function getBase() { const o = slotRead(); return o && o.id === syncId ? o.v : n
 function setBase(v) { if (!v || !syncId) { slotWrite(null); return; } const o = slotRead(); slotWrite({ id: syncId, v, p: !!(o && o.id === syncId && o.p) }); }
 function getPending() { const o = slotRead(); return !!(o && o.id === syncId && o.p); }
 function setPending(b) { const o = slotRead(); if (o && o.id === syncId) { o.p = !!b; slotWrite(o); } }
+const pad2 = n => String(n).padStart(2, '0');
+const fmt = t => { const d = new Date(t); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()); };
+// Last successful sync (any direction), shown in the footer hover next to the build times and in the sync dialog.
+function lastSyncRead() { try { const o = JSON.parse(localStorage.getItem('gistLastSync') || 'null'); return o && o.id === syncId ? o : null; } catch (e) { return null; } }
+function refreshSyncStamp() { const o = lastSyncRead(); if (LP.addBuild) LP.addBuild('Last sync', !syncId ? 'not syncing' : o ? fmt(o.t) : 'never'); }
+function markSync(how) { if (!syncId) return; try { localStorage.setItem('gistLastSync', JSON.stringify({ id: syncId, t: Date.now(), how })); } catch (e) {} refreshSyncStamp(); }
+// Text is compared with line endings normalised, so a CRLF/LF difference from the round trip is not mistaken for a change.
+const norm = t => typeof t === 'string' ? t.replace(/\r\n?/g, '\n') : t;
+const same = (a, b) => norm(a) === norm(b);
+// Syncs run one at a time (start-up pull, tab-return pull, upload timer, buttons): two overlapping runs used to work from stale reads.
+let syncChain = Promise.resolve();
+function queued(fn) { return function () { const a = arguments; const p = syncChain.then(() => fn.apply(null, a)); syncChain = p.then(() => {}, () => {}); return p; }; }
+async function verifyStored(csv) {              // the tiles must really be in this device's storage before we call them applied
+    await LP.whenSaved();
+    const err = LP.storeError && LP.storeError();
+    if (err) throw new Error('this device could not store the tiles (' + err + ')');
+    if (!same(loadCsvData(), csv)) throw new Error('the tiles on this device did not change as expected');
+}
 function syncMsg(text) { $('syMsg').textContent = text || ''; }       // error line inside the dialog (toasts sit behind an open dialog)
 
 async function gh(path, opts, token) {
@@ -216,12 +259,12 @@ async function fileText(f) {
     if (f.truncated && f.raw_url) { const r = await fetch(f.raw_url, { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }
     return f.content;
 }
-async function readGist(id, token) {
-    const g = await gh('/gists/' + id, null, token);
+async function readGist(id, token, sha) {                         // sha = an older version of the gist (omit for the newest)
+    const g = await gh('/gists/' + id + (sha ? '/' + sha : ''), null, token);
     const csv = await fileText(g.files && g.files[GIST_CSV]);
     const meta = await fileText(g.files && g.files[GIST_META]);
     let updated = 0; try { updated = +JSON.parse(meta || '{}').updated || 0; } catch (e) {}
-    return { csv, updated, version: gistVersion(g), name: g.description || '' };
+    return { csv, updated, version: sha || gistVersion(g), name: g.description || '' };
 }
 async function findGist(token) {                                   // look for an existing tiles gist in the account
     for (let p = 1; p <= 5; p++) {
@@ -327,6 +370,8 @@ async function useListedGist(id, token) {
 
 function setSyncUi(state) {                    // 'off' | 'ok' | 'busy' | 'err'
     const b = $('syncBtn');
+    if (LP.preview.active()) { b.classList.add('paused'); b.title = 'Sync is off while an old version is being previewed'; return; }
+    b.classList.remove('paused');
     b.classList.toggle('synced', !!syncId && state === 'ok');
     b.classList.toggle('err', !!syncId && (state === 'err' || state === 'conflict'));
     b.title = !syncId ? 'Sync (not set up)' : state === 'conflict' ? 'Sync paused – online copy differs. Click, then “Sync now” to resolve' : state === 'err' ? 'Sync problem – click for details' : state === 'busy' ? 'Syncing…' : 'Synced';
@@ -354,6 +399,7 @@ function setSyncCreds(id, token) {
     setSyncUrl(syncId, syncToken);
     setSyncUi(id ? 'ok' : 'off');
     applyTitle();
+    refreshSyncStamp();
     refreshSyncDialog();
 }
 function refreshSyncDialog() {
@@ -362,13 +408,14 @@ function refreshSyncDialog() {
     $('syOn').style.display = on ? 'block' : 'none';
     $('syStop').style.display = on ? 'inline-block' : 'none';
     $('syCopy').style.display = on ? 'inline-block' : 'none';
+    $('syHist').style.display = on ? 'inline-block' : 'none';
     $('syGo').textContent = on ? 'Sync now' : 'Connect';
     $('syGists').style.display = 'none'; $('syGists').textContent = '';
     $('syLink').value = on ? syncLink() : '';
     $('syId').placeholder = storedToken() ? '(token saved – leave blank to use it)' : '';
     if (!on && pendingGist && !$('syGist').value) $('syGist').value = pendingGist;
     $('syInfo').textContent = on
-        ? 'Gist in use: ' + (syncName ? syncName + ' · ' : '') + syncId + '\n\nSyncing is on. Changes upload automatically, and your other devices pick them up when they open or return to this page. The newest change wins.\n⚠ The sync link contains your GitHub token: anyone with it can read and change your gists. Only open or bookmark it on your own devices.'
+        ? 'Gist in use: ' + (syncName ? syncName + ' · ' : '') + syncId + '\n\nSyncing is on. Changes upload automatically, and your other devices pick them up when they open or return to this page. If the online copy was changed elsewhere, you are asked which one to keep.\n' + (lastSyncRead() ? 'Last sync: ' + fmt(lastSyncRead().t) + ' (' + lastSyncRead().how + ')\n' : 'Last sync: never\n') + '⚠ The sync link contains your GitHub token: anyone with it can read and change your gists. Only open or bookmark it on your own devices.'
         : 'Keep your tiles in step across browsers and devices using a private GitHub Gist in your account.\nYour token stays in this browser (and in the address bar once connected).';
 }
 function scheduleSync() {
@@ -417,35 +464,41 @@ function askConflict(remote) {
         dlg.showModal();
     });
 }
-function applyRemote(remote) {                    // replace the local tiles with the online copy
-    pushUndo();
+async function applyRemote(remote) {               // replace the local tiles with the online copy (and check it really happened)
+    if (LP.preview.active()) throw new Error('a version preview is open – exit it first');
+    clearTimeout(syncTimer);                         // an upload planned for the old local tiles must not run afterwards
+    pushUndo();                                      // so Undo (toast button / Ctrl+Z) brings the previous tiles back
     saveLocal(remote.csv, remote.updated || Date.now());
     setData(remote.csv);
     LP.dropEdit();
     render();
+    await verifyStored(remote.csv);                  // only now is this device recorded as being in step with that online version
     setBase(remote.version);
     setPending(false);
+    markSync('downloaded');
 }
 // Uploads the local tiles. Before overwriting a gist it asks if (a) the gist changed since this device last synced with it, or
 // (b) the local tiles were never confirmed to belong to THIS gist (e.g. after switching gists). skipCheck = the user already chose.
 // `known` = a gist read the caller already has. Returns 'pushed' | 'updated' (online copy taken instead) | 'paused' | false.
-async function pushSync(throwOnError, known, skipCheck) {
-    if (!syncId) return false;
+async function doPush(throwOnError, known, skipCheck) {
+    if (!syncId || LP.preview.active()) return false;
     const sl = slotRead();
     if (sl && sl.id !== syncId) return 'paused';                  // the local tiles now belong to another gist (another tab): wait until this tab is shown again
     try {
         setSyncUi('busy');
         const remote = known || await readGist(syncId);
+        if (LP.preview.active()) return false;                        // a preview was opened meanwhile: do nothing
         const base = getBase(), mine = loadCsvData();
         const remoteHas = typeof remote.csv === 'string' && remote.csv.trim() !== '';
-        if (!skipCheck && remoteHas && remote.csv !== mine && (!base || (remote.version && remote.version !== base))) {
+        if (!skipCheck && remoteHas && !same(remote.csv, mine) && (!base || (remote.version && remote.version !== base))) {
             const choice = await askConflict(remote);
-            if (choice === 'online') { applyRemote(remote); setSyncUi('ok'); return 'updated'; }
+            if (choice === 'online') { await applyRemote(remote); setSyncUi('ok'); return 'updated'; }
             if (choice !== 'keep') { setSyncUi('conflict'); return 'paused'; }
         }
         const g = await gh('/gists/' + syncId, { method: 'PATCH', body: JSON.stringify({ files: gistFiles() }) });
         setBase(gistVersion(g)); setPending(false);
         if (g.description) setSyncName(g.description);
+        markSync('uploaded');
         setSyncUi('ok');
         return 'pushed';
     } catch (e) {
@@ -458,27 +511,32 @@ async function pushSync(throwOnError, known, skipCheck) {
 }
 // force is no longer used (kept so callers stay the same); interactive = report errors inside the sync dialog;
 // quiet = no "updated" toast (the caller reports the result). Returns 'updated' | 'pushed' | 'same' | 'paused', or false on failure/cancel.
-async function pullSync(force, interactive, quiet) {
-    if (!syncId) return false;
+async function doPull(force, interactive, quiet) {
+    if (!syncId || LP.preview.active()) return false;
     try {
         setSyncUi('busy');
         const remote = await readGist(syncId);
+        if (LP.preview.active()) return false;                        // a preview was opened meanwhile: do nothing
         if (remote.name) setSyncName(remote.name);
-        if (typeof remote.csv !== 'string' || !remote.csv.trim()) return await pushSync(true, remote);   // empty: start it with our tiles
+        if (typeof remote.csv !== 'string' || !remote.csv.trim()) {                      // empty gist: only start it with this device's tiles if asked
+            const sl = slotRead();
+            if (!(sl && sl.id === syncId) && !confirm('This gist has no tiles yet.\n\nCopy this device’s ' + (() => { try { return parseCsv(loadCsvData()).items.length; } catch (e) { return ''; } })() + ' tiles into it?\n\nOK = copy them into the gist.  Cancel = leave the gist as it is and do not connect.')) { setSyncUi('off'); return 'paused'; }
+            return await doPush(true, remote, true);
+        }
         const mine = loadCsvData(), mineStamp = localStamp();
-        if (remote.csv === mine) { setBase(remote.version); setPending(false); setSyncUi('ok'); return 'same'; }
+        if (same(remote.csv, mine)) { setBase(remote.version); setPending(false); markSync('already up to date'); setSyncUi('ok'); return 'same'; }
         if (mineStamp === 0 && !getPending()) {                                          // nothing of our own for this gist: just take it
-            applyRemote(remote);
+            await applyRemote(remote);
             if (!quiet) showToast('Updated from sync');
             setSyncUi('ok');
             return 'updated';
         }
         const base = getBase();
-        if (!base || getPending()) return await pushSync(true, remote);                  // unverified or changed here: upload (asks if unsafe)
-        if (remote.version === base) return await pushSync(true, remote);                // gist unchanged since last sync, so the difference is ours
+        if (!base || getPending()) return await doPush(true, remote);                  // unverified or changed here: upload (asks if unsafe)
+        if (remote.version === base) return await doPush(true, remote);                // gist unchanged since last sync, so the difference is ours
         const busy = LP.isBusy() || (!interactive && document.querySelector('dialog[open]'));
         if (busy) { setSyncUi('ok'); return 'same'; }                                    // gist changed elsewhere; don't disturb work in progress
-        applyRemote(remote);
+        await applyRemote(remote);
         if (!quiet) showToast('Updated from sync');
         setSyncUi('ok');
         return 'updated';
@@ -489,7 +547,8 @@ async function pullSync(force, interactive, quiet) {
         return false;
     }
 }
-$('syncBtn').addEventListener('click', () => { syncMsg(''); refreshSyncDialog(); syncDialog.showModal(); });
+const pushSync = queued(doPush), pullSync = queued(doPull);
+$('syncBtn').addEventListener('click', () => { if (LP.preview.active()) { showToast('Exit the version preview first', true); return; } syncMsg(''); refreshSyncDialog(); syncDialog.showModal(); });
 $('syClose').addEventListener('click', () => syncDialog.close());
 $('syLink').addEventListener('focus', e => e.target.select());
 $('syList').addEventListener('click', showGistList);
@@ -509,7 +568,7 @@ $('syGo').addEventListener('click', async () => {
             if (!r) return;                                                               // error is shown in the dialog
             syncDialog.close();
             if (r === 'paused') { showToast('Sync paused – the online copy differs from this device', true, 'err'); return; }
-            showToast(r === 'updated' ? 'Synced ✓ – tiles updated from your gist' : r === 'pushed' ? 'Synced ✓ – your tiles were uploaded' : 'Synced ✓ – already up to date', true, 'ok');
+            showToast(r === 'updated' ? 'Synced ✓ – tiles updated from your gist' : r === 'pushed' ? 'Synced ✓ – your tiles were uploaded' : 'Synced ✓ – already up to date', r !== 'updated', 'ok');
             return;
         }
         const token = $('syId').value.trim() || storedToken();
@@ -530,10 +589,11 @@ $('syGo').addEventListener('click', async () => {
             await readGist(id, token);                                                    // verify access before saving anything
             setSyncCreds(id, token);
             const r = await pullSync(false, true, true);
-            if (r === 'paused') { setSyncCreds(null); syncMsg('Not connected: this device and that gist have different tiles.'); return; }
+            if (r === 'paused') { setSyncCreds(null); syncMsg('Not connected: nothing was changed.'); return; }
             if (!r) { setSyncCreds(null); return; }                                       // error is shown in the dialog
             msg = r === 'updated' ? 'Connected ✓ – tiles loaded from your gist' : 'Connected ✓ – tiles synced';
         } else {
+            if (!confirm('Create a new private gist from this device’s ' + (() => { try { return parseCsv(loadCsvData()).items.length; } catch (e) { return ''; } })() + ' tiles?\n\nThe new gist starts as a copy of the tiles you have now.')) return;
             const g = await createGist(token, $('syName').value.trim());                  // first device: create it from the local tiles
             id = g.id;
             slotWrite(null);                                                              // the tiles here were just uploaded as this gist: they are its copy
@@ -543,7 +603,7 @@ $('syGo').addEventListener('click', async () => {
         }
         $('syId').value = ''; $('syGist').value = ''; $('syNew').checked = false; $('syGist').disabled = false; $('syName').value = ''; pendingGist = null;
         syncDialog.close();                                                               // done: close the dialog …
-        showToast(msg + '. Sync link saved in the address bar.', true, 'ok');             // … and tell the user
+        showToast(msg + '. Sync link saved in the address bar.', msg.indexOf('loaded') < 0, 'ok');             // … and tell the user
     } catch (e) {
         console.warn('Sync connect failed', e);
         if (!wasOn) setSyncCreds(null);
@@ -558,9 +618,108 @@ $('syStop').addEventListener('click', () => {
     syncDialog.close();
     showToast('Syncing stopped', true);
 });
-document.addEventListener('visibilitychange', () => { if (!document.hidden && syncId) { adoptLocalFor(syncId); pullSync(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && syncId && !LP.preview.active()) { adoptLocalFor(syncId); pullSync(); } });
+
+/* ======================= Version history: preview an old gist version in the page, then optionally sync to it ======================= */
+const histDialog = $('histDialog');
+let previewRev = null, histPage = 0, histDone = false;
+function updateBarSpace() { const bar = $('previewBar'); document.body.style.setProperty('--pvh', (bar.classList.contains('show') ? bar.offsetHeight : 0) + 'px'); }
+window.addEventListener('resize', () => { if (previewRev) updateBarSpace(); });
+function showPreviewBar() {
+    const n = (() => { try { return parseCsv(previewRev.csv).items.length; } catch (e) { return '?'; } })();
+    $('pvText').textContent = '👁 Previewing the version from ' + fmt(previewRev.when) + ' (' + previewRev.sha.slice(0, 8) + ') · ' + n + ' tiles · unsynced, read-only preview: sync is off and nothing is saved';
+    $('previewBar').classList.add('show'); document.body.classList.add('previewing'); updateBarSpace();
+    setSyncUi('ok');                                                     // greys the ☁ button: sync is off until the preview ends
+}
+function hidePreviewBar() { $('previewBar').classList.remove('show'); document.body.classList.remove('previewing'); updateBarSpace(); if (syncId) setSyncUi('ok'); }
+function exitPreview(silent) {
+    if (!previewRev) return;
+    previewRev = null;
+    LP.preview.exit();                                                   // the page goes back to this device's own tiles
+    hidePreviewBar();
+    if (syncId && getPending()) scheduleSync();                          // an upload that was held back while previewing
+    if (!silent) showToast('Preview closed – your own tiles are back', true, 'ok');
+}
+async function loadHistory(reset) {
+    const list = $('hiList'), more = $('hiMore'), msg = $('hiMsg');
+    msg.textContent = '';
+    if (reset) { list.textContent = ''; histPage = 0; histDone = false; }
+    more.disabled = true;
+    try {
+        const page = histPage + 1;
+        const commits = await gh('/gists/' + syncId + '/commits?per_page=30&page=' + page);
+        histPage = page; if (commits.length < 30) histDone = true;
+        const base = getBase();
+        if (!commits.length && !list.children.length) list.textContent = 'No versions found.';
+        commits.forEach(c => {
+            const isLatest = list.children.length === 0;
+            const row = document.createElement('div'); row.className = 'gl-row' + (isLatest ? ' current' : '');
+            const info = document.createElement('div'); info.className = 'gl-info';
+            const t = document.createElement('b'); t.textContent = fmt(Date.parse(c.committed_at));
+            const d = document.createElement('small'), cs = c.change_status;
+            d.textContent = c.version.slice(0, 8) + (cs ? ' · +' + (cs.additions || 0) + ' −' + (cs.deletions || 0) + ' lines' : '') + (isLatest ? ' · latest online' : '') + (c.version === base ? ' · last synced on this device' : '');
+            info.append(t, d); row.append(info);
+            const b = document.createElement('button'); b.type = 'button'; b.className = 'tbtn'; b.textContent = 'Preview';
+            b.addEventListener('click', () => previewVersion(c, b));
+            row.append(b); list.append(row);
+        });
+    } catch (e) { msg.textContent = syncErr(e); }
+    more.style.display = histDone ? 'none' : ''; more.disabled = false;
+}
+async function previewVersion(c, btn) {
+    if (LP.isBusy()) { $('hiMsg').textContent = 'Finish or save what you are editing first.'; return; }
+    btn.disabled = true; btn.textContent = 'Loading…'; $('hiMsg').textContent = '';
+    try {
+        const rev = await readGist(syncId, null, c.version);
+        if (typeof rev.csv !== 'string' || !rev.csv.trim()) throw new Error('That version has no tiles.');
+        const p = parseCsv(rev.csv);
+        if (!['page', 'text', 'url'].every(h => p.headers.includes(h))) throw new Error('That version is not a tile file.');
+        previewRev = { sha: c.version, csv: rev.csv, when: Date.parse(c.committed_at) };
+        histDialog.close(); if (syncDialog.open) syncDialog.close();
+        LP.preview.enter(rev.csv, fmt(previewRev.when));
+        showPreviewBar();
+    } catch (e) { $('hiMsg').textContent = syncErr(e); }
+    btn.disabled = false; btn.textContent = 'Preview';
+}
+// Makes this device AND the online gist equal to the previewed version. The version that was online stays in the history.
+const applyVersion = queued(async (rev, latest) => {
+    previewRev = null; LP.preview.exit();                                // back to this device's tiles first, so Undo gets them
+    hidePreviewBar();
+    clearTimeout(syncTimer);
+    pushUndo();
+    saveLocal(rev.csv, Date.now());
+    setData(rev.csv); LP.dropEdit(); render();
+    await verifyStored(rev.csv);
+    setPending(true);                                                    // not in the gist yet (a failed upload is retried)
+    return doPush(true, latest, true);
+});
+async function restoreVersion() {
+    if (!previewRev) return;
+    const rev = previewRev, btn = $('pvSync'); btn.disabled = true;
+    try {
+        const latest = await readGist(syncId);                           // look at the gist as it is right now
+        const mine = loadCsvData();
+        const lose = !same(mine, latest.csv) && !same(mine, rev.csv);
+        if (same(latest.csv, rev.csv) && same(mine, rev.csv)) { showToast('This version is already what you have and what is online', true, 'ok'); return; }
+        if (!confirm('Make this device AND the online gist match the version from ' + fmt(rev.when) + '?\n\n' +
+            'The version that is online now is not deleted: it stays in the gist history and you can come back to it.' +
+            (lose ? '\n\n⚠ This device has tiles that are not in the online copy. They will be replaced here (Undo can bring them back on this device only).' : ''))) return;
+        const r = await applyVersion(rev, latest);
+        if (r === 'pushed') showToast('Synced to the version from ' + fmt(rev.when) + ' ✓', false, 'ok');
+        else showToast('Not uploaded (' + r + '). This device has the old version; open ☁ and press Sync now to finish.', true, 'err');
+    } catch (e) {
+        showToast('Could not sync to that version: ' + syncErr(e) + '\nOpen ☁ and press Sync now to retry.', true, 'err');
+    } finally { btn.disabled = false; }
+}
+$('syHist').addEventListener('click', () => { syncMsg(''); histDialog.showModal(); loadHistory(true); });
+$('hiMore').addEventListener('click', () => loadHistory(false));
+$('hiClose').addEventListener('click', () => histDialog.close());
+$('pvHist').addEventListener('click', () => { histDialog.showModal(); loadHistory(true); });
+$('pvExit').addEventListener('click', () => exitPreview());
+$('pvSync').addEventListener('click', restoreVersion);
 
 /* ---------- connect to the page ---------- */
+
 LP.on('save', () => { if (applying) return; stampWrite(Date.now()); scheduleSync(); });      // a local edit: upload it shortly (no-op when sync is off)
 LP.on('render', info => { $('syncBtn').classList.toggle('show', !info.editing); applyTitle(); });
 // tiles saved before this plugin existed have no timestamp: mark them as this device's own so they are never mistaken for "empty"
@@ -569,6 +728,7 @@ render();                                                      // the page was d
 
 
 
+refreshSyncStamp();
 setSyncUi(syncId ? 'busy' : 'off');
 if (syncId) {
     setSyncUrl(syncId, syncToken);             // keep ?gist=…&token=… in the address bar
@@ -576,7 +736,7 @@ if (syncId) {
     pullSync(false, false, true).then(r => {
         if (!r) return;                        // a failure toast was already shown
         if (r === 'paused') { showToast('Sync paused – open ☁ and press Sync now to resolve', true, 'err'); return; }
-        if (syncFromUrl) showToast('Sync link recognised ✓ – ' + (r === 'updated' ? 'tiles loaded from your gist' : 'tiles are in sync'), true, 'ok');
+        if (syncFromUrl) showToast('Sync link recognised ✓ – ' + (r === 'updated' ? 'tiles loaded from your gist' : 'tiles are in sync'), r !== 'updated', 'ok');
         else if (r === 'updated') showToast('Updated from sync');
     });
 } else if (syncTokenOnly) {
