@@ -7,6 +7,9 @@
   This file only talks to the page through window.LinkPage (see "optional plugins" in local_link_page.html). It adds its own
   button, dialogs and styles, so nothing in the page needs to know about gists.
 
+  Every upload records which device made it and why (meta.json in the gist: latest entry + a short log). The log is shown in the
+  sync dialog (☁︎) and printed to the browser console as "gist_sync: uploaded".
+
   Needs a GitHub token with the "gist" scope ("Create gists"). The token and gist ID are kept in this browser's localStorage
   and in the address bar as  ?gist=<id>&token=<token>  so the page address can be bookmarked / opened on your other devices.
 
@@ -14,7 +17,7 @@
 */
 (function () {
 'use strict';
-const BUILD = '2026-11-13 12:15:00';
+const BUILD = '2026-11-17 12:00:00';
 const LP = window.LinkPage;
 if (!LP || !document.getElementById('hdrActions')) { console.warn('gist_sync.js: page not recognised, sync not loaded'); return; }
 if (LP.addBuild) LP.addBuild('gist_sync.js', BUILD);
@@ -76,6 +79,8 @@ document.body.insertAdjacentHTML('beforeend', `
             </div>
             <div id="syOn" style="display:none">
                 <label>Your sync link <small>(open it on any of your devices to use the same tiles)</small><input id="syLink" type="text" readonly></label>
+                <div style="margin-top:8px"><b style="font-size:.85rem">Who updated the gist, and why</b><div id="syLog" class="gl-list" style="margin-top:4px"></div></div>
+                <label style="margin-top:8px">This device’s name <small>(shown in that log; leave blank to use the automatic name)</small><input id="syDev" type="text" spellcheck="false" autocomplete="off" maxlength="60"></label>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="tbtn" id="syList" type="button">List my gists</button><button class="tbtn" id="syHist" type="button" style="display:none">Version history…</button></div>
             <div id="syGists" class="gl-list" style="display:none"></div>
@@ -248,11 +253,52 @@ async function gh(path, opts, token) {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
 }
-function gistFiles() {
-    return {
-        [GIST_CSV]: { content: loadCsvData() || DEFAULT_HEADERS.join(',') + '\n' },
-        [GIST_META]: { content: JSON.stringify({ updated: localStamp() || Date.now() }) }
-    };
+// --- who changed the gist, and why: each upload adds an entry (time, device, reason) to meta.json; the last LOG_MAX are kept ---
+const LOG_MAX = 30;
+let memDeviceId = '', remoteMeta = null;                        // remoteMeta = {updated, log} as last read from / written to the gist in use
+const newDeviceId = () => Math.random().toString(16).slice(2, 10).padEnd(8, '0');
+function deviceId() {
+    try { let v = localStorage.getItem('gistDeviceId'); if (!v) { v = newDeviceId(); localStorage.setItem('gistDeviceId', v); } return v; }
+    catch (e) { return memDeviceId || (memDeviceId = newDeviceId()); }
+}
+function guessDevice() {
+    const ua = navigator.userAgent || '';
+    const os = /Android/i.test(ua) ? 'Android' : /iPhone/i.test(ua) ? 'iPhone' : /iPad/i.test(ua) ? 'iPad' : /Windows/i.test(ua) ? 'Windows' : /Mac OS X|Macintosh/i.test(ua) ? 'Mac' : /CrOS/i.test(ua) ? 'ChromeOS' : /Linux/i.test(ua) ? 'Linux' : 'unknown OS';
+    const br = /Edg\//.test(ua) ? 'Edge' : /OPR\/|Opera/.test(ua) ? 'Opera' : /Firefox\/|FxiOS/.test(ua) ? 'Firefox' : /Chrome\/|CriOS/.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'browser';
+    return br + ' on ' + os;
+}
+function storedDeviceName() { try { return localStorage.getItem('gistDeviceName') || ''; } catch (e) { return ''; } }
+const deviceName = () => storedDeviceName() || guessDevice();
+function parseLog(m) {                                          // the log from a meta.json (older gists only have none, or a single "reason")
+    if (Array.isArray(m.log)) return m.log.filter(x => x && typeof x === 'object');
+    return m.reason ? [{ t: +m.updated || 0, device: m.device, id: m.deviceId, reason: m.reason }] : [];
+}
+// Returns {files, meta}: the files to upload, and the meta.json content (so the caller can show it without re-reading the gist).
+function gistFiles(reason, prevLog) {
+    const csv = loadCsvData() || DEFAULT_HEADERS.join(',') + '\n';
+    let rows = '?'; try { rows = parseCsv(csv).items.length; } catch (e) {}
+    const entry = { t: Date.now(), device: deviceName(), id: deviceId(), reason: reason || 'No reason given', rows };
+    const log = (Array.isArray(prevLog) ? prevLog : []).concat(entry).slice(-LOG_MAX);
+    const meta = { updated: localStamp() || Date.now(), device: entry.device, deviceId: entry.id, reason: entry.reason, log };
+    console.info('gist_sync: uploaded', entry);
+    return { files: { [GIST_CSV]: { content: csv }, [GIST_META]: { content: JSON.stringify(meta) } }, meta: { updated: meta.updated, log } };
+}
+function renderSyncLog() {
+    const box = $('syLog'); if (!box) return;
+    box.textContent = '';
+    const log = remoteMeta && remoteMeta.log;
+    if (!log) { box.textContent = syncId ? 'Not read from the gist yet…' : ''; return; }
+    if (!log.length) { box.textContent = 'No record yet. The next upload from any device starts it (earlier uploads were not logged).'; return; }
+    const me = deviceId();
+    log.slice().reverse().forEach((e, i) => {
+        const row = document.createElement('div'); row.className = 'gl-row' + (i === 0 ? ' current' : '');
+        const info = document.createElement('div'); info.className = 'gl-info';
+        const t = document.createElement('b');
+        t.textContent = (e.t ? fmt(e.t) : 'unknown time') + ' · ' + (e.device || 'unknown device') + (e.id && e.id === me ? ' (this device)' : '') + (i === 0 ? ' · latest' : '');
+        const d = document.createElement('small');
+        d.textContent = (e.reason || 'no reason recorded') + (e.rows !== undefined ? ' · ' + e.rows + ' rows' : '') + (e.id ? ' · device ' + e.id : '');
+        info.append(t, d); row.append(info); box.append(row);
+    });
 }
 async function fileText(f) {
     if (!f) return null;
@@ -263,8 +309,10 @@ async function readGist(id, token, sha) {                         // sha = an ol
     const g = await gh('/gists/' + id + (sha ? '/' + sha : ''), null, token);
     const csv = await fileText(g.files && g.files[GIST_CSV]);
     const meta = await fileText(g.files && g.files[GIST_META]);
-    let updated = 0; try { updated = +JSON.parse(meta || '{}').updated || 0; } catch (e) {}
-    return { csv, updated, version: sha || gistVersion(g), name: g.description || '' };
+    let updated = 0, m = {}; try { m = JSON.parse(meta || '{}') || {}; updated = +m.updated || 0; } catch (e) { m = {}; }
+    const log = parseLog(m);
+    if (!sha && id === syncId) { remoteMeta = { updated, log }; renderSyncLog(); }
+    return { csv, updated, version: sha || gistVersion(g), name: g.description || '', log };
 }
 async function findGist(token) {                                   // look for an existing tiles gist in the account
     for (let p = 1; p <= 5; p++) {
@@ -276,7 +324,9 @@ async function findGist(token) {                                   // look for a
     return null;
 }
 async function createGist(token, name) {
-    const g = await gh('/gists', { method: 'POST', body: JSON.stringify({ description: name || GIST_DESC, public: false, files: gistFiles() }) }, token);
+    const built = gistFiles('Gist created from this device’s tiles', []);
+    const g = await gh('/gists', { method: 'POST', body: JSON.stringify({ description: name || GIST_DESC, public: false, files: built.files }) }, token);
+    g._meta = built.meta;
     return g;
 }
 
@@ -390,7 +440,7 @@ function setSyncUrl(id, token) {               // keep gist + token in the addre
 function setSyncCreds(id, token) {
     if (!id) slotWrite(null);                                                      // stopping sync: forget what the tiles were synced with
     else adoptLocalFor(id);                                                        // swap in this gist's own local copy
-    if ((id || null) !== syncId) { syncName = ''; try { localStorage.removeItem('gistName'); } catch (e) {} }
+    if ((id || null) !== syncId) { syncName = ''; remoteMeta = null; try { localStorage.removeItem('gistName'); } catch (e) {} }
     syncId = id || null; syncToken = id ? token : null;
     try {
         if (id) { localStorage.setItem('gistId', id); localStorage.setItem('gistToken', token); }
@@ -412,18 +462,22 @@ function refreshSyncDialog() {
     $('syGo').textContent = on ? 'Sync now' : 'Connect';
     $('syGists').style.display = 'none'; $('syGists').textContent = '';
     $('syLink').value = on ? syncLink() : '';
+    renderSyncLog();
+    $('syDev').value = storedDeviceName(); $('syDev').placeholder = guessDevice();
     $('syId').placeholder = storedToken() ? '(token saved – leave blank to use it)' : '';
     if (!on && pendingGist && !$('syGist').value) $('syGist').value = pendingGist;
     $('syInfo').textContent = on
         ? 'Gist in use: ' + (syncName ? syncName + ' · ' : '') + syncId + '\n\nSyncing is on. Changes upload automatically, and your other devices pick them up when they open or return to this page. If the online copy was changed elsewhere, you are asked which one to keep.\n' + (lastSyncRead() ? 'Last sync: ' + fmt(lastSyncRead().t) + ' (' + lastSyncRead().how + ')\n' : 'Last sync: never\n') + '⚠ The sync link contains your GitHub token: anyone with it can read and change your gists. Only open or bookmark it on your own devices.'
         : 'Keep your tiles in step across browsers and devices using a private GitHub Gist in your account.\nYour token stays in this browser (and in the address bar once connected).';
 }
-function scheduleSync() {
+let pendingReason = '';
+function scheduleSync(reason) {
     if (!syncId) return;
+    pendingReason = reason || pendingReason || 'Edited tiles on this device';
     setPending(true);                           // local change not yet in the gist
     setSyncUi('busy');                          // change is waiting to upload: not greyed yet
     clearTimeout(syncTimer);
-    syncTimer = setTimeout(() => pushSync(), 1500);
+    syncTimer = setTimeout(() => { const r = pendingReason; pendingReason = ''; pushSync(false, null, false, r); }, 1500);
 }
 let conflictOpen = false;
 // Asks what to do when this device's tiles and the gist differ and it isn't safe to pick one automatically.
@@ -480,7 +534,7 @@ async function applyRemote(remote) {               // replace the local tiles wi
 // Uploads the local tiles. Before overwriting a gist it asks if (a) the gist changed since this device last synced with it, or
 // (b) the local tiles were never confirmed to belong to THIS gist (e.g. after switching gists). skipCheck = the user already chose.
 // `known` = a gist read the caller already has. Returns 'pushed' | 'updated' (online copy taken instead) | 'paused' | false.
-async function doPush(throwOnError, known, skipCheck) {
+async function doPush(throwOnError, known, skipCheck, reason) {
     if (!syncId || LP.preview.active()) return false;
     const sl = slotRead();
     if (sl && sl.id !== syncId) return 'paused';                  // the local tiles now belong to another gist (another tab): wait until this tab is shown again
@@ -494,15 +548,18 @@ async function doPush(throwOnError, known, skipCheck) {
             const choice = await askConflict(remote);
             if (choice === 'online') { await applyRemote(remote); setSyncUi('ok'); return 'updated'; }
             if (choice !== 'keep') { setSyncUi('conflict'); return 'paused'; }
+            reason = 'Conflict: chose “Keep this device” (' + (reason || 'no reason given') + ')';
         }
-        const g = await gh('/gists/' + syncId, { method: 'PATCH', body: JSON.stringify({ files: gistFiles() }) });
+        const built = gistFiles(reason, remote.log);
+        const g = await gh('/gists/' + syncId, { method: 'PATCH', body: JSON.stringify({ files: built.files }) });
+        remoteMeta = built.meta; renderSyncLog();
         setBase(gistVersion(g)); setPending(false);
         if (g.description) setSyncName(g.description);
         markSync('uploaded');
         setSyncUi('ok');
         return 'pushed';
     } catch (e) {
-        console.warn('Sync upload failed', e);
+        console.warn('Sync upload failed (' + (reason || 'no reason given') + ')', e);
         setSyncUi('err');
         if (throwOnError) throw e;
         showToast('Sync failed: ' + syncErr(e), true, 'err');
@@ -521,7 +578,7 @@ async function doPull(force, interactive, quiet) {
         if (typeof remote.csv !== 'string' || !remote.csv.trim()) {                      // empty gist: only start it with this device's tiles if asked
             const sl = slotRead();
             if (!(sl && sl.id === syncId) && !confirm('This gist has no tiles yet.\n\nCopy this device’s ' + (() => { try { return parseCsv(loadCsvData()).items.length; } catch (e) { return ''; } })() + ' tiles into it?\n\nOK = copy them into the gist.  Cancel = leave the gist as it is and do not connect.')) { setSyncUi('off'); return 'paused'; }
-            return await doPush(true, remote, true);
+            return await doPush(true, remote, true, 'Gist had no tiles: started it with this device’s tiles');
         }
         const mine = loadCsvData(), mineStamp = localStamp();
         if (same(remote.csv, mine)) { setBase(remote.version); setPending(false); markSync('already up to date'); setSyncUi('ok'); return 'same'; }
@@ -532,8 +589,8 @@ async function doPull(force, interactive, quiet) {
             return 'updated';
         }
         const base = getBase();
-        if (!base || getPending()) return await doPush(true, remote);                  // unverified or changed here: upload (asks if unsafe)
-        if (remote.version === base) return await doPush(true, remote);                // gist unchanged since last sync, so the difference is ours
+        if (!base || getPending()) return await doPush(true, remote, false, getPending() ? 'Changes made on this device that had not uploaded yet' : 'This device’s tiles had never been synced with this gist');   // unverified or changed here: upload (asks if unsafe)
+        if (remote.version === base) return await doPush(true, remote, false, 'This device’s tiles differed from the gist, which was unchanged since the last sync');   // gist unchanged since last sync, so the difference is ours
         const busy = LP.isBusy() || (!interactive && document.querySelector('dialog[open]'));
         if (busy) { setSyncUi('ok'); return 'same'; }                                    // gist changed elsewhere; don't disturb work in progress
         await applyRemote(remote);
@@ -552,6 +609,10 @@ $('syncBtn').addEventListener('click', () => { if (LP.preview.active()) { showTo
 $('syClose').addEventListener('click', () => syncDialog.close());
 $('syLink').addEventListener('focus', e => e.target.select());
 $('syList').addEventListener('click', showGistList);
+$('syDev').addEventListener('change', e => {
+    const v = e.target.value.trim().slice(0, 60); e.target.value = v;
+    try { if (v) localStorage.setItem('gistDeviceName', v); else localStorage.removeItem('gistDeviceName'); } catch (x) {}
+});
 $('syNew').addEventListener('change', e => { $('syGist').disabled = e.target.checked; if (e.target.checked) $('syGist').value = ''; });
 $('syCopy').addEventListener('click', () => {
     const b = $('syCopy');
@@ -599,6 +660,7 @@ $('syGo').addEventListener('click', async () => {
             slotWrite(null);                                                              // the tiles here were just uploaded as this gist: they are its copy
             setSyncCreds(id, token);
             setBase(gistVersion(g)); setSyncName(g.description); setPending(false);
+            remoteMeta = g._meta || null; renderSyncLog();
             msg = 'Connected ✓ – private gist created and tiles uploaded';
         }
         $('syId').value = ''; $('syGist').value = ''; $('syNew').checked = false; $('syGist').disabled = false; $('syName').value = ''; pendingGist = null;
@@ -637,7 +699,7 @@ function exitPreview(silent) {
     previewRev = null;
     LP.preview.exit();                                                   // the page goes back to this device's own tiles
     hidePreviewBar();
-    if (syncId && getPending()) scheduleSync();                          // an upload that was held back while previewing
+    if (syncId && getPending()) scheduleSync('Upload held back while an old version was being previewed');   // an upload that was held back while previewing
     if (!silent) showToast('Preview closed – your own tiles are back', true, 'ok');
 }
 async function loadHistory(reset) {
@@ -691,7 +753,7 @@ const applyVersion = queued(async (rev, latest) => {
     setData(rev.csv); LP.dropEdit(); render();
     await verifyStored(rev.csv);
     setPending(true);                                                    // not in the gist yet (a failed upload is retried)
-    return doPush(true, latest, true);
+    return doPush(true, latest, true, 'Restored the version from ' + fmt(rev.when) + ' (' + String(rev.sha).slice(0, 8) + ') from version history');
 });
 async function restoreVersion() {
     if (!previewRev) return;
