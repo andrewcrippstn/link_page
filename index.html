@@ -390,6 +390,37 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
     .shr-note{font-size:.8rem;min-height:1.2em;color:#777}
     .shr-note.bad{color:#b3261e;font-weight:600}
     @media (max-width:560px){.shr-cols{grid-template-columns:1fr}.shr-box{height:150px}}
+    /* ---- Changelog: Settings > About row, unread dot, and the #_changelog page ---- */
+    #settingsBtn,#settingsOpen,#stNav button[data-p="about"]{position:relative}
+    .cl-dot{display:none;position:absolute;top:4px;right:4px;width:9px;height:9px;border-radius:50%;background:#e5484d;border:2px solid #fff;box-sizing:content-box;pointer-events:none}
+    body.cl-unread .cl-dot{display:block}
+    #clRow .cl-dot{position:static;margin-left:2px;border:0;width:8px;height:8px;flex:none}
+    body.cl-unread #clRow .cl-dot{display:inline-block}
+    .cl-row{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;color:#333;text-decoration:none;cursor:pointer}
+    .cl-row:hover{border-color:var(--accent);background:var(--accent-t1)}
+    .cl-row .cl-rver{color:#777;font-variant-numeric:tabular-nums}
+    .cl-row .cl-go{margin-left:auto;color:var(--accent);font-weight:600;font-size:.88rem}
+    #changelog{display:none;max-width:760px;margin:0 auto}
+    .cl-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+    .cl-chips{display:flex;gap:6px;flex-wrap:wrap}
+    .cl-chip{border:2px solid #e0e0e0;background:#fff;border-radius:999px;padding:4px 12px;font:inherit;font-size:.82rem;cursor:pointer;color:#444}
+    .cl-chip:hover{border-color:var(--accent);background:var(--accent-t1)}
+    .cl-chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-t3);font-weight:600}
+    .cl-search{flex:1 1 180px;min-width:140px;border:2px solid #e0e0e0;border-radius:8px;padding:7px 10px;font:inherit;font-size:.88rem;background:#fff}
+    .cl-search:focus{outline:none;border-color:var(--accent)}
+    #clList details{background:#fff;border:1px solid #e0e0e0;border-radius:10px;margin-bottom:10px;overflow:hidden}
+    #clList summary{cursor:pointer;padding:11px 14px;display:flex;gap:10px;align-items:baseline;list-style:none}
+    #clList summary::-webkit-details-marker{display:none}
+    #clList summary::before{content:"\25B8";color:#999;font-size:.8rem}
+    #clList details[open] > summary::before{content:"\25BE"}
+    #clList .cl-date{color:#888;font-size:.82rem;margin-left:auto}
+    .cl-item{display:flex;gap:10px;align-items:flex-start;padding:8px 14px;border-top:1px solid #f0f0f0}
+    .cl-tag{flex:none;min-width:68px;text-align:center;border-radius:999px;padding:1px 8px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+    .cl-tag.added{background:#e3f6e8;color:#1e7a3a} .cl-tag.changed{background:#e6edff;color:#2c4fc7}
+    .cl-tag.fixed{background:#fff1d6;color:#a15c00} .cl-tag.removed{background:#fde8e8;color:#b3261e}
+    .cl-text{font-size:.92rem;line-height:1.35}
+    .cl-why{font-size:.8rem;color:#888;margin-top:2px;line-height:1.35}
+    .cl-empty{color:#777;font-size:.9rem;padding:10px 2px}
 </style>
 </head>
 <body>
@@ -400,7 +431,7 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
         <button class="menu-btn" id="menuBtn" type="button" title="Menu" aria-label="Menu">☰</button>
         <div class="hdr-actions" id="hdrActions">
         <button class="search-btn" id="searchBtn" type="button" title="Search" aria-label="Search"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button>
-        <button class="settings-btn" id="settingsBtn" type="button" title="Settings" aria-label="Settings" aria-haspopup="true">⚙&#xFE0E;</button>
+        <button class="settings-btn" id="settingsBtn" type="button" title="Settings" aria-label="Settings" aria-haspopup="true">⚙&#xFE0E;<i class="cl-dot" aria-hidden="true"></i></button>
         <a href="#home" class="home-btn" id="homeBtn" title="Home" aria-label="Home"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block"><path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10M10 20v-6h4v6"/></svg></a>
         </div>
         <input type="file" id="csvFileInput" accept=".csv">
@@ -412,6 +443,7 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
     <datalist id="pageList"></datalist>
     <div id="trashZone"><span class="ico">🗑</span><span>Delete</span></div>
     <div id="editor"></div>
+    <div id="changelog"></div>
 </div>
 <div id="toast" role="status"><span id="toastMsg"></span><button type="button" id="toastUndo">Undo</button></div>
 <div id="ctxMenu" role="menu">
@@ -423,7 +455,7 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
     <button type="button" role="menuitem" id="editorBtn" title="Edit data (spreadsheet view)" aria-label="Edit data (spreadsheet view)">✎</button>
     <button type="button" role="menuitem" id="downloadBtn" title="Download CSV" aria-label="Download CSV">↓</button>
     <button type="button" role="menuitem" id="uploadBtn" title="Upload CSV" aria-label="Upload CSV">↑</button>
-    <button type="button" role="menuitem" id="settingsOpen" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="display:block"><path d="M4 6h8M18 6h2M4 12h2M12 12h8M4 18h10M20 18h0"/><circle cx="15" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg></button>
+    <button type="button" role="menuitem" id="settingsOpen" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="display:block"><path d="M4 6h8M18 6h2M4 12h2M12 12h8M4 18h10M20 18h0"/><circle cx="15" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg><i class="cl-dot" aria-hidden="true"></i></button>
 </div>
 <dialog id="moveDialog">
     <form class="dlg tile-dlg" id="moveForm" autocomplete="off">
@@ -438,7 +470,7 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
         </div>
     </form>
 </dialog>
-<div id="BUILD-FOOTER"><span id="buildText">BUILD: 2026-11-13 12:15:00</span></div>
+<div id="BUILD-FOOTER"><span id="buildText">BUILD: 2026-11-18 14:00:00</span></div>
 <div id="buildInfo" role="tooltip"></div>
 <div id="searchBox" role="dialog" aria-label="Search tiles">
     <div class="sb-panel">
@@ -567,6 +599,7 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
                 <button type="button" data-p="appearance">Appearance</button>
                 <button type="button" data-p="storage">Storage</button>
                 <button type="button" data-p="images">Images</button>
+                <button type="button" data-p="about">About<i class="cl-dot" aria-hidden="true"></i></button>
             </nav>
             <div id="stPanels">
                 <section data-p="appearance">
@@ -588,6 +621,11 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
                     <div id="stBreak"></div>
                     <div class="st-reminder"><b>Reminder:</b> the one-time transition code that moves your tiles from localStorage to IndexedDB is still in this page. Search the HTML for <b>TRANSITION CODE</b> and delete it once everything you use has been transitioned.</div>
                 </section>
+                <section data-p="about" hidden>
+                    <h3>About</h3>
+                    <p class="st-sub">What this page is running, and what changed in each version.</p>
+                    <a href="#_changelog" class="cl-row" id="clRow"><span>Changelog</span><span class="cl-rver" id="clVer"></span><i class="cl-dot" aria-hidden="true"></i><span class="cl-go">What’s new →</span></a>
+                </section>
                 <section data-p="images" hidden>
                     <h3>Images</h3>
                     <div class="st-row">
@@ -608,6 +646,24 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
     </div>
 </dialog>
 <script>
+/* CHANGELOG:START */
+const APP_VERSION = "1.3.0";
+const CHANGELOG = [
+    { v: "1.3.0", date: "2026-11-18", changes: [
+        { t: "added", text: "Changelog page in Settings > About", why: "Shows what changed in each version" }
+    ]},
+    { v: "1.2.0", date: "2026-11-18", changes: [
+        { t: "added", text: "File size shown next to each gist version", why: "Sizes load gradually and are remembered" }
+    ]},
+    { v: "1.1.1", date: "2026-11-18", changes: [
+        { t: "fixed", text: "Unchanged tiles no longer create empty gist versions", cause: "Upload ran on every save, even when the gist already matched" }
+    ]},
+    { v: "1.1.0", date: "2026-11-17", changes: [
+        { t: "added", text: "Sync dialog lists which device updated the gist, and why" },
+        { t: "added", text: "Name each device for the sync log", why: "Similar devices are otherwise hard to tell apart" }
+    ]}
+];
+/* CHANGELOG:END */
 // YOUR DATA — Edit only this CSV block at the bottom!
 const defaultCsvData = `
 page,text,url,icon,desc,copy
@@ -846,7 +902,7 @@ document.getElementById('toastUndo').addEventListener('click', undo);
 document.addEventListener('keydown', e => {
     if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.key.toLowerCase() !== 'z') return;
     if (document.querySelector('dialog[open]') || (e.target.closest && e.target.closest('input,textarea'))) return;
-    if (currentPage() === EDITOR_ROUTE) return;
+    if (isSpecialPage()) return;
     e.preventDefault(); undo();
 });
 // ---- Font Awesome icons: icon column value "fa:house" | "fa:brands github" | "fa:regular heart" | "fa-solid fa-house" ----
@@ -1103,7 +1159,7 @@ function render() {
     const editing = current === EDITOR_ROUTE;
     document.getElementById('pageTitle').textContent =
     document.getElementById('pageHeader').textContent =
-        current === 'home' ? 'Home' : editing ? 'Data editor' : current.charAt(0).toUpperCase() + current.slice(1);
+        current === 'home' ? 'Home' : editing ? 'Data editor' : current === CHANGELOG_ROUTE ? 'Changelog' : current.charAt(0).toUpperCase() + current.slice(1);
    
     // Show/hide home button and the settings (gear) button
     const homeBtn = document.getElementById('homeBtn');
@@ -1111,7 +1167,8 @@ function render() {
     homeBtn.classList.toggle('show', !onHome);
     document.getElementById('settingsBtn').classList.toggle('show', onHome);
     if (!onHome) closeSettings();
-    document.getElementById('searchBtn').classList.toggle('show', !editing);
+    const changelogView = current === CHANGELOG_ROUTE;
+    document.getElementById('searchBtn').classList.toggle('show', !editing && !changelogView);
     const upRow = items.find(r => r.url === '#' + current);
     const backBtn = document.getElementById('backBtn');           // goes up one level (to the folder this page lives in)
     const parent = upRow ? upRow.page : 'home';
@@ -1120,10 +1177,12 @@ function render() {
     backBtn.title = 'Back to ' + (parent === 'home' ? 'Home' : parent);
     // The editor is a separate view that replaces the tile grid
     document.getElementById('editor').style.display = editing ? 'block' : 'none';
-    document.getElementById('grid').style.display = editing ? 'none' : '';
+    document.getElementById('grid').style.display = (editing || changelogView) ? 'none' : '';
+    document.getElementById('changelog').style.display = changelogView ? 'block' : 'none';
     document.querySelector('.container').classList.toggle('wide', editing);
     runHooks('render', { page: current, editing });
     if (editing) { renderEditor(); return; }
+    if (changelogView) { renderChangelog(); return; }
    
     visibleItems = items.filter(item => item.page === current);
     const tiles = visibleItems
@@ -2033,7 +2092,7 @@ document.addEventListener('paste', e => {
     e.preventDefault();
     const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
     const links = lines.map(normalizeLink);
-    if (lines.length > 1 && links.every(Boolean) && currentPage() !== EDITOR_ROUTE) { addLinkTiles(links); return; }
+    if (lines.length > 1 && links.every(Boolean) && !isSpecialPage()) { addLinkTiles(links); return; }
     openTileDialog(text);
 });
 byId('tdCancel').addEventListener('click', () => tileDialog.close());
@@ -2120,6 +2179,7 @@ function stShow(name) {
     if (name === 'appearance') markAccent();
     else if (name === 'storage') { stSay(''); stRenderStorage(); }
     else if (name === 'images') stRenderImages();
+    else if (name === 'about') byId('clVer').textContent = 'v' + APP_VERSION;
 }
 function openSettingsDialog(name) {
     if (!settingsDialog.open) settingsDialog.showModal();
@@ -2524,7 +2584,7 @@ byId('tileForm').addEventListener('submit', e => {
         if (!slug(text)) return fail('A folder needs a title with at least one letter or number \u2013 its page name is made from it. (Or add a URL or some copy text to make a tile instead.)');
         url = '#' + slug(text); byId('tdUrl').value = url;
     }
-    const page = currentPage() === EDITOR_ROUTE ? 'home' : currentPage();   // new tiles go on the page being viewed
+    const page = isSpecialPage() ? 'home' : currentPage();   // new tiles go on the page being viewed
     const icon = kind === 'folder' ? '' : byId('tdIcon').value.trim();
     const vals = { page, text, url, icon: (kind === 'copy' && icon.toLowerCase() === 'true') ? '' : icon,
                    desc: byId('tdDesc').value.trim(), copy: byId('tdCopy').value };
@@ -2595,7 +2655,7 @@ window.addEventListener('resize', closeMenu);
 window.addEventListener('scroll', closeMenu, true);
 // true when `t` is empty page background: not a tile, the header, a dialog, a menu, the editor, or any control/link
 function isBlankArea(t) {
-    if (!t || !t.closest || currentPage() === EDITOR_ROUTE || document.querySelector('dialog[open]')) return false;
+    if (!t || !t.closest || isSpecialPage() || document.querySelector('dialog[open]')) return false;
     return !t.closest('header,dialog,#searchBox,#ctxMenu,#settingsMenu,#toast,#buildInfo,#BUILD-FOOTER,#trashZone,#editor,a,button,input,textarea,select,[contenteditable]');
 }
 document.addEventListener('contextmenu', e => {
@@ -2646,6 +2706,8 @@ moveDialog.addEventListener('close', () => { moveItem = null; });
 
 /* ======================= In-app CSV editor ======================= */
 const EDITOR_ROUTE = '_editor';
+const CHANGELOG_ROUTE = '_changelog';                                   // the changelog view (Settings > About): not a tile page
+function isSpecialPage() { const c = currentPage(); return c === EDITOR_ROUTE || c === CHANGELOG_ROUTE; }
 const LONG_LEN = 80;     // longer than this (or containing a line break) => read-only cell, edited in a dialog
 const COL_W = { page: 110, text: 170, url: 260, icon: 170, desc: 220, copy: 300 };
 const RN_COL_W = 62;     // row-number column (drag handle + number)
@@ -3034,10 +3096,10 @@ function importCsv(text, name) {
 // Drag a .csv file (import) or a link (new tile) from outside onto the page
 document.addEventListener('dragover', e => {
     const types = e.dataTransfer ? Array.from(e.dataTransfer.types) : [];
-    if (!dragState && currentPage() !== EDITOR_ROUTE && (types.includes('Files') || types.includes('text/uri-list'))) e.preventDefault();
+    if (!dragState && !isSpecialPage() && (types.includes('Files') || types.includes('text/uri-list'))) e.preventDefault();
 });
 document.addEventListener('drop', e => {
-    if (dragState || currentPage() === EDITOR_ROUTE || !e.dataTransfer) return;
+    if (dragState || isSpecialPage() || !e.dataTransfer) return;
     const f = e.dataTransfer.files && e.dataTransfer.files[0];
     if (f) {
         e.preventDefault();
@@ -3095,6 +3157,84 @@ function onRoute() {
     render();
 }
 window.onhashchange = onRoute;
+/* ======================= Changelog: data is the CHANGELOG block at the top of this script ======================= */
+// Entry point: Settings > About > Changelog row. The page is its own view (#_changelog); the header's Back button returns to Home.
+// A small dot marks the gear, the Settings menu item, the About tab and the Changelog row until the page has been opened for the current version.
+const clEl = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const clCap = t => t.charAt(0).toUpperCase() + t.slice(1);
+let clFilter = 'all', clQuery = '', clBuilt = false, clMemSeen = '';
+function clSeen() { try { return localStorage.getItem('changelogSeen') || clMemSeen; } catch (e) { return clMemSeen; } }
+function clUpdateDot() { document.body.classList.toggle('cl-unread', clSeen() !== APP_VERSION); }
+function clMarkSeen() { clMemSeen = APP_VERSION; try { localStorage.setItem('changelogSeen', APP_VERSION); } catch (e) {} clUpdateDot(); }
+function clMarkdown() {                                                 // the whole changelog, whatever the filter says
+    const out = ['# Changelog', ''];
+    CHANGELOG.forEach(e => {
+        out.push('## v' + e.v + ' — ' + e.date, '');
+        e.changes.forEach(c => out.push('- **' + clCap(c.t) + ':** ' + c.text + (c.cause ? ' _(cause: ' + c.cause + ')_' : c.why ? ' _(' + c.why + ')_' : '')));
+        out.push('');
+    });
+    return out.join('\n');
+}
+function clBuild() {
+    const root = byId('changelog'); root.textContent = '';
+    const tools = clEl('div', 'cl-tools'), chips = clEl('div', 'cl-chips');
+    chips.setAttribute('role', 'group'); chips.setAttribute('aria-label', 'Filter by type');
+    ['all'].concat(['added', 'changed', 'fixed', 'removed']).forEach(t => {
+        const b = clEl('button', 'cl-chip', clCap(t)); b.type = 'button'; b.dataset.t = t; b.setAttribute('aria-pressed', String(t === clFilter));
+        b.addEventListener('click', () => { clFilter = t; chips.querySelectorAll('.cl-chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.t === clFilter))); clRenderList(); });
+        chips.append(b);
+    });
+    const q = clEl('input', 'cl-search'); q.type = 'search'; q.placeholder = 'Search changes'; q.setAttribute('aria-label', 'Search changes'); q.value = clQuery;
+    q.addEventListener('input', () => { clQuery = q.value; clRenderList(); });
+    tools.append(chips, q);
+    const acts = clEl('div', 'cl-tools');
+    const copy = clEl('button', 'tbtn', 'Copy as Markdown'); copy.type = 'button';
+    copy.addEventListener('click', () => {
+        Promise.resolve(copyToClipboard(clMarkdown())).then(() => 'Copied ✓', () => 'Copy failed')
+            .then(msg => { copy.textContent = msg; setTimeout(() => { copy.textContent = 'Copy as Markdown'; }, 1400); });
+    });
+    const dl = clEl('button', 'tbtn', 'Download CHANGELOG.md'); dl.type = 'button';
+    dl.addEventListener('click', () => {
+        const url = URL.createObjectURL(new Blob([clMarkdown()], { type: 'text/markdown' }));
+        const a = document.createElement('a'); a.href = url; a.download = 'CHANGELOG.md'; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+    });
+    acts.append(copy, dl);
+    const list = clEl('div'); list.id = 'clList';
+    root.append(tools, acts, list);
+}
+function clRenderList() {
+    const box = byId('clList'); box.textContent = '';
+    const q = clQuery.trim().toLowerCase(), filtering = clFilter !== 'all' || !!q;
+    let shown = 0;
+    CHANGELOG.forEach((e, i) => {
+        const rows = e.changes.filter(c => (clFilter === 'all' || c.t === clFilter) &&
+            (!q || [c.text, c.cause, c.why, 'v' + e.v, e.date].join(' ').toLowerCase().includes(q)));
+        if (!rows.length) return;
+        shown++;
+        const d = clEl('details'); d.open = filtering || i === 0;            // newest expanded, older collapsed (all open while filtering)
+        const sum = clEl('summary'); sum.append(clEl('b', '', 'v' + e.v), clEl('span', 'cl-date', e.date)); d.append(sum);
+        rows.forEach(c => {
+            const r = clEl('div', 'cl-item'), body = clEl('div');
+            r.append(clEl('span', 'cl-tag ' + c.t, c.t));
+            body.append(clEl('div', 'cl-text', c.text));
+            const why = c.cause ? 'Cause: ' + c.cause : c.why || '';
+            if (why) body.append(clEl('div', 'cl-why', why));
+            r.append(body); d.append(r);
+        });
+        box.append(d);
+    });
+    if (!shown) box.append(clEl('p', 'cl-empty', 'No changes match.'));
+}
+function renderChangelog() {
+    if (!clBuilt) { clBuild(); clBuilt = true; }
+    clRenderList();
+    clMarkSeen();
+}
+byId('clRow').addEventListener('click', e => { e.preventDefault(); if (settingsDialog.open) settingsDialog.close(); location.hash = CHANGELOG_ROUTE; });
+byId('clVer').textContent = 'v' + APP_VERSION;
+clUpdateDot();
+
 /* ======================= Search: header button, "/" or Ctrl/Cmd+K; click a result to open it, a folder to go there ======================= */
 const sbBox = byId('searchBox'), sbInput = byId('sbInput'), sbList = byId('sbList');
 let sbHits = [], sbSel = -1;          // -1 = nothing highlighted yet (Enter then opens the first result)
@@ -3181,7 +3321,7 @@ function sbRender() {
     });
 }
 function openSearch() {
-    if (currentPage() === EDITOR_ROUTE || document.querySelector('dialog[open]')) return;
+    if (isSpecialPage() || document.querySelector('dialog[open]')) return;
     if (sbBox.classList.contains('open')) { sbInput.focus(); sbInput.select(); return; }
     sbBox.classList.add('open'); sbInput.value = ''; sbRender(); sbInput.focus();
 }
@@ -3228,7 +3368,7 @@ sbList.addEventListener('click', e => {
 document.addEventListener('keydown', e => {              // "/" (when not typing) or Ctrl/Cmd+K opens the search
     const typing = e.target.closest && e.target.closest('input,textarea,select,[contenteditable]');
     if ((e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey && !typing) || ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'k')) {
-        if (currentPage() === EDITOR_ROUTE || document.querySelector('dialog[open]')) return;
+        if (isSpecialPage() || document.querySelector('dialog[open]')) return;
         e.preventDefault(); openSearch();
     } else if (e.key === 'Escape' && sbBox.classList.contains('open')) closeSearch();
 });
@@ -3238,6 +3378,7 @@ const builds = [];                                             // [file name, bu
     let name = 'This page';
     try { name = decodeURIComponent(location.pathname.split('/').pop()) || name; } catch (e) {}
     builds.push([name, byId('buildText').textContent.replace(/^BUILD:\s*/, '')]);
+    builds.push(['Version', 'v' + APP_VERSION]);
 })();
 function renderBuildInfo() {
     const box = byId('buildInfo'); box.textContent = '';

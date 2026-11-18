@@ -17,7 +17,7 @@
 */
 (function () {
 'use strict';
-const BUILD = '2026-11-17 12:00:00';
+const BUILD = '2026-11-18 14:00:00';
 const LP = window.LinkPage;
 if (!LP || !document.getElementById('hdrActions')) { console.warn('gist_sync.js: page not recognised, sync not loaded'); return; }
 if (LP.addBuild) LP.addBuild('gist_sync.js', BUILD);
@@ -544,6 +544,10 @@ async function doPush(throwOnError, known, skipCheck, reason) {
         if (LP.preview.active()) return false;                        // a preview was opened meanwhile: do nothing
         const base = getBase(), mine = loadCsvData();
         const remoteHas = typeof remote.csv === 'string' && remote.csv.trim() !== '';
+        if (remoteHas && same(remote.csv, mine)) {                    // the gist already has exactly these tiles: nothing to upload, so no new version and no log entry
+            setBase(remote.version); setPending(false); markSync('already up to date'); setSyncUi('ok');
+            return 'same';
+        }
         if (!skipCheck && remoteHas && !same(remote.csv, mine) && (!base || (remote.version && remote.version !== base))) {
             const choice = await askConflict(remote);
             if (choice === 'online') { await applyRemote(remote); setSyncUi('ok'); return 'updated'; }
@@ -702,10 +706,35 @@ function exitPreview(silent) {
     if (syncId && getPending()) scheduleSync('Upload held back while an old version was being previewed');   // an upload that was held back while previewing
     if (!silent) showToast('Preview closed – your own tiles are back', true, 'ok');
 }
+// Size of tiles.csv in each version. The commits list has no sizes, so each one costs a request; but a version never changes,
+// so every size is fetched once, remembered in localStorage, and filled in gradually (3 at a time) after the list has appeared.
+const SIZE_KEY = 'gistVerSizes', SIZE_MAX = 600;
+let histGen = 0;
+function sizeCache() { try { return JSON.parse(localStorage.getItem(SIZE_KEY) || '{}') || {}; } catch (e) { return {}; } }
+function sizeSave(o) { try { const k = Object.keys(o); if (k.length > SIZE_MAX) k.slice(0, k.length - SIZE_MAX).forEach(x => delete o[x]); localStorage.setItem(SIZE_KEY, JSON.stringify(o)); } catch (e) {} }
+function fmtBytes(n) { return n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(n < 10240 ? 1 : 0) + ' KB' : (n / 1048576).toFixed(2) + ' MB'; }
+async function fillSizes(todo, gen) {
+    const queue = todo.slice(), cache = sizeCache();
+    let stop = false;
+    const worker = async () => {
+        while (queue.length && !stop && gen === histGen && histDialog.open) {
+            const it = queue.shift();
+            try {
+                const g = await gh('/gists/' + syncId + '/' + it.sha);
+                const f = g.files && g.files[GIST_CSV];
+                if (f && typeof f.size === 'number') { cache[it.sha] = f.size; it.el.textContent = ' · ' + fmtBytes(f.size); }
+                else it.el.textContent = '';
+            } catch (e) { it.el.textContent = ''; stop = true; }          // e.g. a rate limit: leave the rest blank rather than keep trying
+        }
+    };
+    await Promise.all([worker(), worker(), worker()]);
+    sizeSave(cache);
+}
 async function loadHistory(reset) {
     const list = $('hiList'), more = $('hiMore'), msg = $('hiMsg');
     msg.textContent = '';
-    if (reset) { list.textContent = ''; histPage = 0; histDone = false; }
+    if (reset) { list.textContent = ''; histPage = 0; histDone = false; histGen++; }
+    const gen = histGen, todo = [];
     more.disabled = true;
     try {
         const page = histPage + 1;
@@ -720,6 +749,9 @@ async function loadHistory(reset) {
             const t = document.createElement('b'); t.textContent = fmt(Date.parse(c.committed_at));
             const d = document.createElement('small'), cs = c.change_status;
             d.textContent = c.version.slice(0, 8) + (cs ? ' · +' + (cs.additions || 0) + ' −' + (cs.deletions || 0) + ' lines' : '') + (isLatest ? ' · latest online' : '') + (c.version === base ? ' · last synced on this device' : '');
+            const sz = document.createElement('span'), known = sizeCache()[c.version];
+            sz.textContent = known != null ? ' · ' + fmtBytes(known) : ' · …'; d.append(sz);
+            if (known == null) todo.push({ sha: c.version, el: sz });
             info.append(t, d); row.append(info);
             const b = document.createElement('button'); b.type = 'button'; b.className = 'tbtn'; b.textContent = 'Preview';
             b.addEventListener('click', () => previewVersion(c, b));
@@ -727,6 +759,7 @@ async function loadHistory(reset) {
         });
     } catch (e) { msg.textContent = syncErr(e); }
     more.style.display = histDone ? 'none' : ''; more.disabled = false;
+    if (todo.length) fillSizes(todo, gen);
 }
 async function previewVersion(c, btn) {
     if (LP.isBusy()) { $('hiMsg').textContent = 'Finish or save what you are editing first.'; return; }
@@ -767,7 +800,7 @@ async function restoreVersion() {
             'The version that is online now is not deleted: it stays in the gist history and you can come back to it.' +
             (lose ? '\n\n⚠ This device has tiles that are not in the online copy. They will be replaced here (Undo can bring them back on this device only).' : ''))) return;
         const r = await applyVersion(rev, latest);
-        if (r === 'pushed') showToast('Synced to the version from ' + fmt(rev.when) + ' ✓', false, 'ok');
+        if (r === 'pushed' || r === 'same') showToast('Synced to the version from ' + fmt(rev.when) + ' ✓', false, 'ok');
         else showToast('Not uploaded (' + r + '). This device has the old version; open ☁ and press Sync now to finish.', true, 'err');
     } catch (e) {
         showToast('Could not sync to that version: ' + syncErr(e) + '\nOpen ☁ and press Sync now to retry.', true, 'err');
