@@ -470,7 +470,7 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
         </div>
     </form>
 </dialog>
-<div id="BUILD-FOOTER"><span id="buildText">BUILD: 2026-11-18 14:00:00</span></div>
+<div id="BUILD-FOOTER"><span id="buildText">BUILD: 2026-11-18 15:00:00</span></div>
 <div id="buildInfo" role="tooltip"></div>
 <div id="searchBox" role="dialog" aria-label="Search tiles">
     <div class="sb-panel">
@@ -647,20 +647,14 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
 </dialog>
 <script>
 /* CHANGELOG:START */
-const APP_VERSION = "1.3.0";
+const APP_VERSION = "1.1.0";
 const CHANGELOG = [
-    { v: "1.3.0", date: "2026-11-18", changes: [
-        { t: "added", text: "Changelog page in Settings > About", why: "Shows what changed in each version" }
-    ]},
-    { v: "1.2.0", date: "2026-11-18", changes: [
-        { t: "added", text: "File size shown next to each gist version", why: "Sizes load gradually and are remembered" }
-    ]},
-    { v: "1.1.1", date: "2026-11-18", changes: [
-        { t: "fixed", text: "Unchanged tiles no longer create empty gist versions", cause: "Upload ran on every save, even when the gist already matched" }
-    ]},
-    { v: "1.1.0", date: "2026-11-17", changes: [
+    { v: "1.1.0", date: "2026-11-18", changes: [
+        { t: "added", text: "Changelog page in Settings > About", why: "Shows what changed in each version" },
         { t: "added", text: "Sync dialog lists which device updated the gist, and why" },
-        { t: "added", text: "Name each device for the sync log", why: "Similar devices are otherwise hard to tell apart" }
+        { t: "added", text: "Name each device for the sync log", why: "Similar devices are otherwise hard to tell apart" },
+        { t: "added", text: "File size shown next to each gist version", why: "Sizes load gradually and are remembered" },
+        { t: "fixed", text: "Unchanged tiles no longer create empty gist versions", cause: "Upload ran on every save, even when the gist already matched" }
     ]}
 ];
 /* CHANGELOG:END */

@@ -17,7 +17,7 @@
 */
 (function () {
 'use strict';
-const BUILD = '2026-11-18 14:00:00';
+const BUILD = '2026-11-18 16:00:00';
 const LP = window.LinkPage;
 if (!LP || !document.getElementById('hdrActions')) { console.warn('gist_sync.js: page not recognised, sync not loaded'); return; }
 if (LP.addBuild) LP.addBuild('gist_sync.js', BUILD);
@@ -57,6 +57,7 @@ styleEl.textContent = `
     .gl-info b{display:block;font-weight:600;overflow-wrap:anywhere}
     .gl-info small{display:block;color:#888;overflow-wrap:anywhere}
     .gl-row .tbtn{padding:3px 8px;font-size:.75rem}
+    .gl-size{font-size:.78rem;color:#556;font-variant-numeric:tabular-nums;white-space:nowrap;min-width:56px;text-align:right}
     .tile-fields label.gl-check{flex-direction:row;align-items:center;gap:6px;font-weight:400}
 `;
 document.head.appendChild(styleEl);
@@ -722,12 +723,17 @@ async function fillSizes(todo, gen) {
             try {
                 const g = await gh('/gists/' + syncId + '/' + it.sha);
                 const f = g.files && g.files[GIST_CSV];
-                if (f && typeof f.size === 'number') { cache[it.sha] = f.size; it.el.textContent = ' · ' + fmtBytes(f.size); }
-                else it.el.textContent = '';
-            } catch (e) { it.el.textContent = ''; stop = true; }          // e.g. a rate limit: leave the rest blank rather than keep trying
+                if (f && typeof f.size === 'number') { cache[it.sha] = f.size; it.el.textContent = fmtBytes(f.size); }
+                else { it.el.textContent = 'n/a'; it.el.title = 'This version has no tiles.csv'; }
+            } catch (e) {
+                it.el.textContent = '?'; it.el.title = 'Could not get the size: ' + syncErr(e);
+                console.warn('gist_sync: size lookup failed', e);
+                if (/403|429/.test(String(e.message))) stop = true;       // rate limit: stop asking, the rest show "?"
+            }
         }
     };
     await Promise.all([worker(), worker(), worker()]);
+    queue.forEach(it => { it.el.textContent = '?'; it.el.title = 'Not loaded (GitHub rate limit). Close and reopen to retry.'; });
     sizeSave(cache);
 }
 async function loadHistory(reset) {
@@ -750,9 +756,10 @@ async function loadHistory(reset) {
             const d = document.createElement('small'), cs = c.change_status;
             d.textContent = c.version.slice(0, 8) + (cs ? ' · +' + (cs.additions || 0) + ' −' + (cs.deletions || 0) + ' lines' : '') + (isLatest ? ' · latest online' : '') + (c.version === base ? ' · last synced on this device' : '');
             const sz = document.createElement('span'), known = sizeCache()[c.version];
-            sz.textContent = known != null ? ' · ' + fmtBytes(known) : ' · …'; d.append(sz);
+            sz.className = 'gl-size'; sz.title = 'Size of tiles.csv in this version';
+            sz.textContent = known != null ? fmtBytes(known) : '…';
             if (known == null) todo.push({ sha: c.version, el: sz });
-            info.append(t, d); row.append(info);
+            info.append(t, d); row.append(info, sz);
             const b = document.createElement('button'); b.type = 'button'; b.className = 'tbtn'; b.textContent = 'Preview';
             b.addEventListener('click', () => previewVersion(c, b));
             row.append(b); list.append(row);
