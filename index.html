@@ -470,7 +470,7 @@ s.setProperty('--accent',c);s.setProperty('--accent-contrast',(0.299*(n>>16)+0.5
         </div>
     </form>
 </dialog>
-<div id="BUILD-FOOTER"><span id="buildText">BUILD: 2026-11-18 15:00:00</span></div>
+<div id="BUILD-FOOTER"><span id="buildText">BUILD: 2026-11-18 17:00:00</span></div>
 <div id="buildInfo" role="tooltip"></div>
 <div id="searchBox" role="dialog" aria-label="Search tiles">
     <div class="sb-panel">
@@ -654,7 +654,9 @@ const CHANGELOG = [
         { t: "added", text: "Sync dialog lists which device updated the gist, and why" },
         { t: "added", text: "Name each device for the sync log", why: "Similar devices are otherwise hard to tell apart" },
         { t: "added", text: "File size shown next to each gist version", why: "Sizes load gradually and are remembered" },
-        { t: "fixed", text: "Unchanged tiles no longer create empty gist versions", cause: "Upload ran on every save, even when the gist already matched" }
+        { t: "added", text: "View on GitHub link on every gist in the list" },
+        { t: "fixed", text: "Unchanged tiles no longer create empty gist versions", cause: "Upload ran on every save, even when the gist already matched" },
+        { t: "fixed", text: "List my gists showed nothing in a tall Sync dialog", cause: "The list box was squashed to zero height by the dialog layout" }
     ]}
 ];
 /* CHANGELOG:END */

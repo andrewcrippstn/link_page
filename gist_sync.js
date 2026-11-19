@@ -17,7 +17,7 @@
 */
 (function () {
 'use strict';
-const BUILD = '2026-11-18 16:00:00';
+const BUILD = '2026-11-18 17:00:00';
 const LP = window.LinkPage;
 if (!LP || !document.getElementById('hdrActions')) { console.warn('gist_sync.js: page not recognised, sync not loaded'); return; }
 if (LP.addBuild) LP.addBuild('gist_sync.js', BUILD);
@@ -48,7 +48,10 @@ styleEl.textContent = `
     #previewBar.show{display:flex}
     #previewBar .spacer{flex:1}
     body.previewing{padding-top:var(--pvh,48px)}
-    .gl-list{border:1px solid #ddd;border-radius:4px;max-height:220px;overflow:auto;font-size:.8rem}
+    .gl-list{flex:none;border:1px solid #ddd;border-radius:4px;max-height:220px;overflow:auto;font-size:.8rem}     /* flex:none = never squashed to zero height inside the dialog's scrolling column */
+    .gl-row a.gl-view{color:#2a5bd7;font-size:.75rem;white-space:nowrap;text-decoration:none}
+    .gl-row a.gl-view:hover{text-decoration:underline}
+    .gl-head{padding:5px 8px;background:#f6f6f6;border-bottom:1px solid #ddd;color:#555;font-size:.75rem}
     .gl-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #eee;flex-wrap:wrap}
     .gl-row:last-child{border-bottom:0}
     .gl-row.other{color:#999}
@@ -241,7 +244,7 @@ async function verifyStored(csv) {              // the tiles must really be in t
     if (err) throw new Error('this device could not store the tiles (' + err + ')');
     if (!same(loadCsvData(), csv)) throw new Error('the tiles on this device did not change as expected');
 }
-function syncMsg(text) { $('syMsg').textContent = text || ''; }       // error line inside the dialog (toasts sit behind an open dialog)
+function syncMsg(text) { const m = $('syMsg'); m.textContent = text || ''; if (text && m.scrollIntoView) m.scrollIntoView({ block: 'nearest' }); }       // error line inside the dialog (toasts sit behind an open dialog)
 
 async function gh(path, opts, token) {
     opts = opts || {};
@@ -351,6 +354,9 @@ async function showGistList() {
         box.textContent = '';
         box.style.display = 'block';
         if (!gists.length) { box.textContent = 'No gists found in this account.'; return; }
+        const head = document.createElement('div'); head.className = 'gl-head';
+        head.textContent = gists.length + ' gist' + (gists.length === 1 ? '' : 's') + ' in this account, newest first';
+        box.append(head);
         gists.sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''));
         gists.forEach(g => {
             const names = Object.keys(g.files || {});
@@ -388,10 +394,11 @@ async function showGistList() {
                 });
                 row.append(rn);
             }
-            const a = document.createElement('a'); a.href = g.html_url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '↗';
-            a.title = 'Open on GitHub'; row.append(a);
+            const a = document.createElement('a'); a.className = 'gl-view'; a.href = g.html_url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'View on GitHub ↗';
+            a.title = g.html_url; row.append(a);
             box.append(row);
         });
+        if (box.scrollIntoView) box.scrollIntoView({ block: 'nearest' });
     } catch (e) {
         box.style.display = 'none';
         syncMsg(syncErr(e));
